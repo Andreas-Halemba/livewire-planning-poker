@@ -1,0 +1,39 @@
+parameters:
+    reportUnmatchedIgnoredErrors: false
+    checkGenericClassInNonGenericObjectType: false
+
+    paths:
+        - app
+        - public
+        - config
+        - database
+        - resources
+        - routes
+        - tests
+
+    # The level 9 is the highest level
+    level: 8
+
+    ignoreErrors:
+        - '#PHPDoc tag @mixin contains unknown class Eloquent.#'
+        - '#Call to static method has(Table|Column)\(\) on an unknown class (DB|Schema)#'
+        - '#Call to static method (create|table|dropIfExists)\(\) on an unknown class (DB|Schema).#'
+        - '#Unsafe usage of new static#'
+        - "#^Call to an undefined method Pest\\\\Expectation\\|Pest\\\\Support\\\\Extendable\\:\\:toBe\\(\\)\\.#"
+        - "#Call to an undefined method Pest\\\\PendingCalls\\\\TestCall|Pest\\\\Support\\\\HigherOrderTapProxy::with\\(\\)#"
+        - "#orWhereTranslationLike#"
+        - "#Call to an undefined static method Illuminate\\\\Support\\\\Facades\\\\Route::(singleton|module)\\(\\)#"
+        - "#Call to an undefined method Illuminate\\\\Database\\\\Eloquent\\\\Builder<A17\\\\Twill\\\\Models\\\\Model>::orderByTranslation\\(\\).#"
+        - "#Call to an undefined method Illuminate\\\\Database\\\\Eloquent\\\\Builder::bySearchCode\\(\\).#"
+        - "#Method App\\\\Http\\\\Livewire\\\\SearchCode::search\\(\\) never returns Livewire\\\\Redirector so it can be removed from the return type.#"
+
+    excludePaths:
+        - %rootDir%/../../../database/factories
+        - %rootDir%/../../../routes/console.php
+        - %rootDir%/../../../server.php
+        - %rootDir%/../../../config/insights.php
+        - %rootDir%/../../../vendor
+        - %rootDir%/../../../tests/
+        - %rootDir%/../../../database/migrations
+
+    checkMissingIterableValueType: false
