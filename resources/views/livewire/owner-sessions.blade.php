@@ -18,10 +18,6 @@
                                 x-clipboard.raw="{{ route('session.voting', ['inviteCode' => $session->invite_code]) }}"
                             >Copy Invite link</a>
                             <a
-                                class="w-full btn btn-secondary btn-sm"
-                                href="{{ route('session.issues', ['inviteCode' => $session->invite_code]) }}"
-                            >Edit</a>
-                            <a
                                 class="w-full btn btn-error btn-sm"
                                 wire:click.prevent="deleteSession('{{ $session->id }}')"
                             >Delete</a>

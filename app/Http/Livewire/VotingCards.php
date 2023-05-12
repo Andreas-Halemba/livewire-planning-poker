@@ -39,17 +39,22 @@ class VotingCards extends Component
 
     public function voteIssue(int $vote): void
     {
-        if($this->currentIssue && auth()->user()) {
-            Vote::query()->updateOrCreate([
-                'user_id' => auth()->id(),
-                'issue_id' => $this->currentIssue->id,
-            ], [
-                'value' => $vote,
-            ]);
-            $this->vote = $vote;
-            // TODO: rework add vote event
-            $this->emit('voteIssue', $vote);
-            broadcast(new AddVote($this->session, auth()->user()))->toOthers();
-        }
+        Vote::query()->updateOrCreate([
+            'user_id' => auth()->id(),
+            'issue_id' => $this->currentIssue?->id,
+        ], [
+            'value' => $vote,
+        ]);
+        $this->vote = $vote;
+        // @phpstan-ignore-next-line use can not be null here
+        broadcast(new AddVote($this->session, auth()->user()));
+    }
+
+    public function removeVote(): void
+    {
+        Vote::whereUserId(auth()->id())->whereIssueId($this->currentIssue?->id)->delete();
+        // @phpstan-ignore-next-line use can not be null here
+        broadcast(new AddVote($this->session, auth()->user()));
+        $this->vote = null;
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Livewire\IssueManagement;
 use App\Http\Livewire\SessionManagement;
 use App\Http\Livewire\Voting;
 use Illuminate\Support\Facades\Route;
@@ -28,8 +27,6 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function () {
     // Route for the Session Management component
     Route::get('/dashboard', SessionManagement::class)->name('dashboard');
-    // Route for the Issue Management component
-    Route::get('/sessions/{inviteCode}/issues', IssueManagement::class)->name('session.issues');
     // Route for the Voting component
     Route::get('/sessions/{inviteCode}/voting', Voting::class)->name('session.voting');
 

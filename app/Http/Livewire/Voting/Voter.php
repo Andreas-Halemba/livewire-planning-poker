@@ -12,7 +12,9 @@ class Voter extends Component
 
     public function render(): View
     {
-        return view('livewire.voting.voter');
+        return view('livewire.voting.voter', [
+            'session' => $this->session,
+        ]);
     }
 
     public function getListeners(): array
@@ -20,6 +22,7 @@ class Voter extends Component
         return [
             "echo-presence:session.{$this->session->invite_code},.IssueSelected" => '$refresh',
             "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => '$refresh',
+            "echo-presence:session.{$this->session->invite_code},.IssueAdded" => '$refresh',
         ];
     }
 }

@@ -1,10 +1,6 @@
 <div
     class="grid w-full grid-cols-2 gap-5 p-4 mb-10 sm:grid-cols-3 md:grid-cols-5 bg-base-300 text-base-content rounded-box">
-    <h2 class="text-lg col-span-full">Participants
-        @if ($votesRevealed && $issue)
-            <span>{{ $issue->average_vote }}</span>
-        @endif
-    </h2>
+    <h2 class="text-lg col-span-full">Participants</h2>
     @forelse ($participants as $user)
         <div
             @class([
@@ -33,9 +29,11 @@
         </div>
     @endforelse
     @can('owns_session', $session)
-        <button
-            wire:click="sendRevealEvent"
-            class="order-last btn btn-success col-span-full"
-        >Reveal votes</button>
+        @unless (blank($participantsVoted))
+            <button
+                wire:click="sendRevealEvent"
+                class="order-last btn btn-success col-span-full"
+            >Reveal votes</button>
+        @endunless
     @endcan
 </div>

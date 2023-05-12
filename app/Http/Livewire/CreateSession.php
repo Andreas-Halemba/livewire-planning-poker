@@ -7,8 +7,10 @@ use Auth;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Str;
 use Livewire\Component;
+use Livewire\Redirector;
 
 class CreateSession extends Component
 {
@@ -25,7 +27,7 @@ class CreateSession extends Component
         return view('livewire.create-session');
     }
 
-    public function createSession(): RedirectResponse
+    public function createSession(): Redirector|RedirectResponse
     {
         $this->validate();
         $session = Session::create([
@@ -33,7 +35,7 @@ class CreateSession extends Component
             'owner_id' => Auth::id(),
             'invite_code' => Str::random(8),
         ]);
-        return redirect(route('session.issues', $session->invite_code));
+        return Redirect::to(route('session.voting', ['inviteCode' => $session->invite_code], false));
     }
 
     public function updated(string $propertyName): void
