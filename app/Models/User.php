@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -43,7 +43,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @method static \Illuminate\Database\Eloquent\Builder|User whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens;
     use HasFactory;
@@ -87,5 +87,29 @@ class User extends Authenticatable
     public function ownedSessions(): HasMany
     {
         return $this->hasMany(Session::class, 'owner_id');
+    }
+
+    public function hasVerifiedEmail(): bool
+    {
+        // @TODO: Implement
+        return true;
+    }
+
+    public function markEmailAsVerified(): bool
+    {
+        // @TODO: Implement
+        return true;
+    }
+
+
+    public function sendEmailVerificationNotification(): void
+    {
+        // @TODO: Implement
+        return;
+    }
+
+    public function getEmailForVerification(): string
+    {
+        return $this->email;
     }
 }

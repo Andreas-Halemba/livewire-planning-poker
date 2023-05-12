@@ -20,6 +20,7 @@ class IssueManagement extends Component
 
     public Session $session;
 
+    /** @var array */
     protected $listeners = ['refreshIssues' => '$refresh'];
 
     public function mount(string $inviteCode): void
@@ -53,12 +54,12 @@ class IssueManagement extends Component
         broadcast(new IssueAdded($issue))->toOthers();
     }
 
-    public function editIssue($issueId)
+    public function editIssue(): void
     {
         $this->emit('refreshIssues');
     }
 
-    public function deleteIssue($issueId)
+    public function deleteIssue(int $issueId): void
     {
         $issue = Issue::findOrFail($issueId);
         $issue->delete();

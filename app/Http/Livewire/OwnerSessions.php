@@ -3,6 +3,7 @@
 namespace App\Http\Livewire;
 
 use App\Models\Session;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -11,7 +12,7 @@ class OwnerSessions extends Component
 {
     public Collection $sessions;
 
-    public function render()
+    public function render(): View
     {
         $this->sessions = Session::query()->whereOwnerId(Auth::id())->get();
 
