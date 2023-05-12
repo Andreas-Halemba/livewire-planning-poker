@@ -18,12 +18,12 @@ class IssueDeleted implements ShouldBroadcast
     {
     }
 
-    public function broadcastOn()
+    public function broadcastOn(): Channel
     {
         return new Channel('session.'.$this->sessionCode);
     }
 
-    public function broadcastAs()
+    public function broadcastAs(): string
     {
         return 'IssueDeleted';
     }

@@ -41,8 +41,10 @@ class Owner extends Component
     public function addPointsToIssue(int $id): void
     {
         $issue = Issue::query()->whereId($id)->first();
-        $issue->status = Issue::STATUS_FINISHED;
-        $issue->save();
+        if ($issue) {
+            $issue->status = Issue::STATUS_FINISHED;
+            $issue->save();
+        }
     }
 
     public function voteIssue(int $id): void
@@ -54,9 +56,11 @@ class Owner extends Component
     public function cancelIssue(int $id): void
     {
         $issue = Issue::query()->whereId($id)->first();
-        $issue->status = Issue::STATUS_NEW;
-        $issue->save();
-        broadcast(new IssueCanceled($issue))->toOthers();
+        if ($issue) {
+            $issue->status = Issue::STATUS_NEW;
+            $issue->save();
+            broadcast(new IssueCanceled($issue))->toOthers();
+        }
     }
 
     private function resetIssuesStatus(): void
@@ -70,9 +74,11 @@ class Owner extends Component
     private function setIssueStatusToVoting(int $id): void
     {
         $issue = Issue::query()->whereId($id)->first();
-        $issue->status = Issue::STATUS_VOTING;
-        $issue->save();
-        broadcast(new IssueSelected($issue))->toOthers();
+        if ($issue) {
+            $issue->status = Issue::STATUS_VOTING;
+            $issue->save();
+            broadcast(new IssueSelected($issue))->toOthers();
+        }
     }
 
     public function addIssue(): void

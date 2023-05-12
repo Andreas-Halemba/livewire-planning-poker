@@ -26,7 +26,7 @@ class SessionParticipants extends Component
 
     public bool $votesRevealed = false;
 
-    public function mount()
+    public function mount(): void
     {
         $this->participants = collect([]);
     }
@@ -36,12 +36,12 @@ class SessionParticipants extends Component
         $this->issue = Issue::whereStatus(Issue::STATUS_VOTING)->whereSessionId($this->session->id)->first();
         if ($this->issue) {
             $this->participantsVoted = $this->issue->votes()->pluck('user_id', 'user_id')->toArray();
-            $this->votes[auth()->id()] = $this->issue?->votes()->whereUserId(auth()->id())->first()?->value;
+            $this->votes[auth()->id()] = $this->issue->votes()->whereUserId(auth()->id())->first()?->value;
         }
         return view('livewire.session-participants');
     }
 
-    public function getListeners()
+    public function getListeners(): array
     {
         return [
             'voteIssue' => 'setCurrentVote',
@@ -55,7 +55,7 @@ class SessionParticipants extends Component
         ];
     }
 
-    public function reload()
+    public function reload(): void
     {
         $this->issue = null;
         $this->render();
@@ -66,42 +66,53 @@ class SessionParticipants extends Component
         if ($user->id === Auth::id() || $this->participants->contains('id', $user->id)) {
             return;
         }
-        $this->participants->push(User::find($user['id'])->toArray());
-
+        $user = User::find($user['id']);
+        if ($user instanceof User) {
+            $this
+                ->participants
+                ->push($user->toArray());
+        }
     }
 
-    public function userLeaves(User $user)
+    public function userLeaves(User $user): void
     {
-        $this->participants = $this->participants->filter(fn ($participant) => $participant['id'] !== $user->id);   
+        $this->participants = $this->participants->filter(fn ($participant) => $participant['id'] !== $user->id);
     }
 
     public function updateUsers(array $users): void
     {
-        $this->participants = collect(Arr::map($users, fn ($user) => User::find($user['id'])->toArray()));
+        $participants = new Collection(Arr::map($users, function (array $user) {
+            $user = User::find($user['id']);
+
+            return $user instanceof User ? $user->toArray() : null;
+        }));
+        $participants = $participants->filter(fn (array $user) => $user !== null);
+
+        $this->participants = $participants;
     }
 
-    public function setCurrentVote($vote): void
+    public function setCurrentVote(int $vote): void
     {
         $this->votes[auth()->id()] = $vote;
     }
 
     public function revealVotes(): void
     {
-        $this->votes = Issue::whereStatus(Issue::STATUS_VOTING)->whereSessionId($this->session->id)->first()?->votes()->pluck('value', 'user_id')->toArray();
+        $this->votes = Issue::whereStatus(Issue::STATUS_VOTING)->whereSessionId($this->session->id)->first()?->votes()->pluck('value', 'user_id')->toArray() ?? [];
         $this->votesRevealed = true;
     }
 
-    public function newVote(User $user)
+    public function newVote(User $user): void
     {
         $this->participantsVoted[$user->id] = $user->id;
     }
 
-    public function sendRevealEvent()
+    public function sendRevealEvent(): void
     {
         broadcast(new RevealVotes($this->session));
     }
 
-    public function userDidVote($id): bool
+    public function userDidVote(string $id): bool
     {
         return Arr::has($this->participantsVoted, $id);
     }
