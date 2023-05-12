@@ -3,7 +3,6 @@
 namespace App\Http\Livewire;
 
 use App\Models\Session;
-use Illuminate\Contracts\Validation\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Component;
@@ -22,7 +21,7 @@ class VotingIssueList extends Component
         ];
     }
 
-    public function render(): View|Factory
+    public function render(): View
     {
         return view('livewire.voting-issue-list');
     }

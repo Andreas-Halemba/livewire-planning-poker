@@ -27,12 +27,14 @@ class RevealVotes implements ShouldBroadcast
      *
      * @return array<int, \Illuminate\Broadcasting\Channel>
      */
-    public function broadcastOn()
+    public function broadcastOn(): array
     {
-        return new PresenceChannel('session.'.$this->session->invite_code);
+        return [
+            new PresenceChannel('session.'.$this->session->invite_code)
+        ];
     }
 
-    public function broadcastAs()
+    public function broadcastAs(): string
     {
         return 'RevealVotes';
     }

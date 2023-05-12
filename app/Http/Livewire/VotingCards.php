@@ -6,6 +6,7 @@ use App\Events\AddVote;
 use App\Models\Issue;
 use App\Models\Session;
 use App\Models\Vote;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class VotingCards extends Component
@@ -26,7 +27,7 @@ class VotingCards extends Component
         ];
     }
 
-    public function render()
+    public function render(): View
     {
         $this->currentIssue = Issue::whereStatus(Issue::STATUS_VOTING)->whereSessionId($this->session->id)->first(['id', 'title']);
         if ($this->currentIssue) {
@@ -38,14 +39,17 @@ class VotingCards extends Component
 
     public function voteIssue(int $vote): void
     {
-        Vote::query()->updateOrCreate([
-            'user_id' => auth()->id(),
-            'issue_id' => $this->currentIssue->id,
-        ], [
-            'value' => $vote,
-        ]);
-        $this->vote = $vote;
-        $this->emit('voteIssue', $vote);
-        broadcast(new AddVote($this->session, auth()->user()))->toOthers();
+        if($this->currentIssue && auth()->user()) {
+            Vote::query()->updateOrCreate([
+                'user_id' => auth()->id(),
+                'issue_id' => $this->currentIssue->id,
+            ], [
+                'value' => $vote,
+            ]);
+            $this->vote = $vote;
+            // TODO: rework add vote event
+            $this->emit('voteIssue', $vote);
+            broadcast(new AddVote($this->session, auth()->user()))->toOthers();
+        }
     }
 }

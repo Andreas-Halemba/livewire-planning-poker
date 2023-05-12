@@ -3,34 +3,33 @@
 namespace App\Http\Livewire;
 
 use App\Models\Session;
+use App\Services\SessionService;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Livewire\Component;
 
 class SessionManagement extends Component
 {
-    public $sessionName;
+    public string $sessionName;
 
-    public $inviteCode;
+    public string $inviteCode;
 
-    protected $rules = [
+    protected array $rules = [
         'sessionName' => 'required|min:3|max:255',
     ];
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.session-management');
     }
 
-    public function joinSession()
+    public function joinSession(): RedirectResponse
     {
         $this->validate([
             'inviteCode' => 'required|exists:sessions,invite_code',
         ]);
-
-        $session = Session::where('invite_code', $this->inviteCode)->first();
-        if (auth()->user()->id !== $session->owner_id && ! $session->users->contains(auth()->user())) {
-            $session->users()->attach(auth()->user());
-        }
-
-        return redirect()->route('session.voting', $session->invite_code);
+        $session = Session::whereInviteCode($this->inviteCode)->firstOrFail();
+        app(SessionService::class)->joinSession($session);
+        return redirect()->intended(route('session.voting', $session->invite_code));
     }
 }

@@ -19,12 +19,12 @@ class IssueSelected implements ShouldBroadcast
     {
     }
 
-    public function broadcastOn()
+    public function broadcastOn(): PresenceChannel
     {
         return new PresenceChannel('session.'.$this->issue->session->invite_code);
     }
 
-    public function broadcastAs()
+    public function broadcastAs(): string
     {
         return 'IssueSelected';
     }
