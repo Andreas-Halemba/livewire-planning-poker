@@ -3,34 +3,35 @@
 namespace App\Http\Livewire;
 
 use App\Models\Session;
+
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class UserSessions extends Component
 {
     public function render(): View
     {
-        $sessions = auth()->user()->sessions;
-
+        $sessions = collect([]);
+        if(Auth::user()) {
+            $sessions = Session::query()->whereBelongsTo(Auth::user())->get();
+        }
         return view('livewire.user-sessions', [
             'sessions' => $sessions,
         ]);
     }
 
-    // deleteSession method removes user from session
-    public function deleteSession($sessionId): void
+    public function leaveSession(int $sessionId): void
     {
-        $session = Session::query()->findOrFail($sessionId);
-        $session->users()->detach(auth()->user());
+        Session::whereId($sessionId)->first()?->users()->detach(Auth::user());
     }
 
-    public function joinSession($inviteCode)
+    public function joinSession(string $inviteCode): void
     {
-        $session = Session::where('invite_code', $inviteCode)->first();
-        if (auth()->user()->id !== $session->owner_id && ! $session->users->contains(auth()->user())) {
-            $session->users()->attach(auth()->user());
+        $session = Session::whereInviteCode($inviteCode)->firstOrFail();
+        if (Auth::id() !== $session->owner_id && ! $session->users->contains(Auth::user() ?? '')) {
+            $session->users()->attach(Auth::user());
         }
-
-        return redirect()->route('session.voting', $session->invite_code);
+        redirect(route('session.voting', $session->invite_code))->send();
     }
 }

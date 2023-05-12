@@ -7,7 +7,6 @@ use App\Events\IssueCanceled;
 use App\Events\IssueSelected;
 use App\Models\Issue;
 use App\Models\Session;
-use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Component;
@@ -16,6 +15,7 @@ class Owner extends Component
 {
     public Session $session;
 
+    /** @var Collection<int, Issue> */
     public Collection $issues;
 
     public string $issueTitle = '';
@@ -33,14 +33,14 @@ class Owner extends Component
         $this->issues = $this->session->issues()->with('votes')->get();
     }
 
-    public function render(): View|Factory
+    public function render(): View
     {
         return view('livewire.voting.owner');
     }
 
     public function addPointsToIssue(int $id): void
     {
-        $issue = Issue::query()->whereId($id)->first();
+        $issue = Issue::query()->whereId($id)->firstOrFail();
         $issue->status = Issue::STATUS_FINISHED;
         $issue->save();
     }
@@ -53,7 +53,7 @@ class Owner extends Component
 
     public function cancelIssue(int $id): void
     {
-        $issue = Issue::query()->whereId($id)->first();
+        $issue = Issue::query()->whereId($id)->firstOrFail();
         $issue->status = Issue::STATUS_NEW;
         $issue->save();
         broadcast(new IssueCanceled($issue))->toOthers();
@@ -61,7 +61,7 @@ class Owner extends Component
 
     private function resetIssuesStatus(): void
     {
-        $this->issues->where('status', Issue::STATUS_VOTING)->each(function ($issue) {
+        $this->issues->where('status', Issue::STATUS_VOTING)->each(function (Issue $issue) {
             $issue->status = Issue::STATUS_NEW;
             $issue->save();
         });
@@ -69,7 +69,7 @@ class Owner extends Component
 
     private function setIssueStatusToVoting(int $id): void
     {
-        $issue = Issue::query()->whereId($id)->first();
+        $issue = Issue::query()->whereId($id)->firstOrFail();
         $issue->status = Issue::STATUS_VOTING;
         $issue->save();
         broadcast(new IssueSelected($issue))->toOthers();

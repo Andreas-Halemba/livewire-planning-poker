@@ -35,7 +35,7 @@ class UserJoins implements ShouldBroadcast
         ];
     }
 
-    public function broadcastAs()
+    public function broadcastAs(): string
     {
         return 'UserJoins';
     }

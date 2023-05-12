@@ -3,7 +3,6 @@
 namespace App\Http\Livewire\Voting;
 
 use App\Models\Session;
-use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
@@ -11,7 +10,7 @@ class Voter extends Component
 {
     public Session $session;
 
-    public function render(): View|Factory
+    public function render(): View
     {
         return view('livewire.voting.voter');
     }

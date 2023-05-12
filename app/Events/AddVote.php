@@ -30,7 +30,7 @@ class AddVote implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PresenceChannel('session.'.$this->session->invite_code);
+        return [new PresenceChannel('session.'.$this->session->invite_code)];
     }
 
     public function broadcastAs(): string

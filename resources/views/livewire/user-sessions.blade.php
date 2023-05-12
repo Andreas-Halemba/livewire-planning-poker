@@ -15,7 +15,7 @@
                             >Join</button>
                             <button
                                 class="w-full btn btn-error btn-sm"
-                                wire:click.prevent="deleteSession('{{ $session->id }}')"
+                                wire:click.prevent="leaveSession('{{ $session->id }}')"
                             >Leave</button>
                         </div>
                     </div>
