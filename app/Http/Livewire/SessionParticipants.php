@@ -29,7 +29,8 @@ class SessionParticipants extends Component
 
     public function mount(): void
     {
-        $this->participants = collect([]);
+        /** @phpstan-ignore-next-line */
+        $this->participants = collect([Auth::getUser()->toArray()]);
     }
 
     public function render(): View
@@ -45,7 +46,6 @@ class SessionParticipants extends Component
     public function getListeners(): array
     {
         return [
-            'voteIssue' => 'setCurrentVote',
             "echo-presence:session.{$this->session->invite_code},.RevealVotes" => 'revealVotes',
             "echo-presence:session.{$this->session->invite_code},.AddVote" => 'newVote',
             "echo-presence:session.{$this->session->invite_code},here" => 'updateUsers',
@@ -75,14 +75,9 @@ class SessionParticipants extends Component
         $this->participants = collect(Arr::map($users, fn ($user) => User::whereId($user['id'])->firstOrFail()->toArray()));
     }
 
-    public function setCurrentVote(Vote $vote): void
-    {
-        $this->votes[auth()->id()] = $vote;
-    }
-
     public function revealVotes(): void
     {
-        $currentVotingIssue = Issue::whereInviteCode($this->session->invite_code)->whereStatus(Issue::STATUS_VOTING)->first();
+        $currentVotingIssue = Issue::query()->whereBelongsTo($this->session)->whereStatus(Issue::STATUS_VOTING)->first();
         if(! $currentVotingIssue) {
             return;
         }

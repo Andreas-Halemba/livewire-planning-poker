@@ -14,7 +14,9 @@
                     @if (!blank($issue->description))
                         <p>{{ $issue->description }}</p>
                     @endif
-                    <p>Enter storypoints and save them</p>
+                    @if ($issue->status === 'voting')
+                        <p>Enter storypoints and save them</p>
+                    @endif
                     <div class="justify-stretch card-actions">
                         @if ($issue->status === 'voting')
                             <div class="form-control">

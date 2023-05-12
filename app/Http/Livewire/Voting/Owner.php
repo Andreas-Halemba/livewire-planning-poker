@@ -8,14 +8,14 @@ use App\Events\IssueSelected;
 use App\Models\Issue;
 use App\Models\Session;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection;
 use Livewire\Component;
 
 class Owner extends Component
 {
     public Session $session;
 
-    /** @var Collection<int, Issue> */
+    /** @var Collection<int,Issue> */
     public Collection $issues;
 
     public string $issueTitle = '';
@@ -28,21 +28,19 @@ class Owner extends Component
         'issueDescription' => '|max:255',
     ];
 
-    public function mount(): void
-    {
-        $this->issues = $this->session->issues()->with('votes')->get();
-    }
-
     public function render(): View
     {
+        $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
         return view('livewire.voting.owner');
     }
 
     public function addPointsToIssue(int $id): void
     {
         $issue = Issue::query()->whereId($id)->firstOrFail();
+        $issue->storypoints = $this->issues->firstOrFail('id', $id)->storypoints;
         $issue->status = Issue::STATUS_FINISHED;
         $issue->save();
+        broadcast(new IssueCanceled($issue))->toOthers();
     }
 
     public function voteIssue(int $id): void
@@ -56,15 +54,14 @@ class Owner extends Component
         $issue = Issue::query()->whereId($id)->firstOrFail();
         $issue->status = Issue::STATUS_NEW;
         $issue->save();
-        broadcast(new IssueCanceled($issue))->toOthers();
+        broadcast(new IssueCanceled($issue));
     }
 
     private function resetIssuesStatus(): void
     {
-        $this->issues->where('status', Issue::STATUS_VOTING)->each(function (Issue $issue) {
-            $issue->status = Issue::STATUS_NEW;
-            $issue->save();
-        });
+        Issue::whereStatus(Issue::STATUS_VOTING)
+            ->whereSessionId($this->session->id)
+            ->update(['status' => Issue::STATUS_NEW]);
     }
 
     private function setIssueStatusToVoting(int $id): void
@@ -72,7 +69,7 @@ class Owner extends Component
         $issue = Issue::query()->whereId($id)->firstOrFail();
         $issue->status = Issue::STATUS_VOTING;
         $issue->save();
-        broadcast(new IssueSelected($issue))->toOthers();
+        broadcast(new IssueSelected($issue));
     }
 
     public function addIssue(): void
