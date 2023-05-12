@@ -20,7 +20,7 @@ class Voting extends Component
         $this->attachUserToSession(auth()->user());
         broadcast(new UserJoins($this->session, auth()->user()))->toOthers();
     }
-    
+
     public function render()
     {
         return view('livewire.voting');

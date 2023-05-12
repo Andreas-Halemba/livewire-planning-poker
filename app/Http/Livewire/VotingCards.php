@@ -18,14 +18,6 @@ class VotingCards extends Component
 
     public ?Issue $currentIssue = null;
 
-    public function mount()
-    {
-        $this->currentIssue = Issue::whereStatus(Issue::STATUS_VOTING)->whereSessionId($this->session->id)->first(['id', 'title']);
-        if($this->currentIssue) {
-            $this->vote = Vote::whereUserId(auth()->id())->whereIssueId($this->currentIssue->id)->first()?->value;
-        }
-    }
-
     public function getListeners(): array
     {
         return [
@@ -36,6 +28,11 @@ class VotingCards extends Component
 
     public function render()
     {
+        $this->currentIssue = Issue::whereStatus(Issue::STATUS_VOTING)->whereSessionId($this->session->id)->first(['id', 'title']);
+        if ($this->currentIssue) {
+            $this->vote = Vote::whereUserId(auth()->id())->whereIssueId($this->currentIssue->id)->first()?->value;
+        }
+
         return view('livewire.voting-cards');
     }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Voting;
 
 use App\Events\IssueAdded;
+use App\Events\IssueCanceled;
 use App\Events\IssueSelected;
 use App\Models\Issue;
 use App\Models\Session;
@@ -51,7 +52,10 @@ class Owner extends Component
 
     public function cancelIssue(int $id)
     {
-        $this->resetIssuesStatus();
+        $issue = $this->issues->find($id);
+        $issue->status = Issue::STATUS_NEW;
+        $issue->save();
+        broadcast(new IssueCanceled($issue))->toOthers();
     }
 
     private function resetIssuesStatus(): void
@@ -84,6 +88,6 @@ class Owner extends Component
 
         $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
         $this->emit('refreshIssues');
-        event(new IssueAdded($issue));
+        broadcast(new IssueAdded($issue))->toOthers();
     }
 }

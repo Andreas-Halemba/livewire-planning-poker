@@ -20,7 +20,7 @@ class SessionParticipants extends Component
     public array $votes = [];
 
     public array $participantsVoted = [];
-    
+
     public ?Issue $issue;
 
     public bool $votesRevealed = false;
@@ -29,7 +29,7 @@ class SessionParticipants extends Component
     {
         $this->issue = Issue::whereStatus(Issue::STATUS_VOTING)->whereSessionId($this->session->id)->first();
         $this->participants = collect([Auth::user()->toArray()]);
-        if($this->issue) {
+        if ($this->issue) {
             $this->participantsVoted = $this->issue->votes()->pluck('user_id', 'user_id')->toArray();
             $this->votes[auth()->id()] = $this->issue?->votes()->whereUserId(auth()->id())->first()?->value;
         }
@@ -38,6 +38,7 @@ class SessionParticipants extends Component
     public function render()
     {
         $this->participants->sortBy('id');
+
         return view('livewire.session-participants');
     }
 
@@ -89,6 +90,7 @@ class SessionParticipants extends Component
     public function userDidVote($id): bool
     {
         ray(Arr::has($this->participantsVoted, $id));
+
         return Arr::has($this->participantsVoted, $id);
     }
 }
