@@ -23,19 +23,18 @@
                                     wire:submit.prevent="addPointsToIssue({{ $issue->id }})"
                                 >
                                     <input
-                                        type="number"
+                                        type="text"
                                         wire:model.defer="issues.{{ $index }}.storypoints"
                                         placeholder="Points"
-                                        style="-webkit-appearance: none; -moz-appearance: textfield;"
-                                        class="input input-sm"
+                                        class="w-24 input text-neutral"
                                     >
                                     <button
                                         type="submit"
-                                        class="btn btn-success btn-sm"
+                                        class="btn grow btn-success"
                                     >Save</button>
                                     <button
                                         wire:click.prevent="cancelIssue({{ $issue->id }})"
-                                        class="btn btn-error btn-sm"
+                                        class="btn grow btn-error"
                                     >Cancel</button>
                                 </form>
                             </div>

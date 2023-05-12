@@ -1,21 +1,24 @@
 <div
     class="grid w-full grid-cols-2 gap-5 p-4 mb-10 sm:grid-cols-3 md:grid-cols-5 bg-base-300 text-base-content rounded-box">
     <h2 class="text-lg col-span-full">Participants
-        @if ($votesRevealed)
+        @if ($votesRevealed && $issue)
             <span>{{ $issue->average_vote }}</span>
         @endif
     </h2>
     @forelse ($participants as $user)
         <div
             @class([
-                'card bg-neutral text-neutral-content',
-                '!bg-success' => $this->userDidVote($user['id']),
+                'card bg-neutral text-neutral-content border-transparent border',
+                'border-success' => $this->userDidVote($user['id']),
             ])
             wire:key="user-{{ $user['id'] }}"
         >
             <div class="items-center justify-between text-center card-body">
                 <div class="card-title">{{ $user['name'] }}</div>
-                <div class="h-20 text-3xl badge badge-ghost aspect-square">
+                <div @class([
+                    'h-20 text-3xl badge badge-ghost aspect-square',
+                    '!badge-success' => $this->userDidVote($user['id']),
+                ])>
                     @if ($user['id'] === $session->owner_id)
                         PO
                     @else
