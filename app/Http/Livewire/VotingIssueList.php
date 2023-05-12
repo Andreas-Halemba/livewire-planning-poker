@@ -3,6 +3,8 @@
 namespace App\Http\Livewire;
 
 use App\Models\Session;
+use Illuminate\Contracts\Validation\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Component;
 
@@ -12,7 +14,7 @@ class VotingIssueList extends Component
 
     public Session $session;
 
-    public function getListeners()
+    public function getListeners(): array
     {
         return [
             "echo:session.{$this->session->invite_code},.IssueAdded" => '$refresh',
@@ -20,7 +22,7 @@ class VotingIssueList extends Component
         ];
     }
 
-    public function render()
+    public function render(): View|Factory
     {
         return view('livewire.voting-issue-list');
     }

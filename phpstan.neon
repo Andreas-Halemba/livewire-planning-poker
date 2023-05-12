@@ -37,3 +37,4 @@ parameters:
         - %rootDir%/../../../database/migrations
 
     checkMissingIterableValueType: false
+    treatPhpDocTypesAsCertain: false

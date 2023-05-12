@@ -3,16 +3,24 @@
 namespace App\Http\Livewire\Voting;
 
 use App\Models\Session;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class Voter extends Component
 {
     public Session $session;
 
-    public array $cards = ['0', '1', '2', '3', '5', '8', '13', '20', '40', '100'];
-
-    public function render()
+    public function render(): View|Factory
     {
         return view('livewire.voting.voter');
+    }
+
+    public function getListeners(): array
+    {
+        return [
+            "echo-presence:session.{$this->session->invite_code},.IssueSelected" => '$refresh',
+            "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => '$refresh',
+        ];
     }
 }

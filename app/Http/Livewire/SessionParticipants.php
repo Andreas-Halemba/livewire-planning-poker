@@ -6,6 +6,7 @@ use App\Events\RevealVotes;
 use App\Models\Issue;
 use App\Models\Session;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -27,18 +28,16 @@ class SessionParticipants extends Component
 
     public function mount()
     {
+        $this->participants = collect([]);
+    }
+
+    public function render(): View
+    {
         $this->issue = Issue::whereStatus(Issue::STATUS_VOTING)->whereSessionId($this->session->id)->first();
-        $this->participants = collect([Auth::user()->toArray()]);
         if ($this->issue) {
             $this->participantsVoted = $this->issue->votes()->pluck('user_id', 'user_id')->toArray();
             $this->votes[auth()->id()] = $this->issue?->votes()->whereUserId(auth()->id())->first()?->value;
         }
-    }
-
-    public function render()
-    {
-        $this->participants->sortBy('id');
-
         return view('livewire.session-participants');
     }
 
@@ -50,7 +49,16 @@ class SessionParticipants extends Component
             "echo-presence:session.{$this->session->invite_code},.AddVote" => 'newVote',
             "echo-presence:session.{$this->session->invite_code},here" => 'updateUsers',
             "echo-presence:session.{$this->session->invite_code},joining" => 'userJoins',
+            "echo-presence:session.{$this->session->invite_code},leaving" => 'userLeaves',
+            "echo-presence:session.{$this->session->invite_code},.IssueSelected" => 'reload',
+            "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => 'reload',
         ];
+    }
+
+    public function reload()
+    {
+        $this->issue = null;
+        $this->render();
     }
 
     public function userJoins(User $user): void
@@ -58,12 +66,18 @@ class SessionParticipants extends Component
         if ($user->id === Auth::id() || $this->participants->contains('id', $user->id)) {
             return;
         }
-        $this->participants->push($user->toArray());
+        $this->participants->push(User::find($user['id'])->toArray());
+
+    }
+
+    public function userLeaves(User $user)
+    {
+        $this->participants = $this->participants->filter(fn ($participant) => $participant['id'] !== $user->id);   
     }
 
     public function updateUsers(array $users): void
     {
-        $this->participants = collect($users);
+        $this->participants = collect(Arr::map($users, fn ($user) => User::find($user['id'])->toArray()));
     }
 
     public function setCurrentVote($vote): void
@@ -89,8 +103,6 @@ class SessionParticipants extends Component
 
     public function userDidVote($id): bool
     {
-        ray(Arr::has($this->participantsVoted, $id));
-
         return Arr::has($this->participantsVoted, $id);
     }
 }

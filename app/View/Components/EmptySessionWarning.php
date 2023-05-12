@@ -3,8 +3,8 @@
 namespace App\View\Components;
 
 use App\Models\Session;
-use Closure;
 use Illuminate\Contracts\View\View;
+use Illuminate\Contracts\View\Factory;
 use Illuminate\View\Component;
 
 class EmptySessionWarning extends Component
@@ -19,7 +19,7 @@ class EmptySessionWarning extends Component
     /**
      * Get the view / contents that represent the component.
      */
-    public function render(): View|Closure|string
+    public function render(): View|Factory
     {
         return view('components.empty-session-warning', [
             'editSessionUrl' => route('session.issues', ['inviteCode' => $this->session->invite_code]),
