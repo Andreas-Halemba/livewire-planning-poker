@@ -1,0 +1,54 @@
+<?php
+
+namespace App\Http\Livewire;
+
+use App\Events\AddVote;
+use App\Models\Issue;
+use App\Models\Session;
+use App\Models\Vote;
+use Livewire\Component;
+
+class VotingCards extends Component
+{
+    public array $cards = [0, 1, 2, 3, 5, 8, 13, 20, 40, 100];
+
+    public ?int $vote = null;
+
+    public Session $session;
+
+    public ?Issue $currentIssue = null;
+
+    public function mount()
+    {
+        $this->currentIssue = Issue::whereStatus(Issue::STATUS_VOTING)->whereSessionId($this->session->id)->first(['id', 'title']);
+        if($this->currentIssue) {
+            $this->vote = Vote::whereUserId(auth()->id())->whereIssueId($this->currentIssue->id)->first()?->value;
+        }
+    }
+
+    public function getListeners(): array
+    {
+        return [
+            "echo-presence:session.{$this->session->invite_code},.IssueSelected" => '$refresh',
+            "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => '$refresh',
+        ];
+    }
+
+    public function render()
+    {
+        return view('livewire.voting-cards');
+    }
+
+    public function voteIssue(int $vote): void
+    {
+        Vote::query()->updateOrCreate([
+            'user_id' => auth()->id(),
+            'issue_id' => $this->currentIssue->id,
+        ], [
+            'value' => $vote,
+        ]);
+        $this->vote = $vote;
+        $this->emit('voteIssue', $vote);
+        broadcast(new AddVote($this->session, auth()->user()))->toOthers();
+    }
+}
