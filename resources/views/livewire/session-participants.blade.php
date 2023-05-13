@@ -5,7 +5,7 @@
         <div
             @class([
                 'card bg-neutral text-neutral-content border-transparent border',
-                'border-success' => $this->userDidVote($user['id']),
+                'border-success' => $this->userDidVote((string) $user['id']),
             ])
             wire:key="user-{{ $user['id'] }}"
         >
@@ -13,7 +13,7 @@
                 <div class="card-title">{{ $user['name'] }}</div>
                 <div @class([
                     'h-20 text-3xl badge badge-ghost aspect-square',
-                    '!badge-success' => $this->userDidVote($user['id']),
+                    '!badge-success' => $this->userDidVote((string) $user['id']),
                 ])>
                     @if ($user['id'] === $session->owner_id)
                         PO

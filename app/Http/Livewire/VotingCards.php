@@ -28,6 +28,7 @@ class VotingCards extends Component
     }
 
     public function render(): View
+    public function render(): View
     {
         $this->currentIssue = Issue::whereStatus(Issue::STATUS_VOTING)->whereSessionId($this->session->id)->first(['id', 'title']);
         if ($this->currentIssue) {

@@ -20,6 +20,7 @@ class JoinSession extends Component
     ];
 
     public function render(): View
+    public function render(): View
     {
         return view('livewire.join-session');
     }

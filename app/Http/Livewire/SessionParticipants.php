@@ -28,6 +28,7 @@ class SessionParticipants extends Component
     public bool $votesRevealed = false;
 
     public function mount(): void
+    public function mount(): void
     {
         /** @phpstan-ignore-next-line */
         $this->participants = collect([Auth::getUser()->toArray()]);
@@ -39,10 +40,12 @@ class SessionParticipants extends Component
         if ($this->issue) {
             $this->participantsVoted = $this->issue->votes()->pluck('user_id', 'user_id')->toArray();
             $this->votes[auth()->id()] = $this->issue->votes()->whereUserId(auth()->id())->first()?->value;
+            $this->votes[auth()->id()] = $this->issue->votes()->whereUserId(auth()->id())->first()?->value;
         }
         return view('livewire.session-participants');
     }
 
+    public function getListeners(): array
     public function getListeners(): array
     {
         return [
@@ -66,7 +69,9 @@ class SessionParticipants extends Component
     }
 
     public function userLeaves(User $user): void
+    public function userLeaves(User $user): void
     {
+        $this->participants = $this->participants->filter(fn ($participant) => $participant['id'] !== $user->id);
         $this->participants = $this->participants->filter(fn ($participant) => $participant['id'] !== $user->id);
     }
 
@@ -85,6 +90,7 @@ class SessionParticipants extends Component
         $this->votesRevealed = true;
     }
 
+    public function newVote(User $user): void
     public function newVote(User $user): void
     {
         $this->participantsVoted[$user->id] = $user->id;
