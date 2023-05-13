@@ -12,6 +12,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+        unset($schedule);
         // $schedule->command('inspire')->hourly();
     }
 

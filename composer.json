@@ -27,6 +27,7 @@
         "mockery/mockery": "^1.5.1",
         "nunomaduro/collision": "^v7.5.2",
         "nunomaduro/larastan": "^2.0",
+        "nunomaduro/phpinsights": "^2.8",
         "pestphp/pest": "^v2.6.0",
         "pestphp/pest-plugin-laravel": "^v2.0.0",
         "spatie/laravel-ignition": "^2.1.1",
@@ -72,7 +73,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true,
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
         }
     },
     "minimum-stability": "stable",

@@ -57,21 +57,6 @@ class Owner extends Component
         broadcast(new IssueCanceled($issue));
     }
 
-    private function resetIssuesStatus(): void
-    {
-        Issue::whereStatus(Issue::STATUS_VOTING)
-            ->whereSessionId($this->session->id)
-            ->update(['status' => Issue::STATUS_NEW]);
-    }
-
-    private function setIssueStatusToVoting(int $id): void
-    {
-        $issue = Issue::query()->whereId($id)->firstOrFail();
-        $issue->status = Issue::STATUS_VOTING;
-        $issue->save();
-        broadcast(new IssueSelected($issue));
-    }
-
     public function addIssue(): void
     {
         $issue = Issue::query()->create([
@@ -87,5 +72,20 @@ class Owner extends Component
         $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
         $this->emit('refreshIssues');
         broadcast(new IssueAdded($issue))->toOthers();
+    }
+
+    private function resetIssuesStatus(): void
+    {
+        Issue::whereStatus(Issue::STATUS_VOTING)
+            ->whereSessionId($this->session->id)
+            ->update(['status' => Issue::STATUS_NEW]);
+    }
+
+    private function setIssueStatusToVoting(int $id): void
+    {
+        $issue = Issue::query()->whereId($id)->firstOrFail();
+        $issue->status = Issue::STATUS_VOTING;
+        $issue->save();
+        broadcast(new IssueSelected($issue));
     }
 }
