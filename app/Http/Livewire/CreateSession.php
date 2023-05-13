@@ -5,11 +5,8 @@ namespace App\Http\Livewire;
 use App\Models\Session;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Str;
 use Livewire\Component;
-use Livewire\Redirector;
 
 class CreateSession extends Component
 {
@@ -34,7 +31,7 @@ class CreateSession extends Component
             'owner_id' => auth()->user()?->id,
             'invite_code' => Str::random(8),
         ]);
-        if($session) {
+        if ($session) {
             redirect()->to(route('session.voting', ['inviteCode' => $session->invite_code]));
         }
     }

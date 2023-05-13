@@ -31,7 +31,10 @@ class Voting extends Component
 
     private function attachUserToSession(): void
     {
-        if (auth()->user() && auth()->id() !== $this->session->owner_id && ! $this->session->users->contains(auth()->user())) {
+        if (auth()->user() && auth()->id()
+            !== $this->session->owner_id
+            && ! $this->session->users->contains(auth()->user())
+        ) {
             $this->session->users()->attach(auth()->user());
         }
     }

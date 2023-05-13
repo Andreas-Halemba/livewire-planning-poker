@@ -5,15 +5,11 @@ namespace App\Http\Livewire;
 use App\Models\Session;
 use App\Services\SessionService;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Redirect;
 use Livewire\Component;
-use Livewire\Redirector;
 
 class JoinSession extends Component
 {
     public string $inviteCode = '';
-
 
     protected array $rules = [
         'inviteCode' => 'required|exists:sessions,invite_code',

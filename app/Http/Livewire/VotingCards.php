@@ -29,9 +29,14 @@ class VotingCards extends Component
 
     public function render(): View
     {
-        $this->currentIssue = Issue::whereStatus(Issue::STATUS_VOTING)->whereSessionId($this->session->id)->first(['id', 'title']);
+        $this->currentIssue = Issue::whereStatus(Issue::STATUS_VOTING)
+            ->whereSessionId($this->session->id)
+            ->first(['id', 'title']);
         if ($this->currentIssue) {
-            $this->vote = Vote::whereUserId(auth()->id())->whereIssueId($this->currentIssue->id)->first()?->value;
+            $this->vote = Vote::whereUserId(auth()->id())
+                ->whereIssueId($this->currentIssue->id)
+                ->first()
+                ?->value;
         }
 
         return view('livewire.voting-cards');
