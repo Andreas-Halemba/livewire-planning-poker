@@ -14,7 +14,7 @@ class UserSessions extends Component
     {
         $sessions = collect([]);
         if(Auth::user()) {
-            $sessions = Session::query()->whereBelongsTo(Auth::user())->get();
+            $sessions = Auth::user()->sessions;
         }
         return view('livewire.user-sessions', [
             'sessions' => $sessions,
@@ -32,6 +32,6 @@ class UserSessions extends Component
         if (Auth::id() !== $session->owner_id && ! $session->users->contains(Auth::user() ?? '')) {
             $session->users()->attach(Auth::user());
         }
-        redirect(route('session.voting', $session->invite_code))->send();
+        redirect()->to(route('session.voting', ['inviteCode' => $session->invite_code]));
     }
 }
