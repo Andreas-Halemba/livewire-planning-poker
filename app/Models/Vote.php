@@ -15,8 +15,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $value
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ *
  * @property-read \App\Models\Issue $issue
  * @property-read \App\Models\User $user
+ *
  * @method static \Illuminate\Database\Eloquent\Builder|Vote newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Vote newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Vote query()
@@ -26,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|Vote whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Vote whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Vote whereValue($value)
+ *
  * @mixin \Eloquent
  */
 class Vote extends Model

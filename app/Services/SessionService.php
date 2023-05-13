@@ -14,26 +14,26 @@ class SessionService
 
     public function createSession(): Session
     {
-        if(Auth::user()) {
+        if (Auth::user()) {
             return Session::create([
                 'owner_id' => Auth::user()->id,
                 'invite_code' => Str::random(8),
             ]);
-        } else {
-            abort(403);
         }
+
+        abort(403);
     }
 
     public function joinSession(Session $session): void
     {
-        if(Auth::user()) {
+        if (Auth::user()) {
             $session->users()->syncWithoutDetaching(Auth::user());
         }
     }
 
     public function leaveSession(Session $session): void
     {
-        if(Auth::user()) {
+        if (Auth::user()) {
             $session->users()->detach(Auth::user());
         }
     }
