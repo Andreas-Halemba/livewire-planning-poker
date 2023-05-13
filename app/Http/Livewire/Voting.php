@@ -5,8 +5,6 @@ namespace App\Http\Livewire;
 use App\Events\UserJoins;
 use App\Models\Session;
 use App\Models\User;
-use Auth;
-use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class Voting extends Component
@@ -18,10 +16,11 @@ class Voting extends Component
     public function mount(string $inviteCode): void
     {
         $this->session = Session::whereInviteCode($this->inviteCode)->firstOrFail();
-        $this->attachUserToSession();
-        // TODO: How to fix this auth()->user() being null?
-        // @phpstan-ignore-next-line
-        broadcast(new UserJoins($this->session, auth()->user()))->toOthers();
+        $user = auth()->user();
+        if ($user) {
+            $this->attachUserToSession();
+            broadcast(new UserJoins($this->session, $user))->toOthers();
+        }
     }
 
     public function render(): View

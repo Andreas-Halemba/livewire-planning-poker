@@ -19,7 +19,7 @@ class IssueCanceled implements ShouldBroadcast
     {
     }
 
-    public function broadcastOn()
+    public function broadcastOn(): PresenceChannel
     {
         return new PresenceChannel('session.'.$this->issue->session->invite_code);
     }

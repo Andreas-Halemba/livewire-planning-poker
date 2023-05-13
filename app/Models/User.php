@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -89,5 +87,29 @@ class User extends Authenticatable implements MustVerifyEmail
     public function ownedSessions(): HasMany
     {
         return $this->hasMany(Session::class, 'owner_id');
+    }
+
+    public function hasVerifiedEmail(): bool
+    {
+        // @TODO: Implement
+        return true;
+    }
+
+    public function markEmailAsVerified(): bool
+    {
+        // @TODO: Implement
+        return true;
+    }
+
+
+    public function sendEmailVerificationNotification(): void
+    {
+        // @TODO: Implement
+        return;
+    }
+
+    public function getEmailForVerification(): string
+    {
+        return $this->email;
     }
 }

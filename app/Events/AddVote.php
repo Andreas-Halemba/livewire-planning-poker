@@ -23,14 +23,9 @@ class AddVote implements ShouldBroadcast
     {
     }
 
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
-     */
-    public function broadcastOn()
+    public function broadcastOn(): PresenceChannel
     {
-        return [new PresenceChannel('session.'.$this->session->invite_code)];
+        return new PresenceChannel('session.'.$this->session->invite_code);
     }
 
     public function broadcastAs(): string
