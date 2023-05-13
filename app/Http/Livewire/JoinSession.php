@@ -24,12 +24,12 @@ class JoinSession extends Component
         return view('livewire.join-session');
     }
 
-    public function joinSession(): Redirector|RedirectResponse
+    public function joinSession(): void
     {
         $validatedData = $this->validate();
         $session = Session::whereInviteCode($validatedData['inviteCode'])->firstOrFail();
         app(SessionService::class)->joinSession($session);
-        return Redirect::to(route('session.voting', ['inviteCode' => $validatedData['inviteCode']], false));
+        redirect()->to(route('session.voting', ['inviteCode' => $session->invite_code]));
     }
 
     public function updated(string $propertyName): void

@@ -26,15 +26,17 @@ class CreateSession extends Component
         return view('livewire.create-session');
     }
 
-    public function createSession(): Redirector|RedirectResponse
+    public function createSession(): void
     {
         $this->validate();
-        $session = Session::create([
+        $session = Session::query()->create([
             'name' => $this->sessionName,
             'owner_id' => auth()->user()?->id,
             'invite_code' => Str::random(8),
         ]);
-        return Redirect::to(route('session.voting', ['inviteCode' => $session->invite_code], false));
+        if($session) {
+            redirect()->to(route('session.voting', ['inviteCode' => $session->invite_code]));
+        }
     }
 
     public function updated(string $propertyName): void
