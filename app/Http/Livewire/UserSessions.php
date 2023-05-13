@@ -3,7 +3,6 @@
 namespace App\Http\Livewire;
 
 use App\Models\Session;
-
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -13,7 +12,7 @@ class UserSessions extends Component
     public function render(): View
     {
         $sessions = collect([]);
-        if(Auth::user()) {
+        if (Auth::user()) {
             $sessions = Auth::user()->sessions;
         }
         return view('livewire.user-sessions', [

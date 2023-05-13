@@ -18,11 +18,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property int|null $storypoints
+ *
  * @property-read float $average_vote
  * @property-read string $title_html
  * @property-read \App\Models\Session $session
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Vote> $votes
  * @property-read int|null $votes_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder|Issue newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Issue newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Issue query()
@@ -34,6 +36,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|Issue whereStorypoints($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Issue whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Issue whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 class Issue extends Model
@@ -74,9 +77,9 @@ class Issue extends Model
         $pattern = '/SAN-\d+/';
         if (filter_var($this->title, FILTER_VALIDATE_URL) && preg_match($pattern, $this->title, $matches)) {
             return "<a href='{$this->title}' class='hover:underline' target='_blank'>{$matches[0]}</a>";
-        } else {
-            return $this->title;
         }
+
+        return $this->title;
     }
 
     // function that returns true if the status is voiting
