@@ -4,7 +4,7 @@ namespace App\Http\Livewire;
 
 use App\Events\UserJoins;
 use App\Models\Session;
-use App\Models\User;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class Voting extends Component
@@ -15,6 +15,7 @@ class Voting extends Component
 
     public function mount(string $inviteCode): void
     {
+        $this->inviteCode = $inviteCode;
         $this->session = Session::whereInviteCode($this->inviteCode)->firstOrFail();
         $user = auth()->user();
         if ($user) {
