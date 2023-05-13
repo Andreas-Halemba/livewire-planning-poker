@@ -18,11 +18,9 @@ class CreateSession extends Component
     public string $sessionName = '';
 
     protected array $rules = [
-    protected array $rules = [
         'sessionName' => 'required|string|min:2|max:255',
     ];
 
-    public function render(): View
     public function render(): View
     {
         return view('livewire.create-session');

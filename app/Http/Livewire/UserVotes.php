@@ -5,7 +5,6 @@ namespace App\Http\Livewire;
 use App\Models\Issue;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\View\View;
 use Livewire\Component;
 
 class UserVotes extends Component
