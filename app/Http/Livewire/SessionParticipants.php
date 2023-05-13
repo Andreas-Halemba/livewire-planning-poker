@@ -63,7 +63,6 @@ class SessionParticipants extends Component
             return;
         }
         $this->participants->push(User::query()->findOrFail($user['id'])->toArray());
-
     }
 
     public function userLeaves(User $user): void
@@ -74,16 +73,21 @@ class SessionParticipants extends Component
 
     public function updateUsers(array $users): void
     {
-        $this->participants = collect(Arr::map($users, fn ($user) => User::whereId($user['id'])->firstOrFail()->toArray()));
+        $this->participants = collect(
+            Arr::map($users, fn ($user) => User::whereId($user['id'])->firstOrFail()->toArray())
+        );
     }
 
     public function revealVotes(): void
     {
-        $currentVotingIssue = Issue::query()->whereBelongsTo($this->session)->whereStatus(Issue::STATUS_VOTING)->first();
-        if(! $currentVotingIssue) {
+        $currentVotingIssue = Issue::query()
+            ->whereBelongsTo($this->session)
+            ->whereStatus(Issue::STATUS_VOTING)
+            ->first();
+        if (! $currentVotingIssue) {
             return;
         }
-        $this->votes =  Vote::query()->whereBelongsTo($currentVotingIssue)->get()->pluck('value', 'user_id')->toArray();
+        $this->votes = Vote::query()->whereBelongsTo($currentVotingIssue)->get()->pluck('value', 'user_id')->toArray();
         $this->votesRevealed = true;
     }
 

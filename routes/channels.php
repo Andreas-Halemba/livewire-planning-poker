@@ -23,5 +23,4 @@ Broadcast::channel('session.{invite_code}', function (User $user, string $invite
     if (Session::whereInviteCode($invite_code)->firstOrFail()) {
         return ['id' => $user->id, 'name' => $user->name];
     }
-
 });
