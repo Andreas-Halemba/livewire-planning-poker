@@ -98,19 +98,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->email_verified_at instanceof Carbon;
     }
 
-    public function markEmailAsVerified(): bool
-    {
-        $this->email_verified_at = Carbon::now();
-
-        return true;
-    }
-
-    public function sendEmailVerificationNotification(): void
-    {
-        // @TODO: Implement
-        return;
-    }
-
     public function getEmailForVerification(): string
     {
         return $this->email;
