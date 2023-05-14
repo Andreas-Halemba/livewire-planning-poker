@@ -67,7 +67,8 @@ jobs:
               with:
                   # Make sure the actual branch is checked out when running on pull reques
                   ref: ${{ github.head_ref }}
-
+            - name: test
+              run: ls -la
             - name: phpinsights
               uses: stefanzweifel/phpinsights-action@v1.1.1
               with:
