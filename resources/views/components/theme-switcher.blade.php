@@ -1,5 +1,6 @@
 <div class="flex items-center justify-center"
 x-data="{
+    theme: 'cupcake',
     init() {
         if (localStorage.theme) {
             this.theme = localStorage.theme;
@@ -44,18 +45,4 @@ x-data="{
         </svg>
 
     </label>
-</div
-    x-data="{
-        theme: '',
-        get theme() { return localStorage.getItem("theme")
-    },
-    toggle()
-    {
-    this.theme=this.theme==='cupcake'
-    ? 'dark'
-    : 'cupcake'
-    localStorage.setItem("theme",
-    this.theme)
-    }
-    }"
->
+</div>
