@@ -4,10 +4,10 @@
  * CSRF token as a header based on the value of the "XSRF" token cookie.
  */
 
-import axios from 'axios';
-window.axios = axios;
+import axios from 'axios'
+window.axios = axios
 
-window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
@@ -15,10 +15,10 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
  * allows your team to easily build robust real-time web applications.
  */
 
-import Pusher from 'pusher-js';
-window.Pusher = Pusher;
+import Pusher from 'pusher-js'
+window.Pusher = Pusher
 
-import Echo from 'laravel-echo';
+import Echo from 'laravel-echo'
 
 // window.Echo = new Echo({
 //     broadcaster: 'pusher',
@@ -35,4 +35,4 @@ window.Echo = new Echo({
     wsPort: 6001,
     forceTLS: false,
     disableStats: true,
-});
+})

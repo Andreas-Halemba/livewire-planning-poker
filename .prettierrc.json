@@ -1,0 +1,15 @@
+{
+    "tabWidth": 4,
+    "semi": false,
+    "singleQuote": true,
+    "quoteProps": "consistent",
+    "overrides": [
+        {
+            "files": "*.vue",
+            "options": {
+                "trailingComma": "none",
+                "tabWidth": 2
+            }
+        }
+    ]
+}
