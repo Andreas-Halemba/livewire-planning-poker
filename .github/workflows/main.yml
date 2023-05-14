@@ -3,8 +3,8 @@ run-name: caused by ${{ github.actor }} 🚀
 on: [push]
 
 jobs:
-    install_php:
-        name: Install PHP
+    quality-checks:
+        name: quality checks
         runs-on: ubuntu-latest
         steps:
             - name: setup php
