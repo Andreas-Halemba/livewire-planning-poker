@@ -3,10 +3,12 @@
 namespace App\Http\Livewire;
 
 use App\Events\AddVote;
+use App\Events\HideVotes;
 use App\Models\Issue;
 use App\Models\Session;
 use App\Models\Vote;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class VotingCards extends Component
@@ -44,15 +46,18 @@ class VotingCards extends Component
 
     public function voteIssue(int $vote): void
     {
-        Vote::query()->updateOrCreate([
-            'user_id' => auth()->id(),
-            'issue_id' => $this->currentIssue?->id,
-        ], [
-            'value' => $vote,
-        ]);
-        $this->vote = $vote;
-        // @phpstan-ignore-next-line use can not be null here
-        broadcast(new AddVote($this->session, auth()->user()));
+        if (Auth::user()) {
+            Vote::query()->updateOrCreate([
+                'user_id' => auth()->id(),
+                'issue_id' => $this->currentIssue?->id,
+            ], [
+                'value' => $vote,
+            ]);
+            $this->vote = $vote;
+
+            broadcast(new HideVotes($this->session));
+            broadcast(new AddVote($this->session, Auth::user()));
+        }
     }
 
     public function removeVote(): void

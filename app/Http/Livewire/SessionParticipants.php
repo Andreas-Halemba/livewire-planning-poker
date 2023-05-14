@@ -19,28 +19,22 @@ class SessionParticipants extends Component
 
     public Collection $participants;
 
+    public ?Issue $issue;
+
     public array $votes = [];
 
     public array $participantsVoted = [];
-
-    public ?Issue $issue;
 
     public bool $votesRevealed = false;
 
     public function mount(): void
     {
-        /** @phpstan-ignore-next-line */
-        $this->participants = collect([Auth::getUser()->toArray()]);
+        $this->participants = collect([User::query()->find(Auth::id())?->toArray()]);
     }
 
     public function render(): View
     {
-        $this->issue = Issue::whereStatus(Issue::STATUS_VOTING)->whereSessionId($this->session->id)->first();
-        if ($this->issue) {
-            $this->participantsVoted = $this->issue->votes()->pluck('user_id', 'user_id')->toArray();
-            $this->votes[auth()->id()] = $this->issue->votes()->whereUserId(auth()->id())->first()?->value;
-            $this->votes[auth()->id()] = $this->issue->votes()->whereUserId(auth()->id())->first()?->value;
-        }
+        $this->updateIssueData();
         return view('livewire.session-participants');
     }
 
@@ -48,13 +42,24 @@ class SessionParticipants extends Component
     {
         return [
             "echo-presence:session.{$this->session->invite_code},.RevealVotes" => 'revealVotes',
+            "echo-presence:session.{$this->session->invite_code},.HideVotes" => 'hideVotes',
             "echo-presence:session.{$this->session->invite_code},.AddVote" => 'newVote',
             "echo-presence:session.{$this->session->invite_code},here" => 'updateUsers',
             "echo-presence:session.{$this->session->invite_code},joining" => 'userJoins',
             "echo-presence:session.{$this->session->invite_code},leaving" => 'userLeaves',
-            "echo-presence:session.{$this->session->invite_code},.IssueSelected" => '$refresh',
-            "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => '$refresh',
+            "echo-presence:session.{$this->session->invite_code},.IssueSelected" => 'updateCurrentIssue',
+            "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => 'unsetCurrentIssue',
         ];
+    }
+
+    public function updateCurrentIssue(Issue $issue): void
+    {
+        $this->issue = $issue;
+    }
+
+    public function unsetCurrentIssue(): void
+    {
+        $this->issue = null;
     }
 
     public function userJoins(User $user): void
@@ -80,29 +85,42 @@ class SessionParticipants extends Component
 
     public function revealVotes(): void
     {
-        $currentVotingIssue = Issue::query()
-            ->whereBelongsTo($this->session)
-            ->whereStatus(Issue::STATUS_VOTING)
-            ->first();
-        if (! $currentVotingIssue) {
-            return;
+        if ($this->issue) {
+            $this->votes = Vote::query()->whereBelongsTo($this->issue)->get()->pluck('value', 'user_id')->toArray();
+            $this->votesRevealed = true;
         }
-        $this->votes = Vote::query()->whereBelongsTo($currentVotingIssue)->get()->pluck('value', 'user_id')->toArray();
-        $this->votesRevealed = true;
+    }
+
+    public function hideVotes(): void
+    {
+        $this->votes = [];
+        $this->votesRevealed = false;
     }
 
     public function newVote(User $user): void
     {
-        $this->participantsVoted[$user->id] = $user->id;
+        $this->votes[$user->id] = 'X';
     }
 
     public function sendRevealEvent(): void
     {
-        broadcast(new RevealVotes($this->session));
+        $this->revealVotes();
+        broadcast(new RevealVotes($this->session))->toOthers();
     }
 
-    public function userDidVote(int $id): bool
+    public function userDidVote(string $id): bool
     {
-        return Arr::has($this->participantsVoted, (string) $id);
+        return Arr::has($this->votes, $id) && $this->votes[$id] !== null;
+    }
+
+    private function updateIssueData(): void
+    {
+        $this->issue = $this->session->currentIssue();
+        if ($this->issue) {
+            $this->votes = $this->issue->votes->filter(fn (Vote $vote) => $vote->value !== null)->mapWithKeys(
+                fn (Vote $vote) => [$vote->user_id => $vote->value]
+            )->toArray();
+            $this->votes[auth()->id()] = $this->issue->votes()->whereUserId(auth()->id())->first()?->value;
+        }
     }
 }
