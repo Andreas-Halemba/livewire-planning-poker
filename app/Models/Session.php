@@ -61,4 +61,9 @@ class Session extends Model
     {
         return $this->belongsToMany(User::class)->withTimestamps();
     }
+
+    public function currentIssue(): ?Issue
+    {
+        return $this->issues()->where('status', Issue::STATUS_VOTING)->first();
+    }
 }

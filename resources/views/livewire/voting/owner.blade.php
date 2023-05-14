@@ -9,48 +9,50 @@
                 ])
                 wire:key="issue-{{ $issue->id }}"
             >
-                <div class="justify-between card-body">
+                <div class="justify-around card-body">
                     <div class="card-title">{!! $issue->title_html !!}</div>
                     @if (!blank($issue->description))
-                        <p>{{ $issue->description }}</p>
+                        <p>Description: <br> {{ $issue->description }}</p>
                     @endif
-                    @if ($issue->status === 'voting')
-                        <p>Enter storypoints and save them</p>
-                    @endif
-                    <div class="justify-stretch card-actions">
+                    <div class="flex flex-col gap-2">
                         @if ($issue->status === 'voting')
-                            <div class="form-control">
-                                <form
-                                    class="input-group"
-                                    wire:submit.prevent="addPointsToIssue({{ $issue->id }})"
-                                >
-                                    <input
-                                        type="text"
-                                        wire:model.defer="issues.{{ $index }}.storypoints"
-                                        placeholder="Points"
-                                        class="w-24 input text-neutral"
-                                    >
-                                    <button
-                                        type="submit"
-                                        class="btn grow btn-success"
-                                    >Save</button>
-                                    <button
-                                        wire:click.prevent="cancelIssue({{ $issue->id }})"
-                                        class="btn grow btn-error"
-                                    >Cancel</button>
-                                </form>
-                            </div>
-                        @elseif ($issue->status === Issue::STATUS_NEW)
-                            <button
-                                wire:click.prevent="voteIssue({{ $issue->id }})"
-                                class="btn btn-primary btn-sm"
-                            >Vote now</button>
+                            <p>Enter storypoints and save them</p>
                         @endif
+                        <div class="justify-stretch card-actions">
+                            @if ($issue->status === 'voting')
+                                <div class="w-full form-control">
+                                    <form
+                                        class="input-group"
+                                        wire:submit.prevent="addPointsToIssue({{ $issue->id }})"
+                                    >
+                                        <input
+                                            type="text"
+                                            wire:model.defer="issues.{{ $index }}.storypoints"
+                                            placeholder="Points"
+                                            class="w-1/3 text-center input input-sm bg-base-200 text-base-content focus:bg-white focus:text-black"
+                                        >
+                                        <button
+                                            type="submit"
+                                            class="btn grow btn-success btn-sm"
+                                        >Save</button>
+                                        <button
+                                            wire:click.prevent="cancelIssue({{ $issue->id }})"
+                                            class="btn grow btn-error btn-sm"
+                                        >Cancel</button>
+                                    </form>
+                                </div>
+                            @elseif ($issue->status === Issue::STATUS_NEW)
+                                <button
+                                    wire:click.prevent="voteIssue({{ $issue->id }})"
+                                    class="btn btn-primary btn-sm"
+                                >Vote now</button>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
         @endforeach
-        <div class="box-border order-last shadow-xl card bg-base-100 card-compact">
+        <div class="box-border order-last shadow-xl md:w-1/2 lg:w-1/3 card bg-base-100 card-compact col-span-full">
             <div class="justify-between card-body">
                 <form wire:submit.prevent="addIssue()">
                     <div class="card-title">Add new issue</div>
@@ -61,7 +63,7 @@
                             name="titleTitle"
                             wire:model="issueTitle"
                             placeholder="Title"
-                            class="input input-sm input-bordered"
+                            class="input input-md bg-base-200 text-base-content focus:bg-white focus:text-black"
                         />
                         @error('titleTitle')
                             <span class="text-error">{{ $message }}</span>
@@ -71,7 +73,7 @@
                             wire:model="issueDescription"
                             naem="issueDescription"
                             placeholder="Description"
-                            class="textarea textarea-sm textarea-bordered"
+                            class="textarea textarea-md bg-base-200 text-base-content focus:bg-white focus:text-black"
                         ></textarea>
                         @error('issueDescription')
                             <span class="text-error">{{ $message }}</span>
@@ -83,6 +85,9 @@
                     </div>
                 </form>
             </div>
+        </div>
+        <div class="box-border flex items-center justify-center order-last shadow-xl md:w-1/2 lg:w-1/3 card bg-base-100 col-span-full">
+            <span class="text-9xl text-base-300">+</span>
         </div>
     </div>
     <div class="grid grid-cols-1 gap-3 p-4 rounded-lg md:grid-cols-2 lg:grid-cols-3 bg-base-300">
