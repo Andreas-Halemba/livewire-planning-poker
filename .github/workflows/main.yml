@@ -12,19 +12,16 @@ jobs:
               with:
                   # Make sure the actual branch is checked out when running on pull reques
                   ref: ${{ github.head_ref }}
-            - name: Cache Composer dependencies
-              id: cache-composer
+            - name: Get composer cache directory
+              id: composer-cache
+              run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+            - name: Cache dependencies
               uses: actions/cache@v3
-              env:
-                  cache-name: cache-composer
               with:
-                  # npm cache files are stored in `~/.npm` on Linux/macOS
-                  path: ~/vendor
-                  key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/composer-lock.json') }}
-                  restore-keys: |
-                      ${{ runner.os }}-build-${{ env.cache-name }}-
-                      ${{ runner.os }}-build-
-                      ${{ runner.os }}-
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+                  restore-keys: ${{ runner.os }}-composer-
             - name: composer-install
               uses: docker://composer:2
               with:
