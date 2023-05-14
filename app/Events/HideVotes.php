@@ -9,7 +9,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class RevealVotes implements ShouldBroadcast
+class HideVotes implements ShouldBroadcast
 {
     use Dispatchable;
     use InteractsWithSockets;
@@ -29,6 +29,6 @@ class RevealVotes implements ShouldBroadcast
 
     public function broadcastAs(): string
     {
-        return 'RevealVotes';
+        return 'HideVotes';
     }
 }
