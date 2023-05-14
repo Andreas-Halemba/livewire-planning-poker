@@ -20,6 +20,7 @@ window.Pusher = Pusher
 
 import Echo from 'laravel-echo'
 
+// using pusher-js saas version
 // window.Echo = new Echo({
 //     broadcaster: 'pusher',
 //     key: import.meta.env.VITE_PUSHER_APP_KEY,
@@ -27,12 +28,15 @@ import Echo from 'laravel-echo'
 //     forceTLS: true
 // });
 
+// using soketi or laravel websockets
 window.Echo = new Echo({
     broadcaster: 'pusher',
     key: import.meta.env.VITE_PUSHER_APP_KEY,
-    wsHost: window.location.hostname,
+    wsHost: import.meta.env.VITE_PUSHER_HOST,
+    wsPort: import.meta.env.VITE_PUSHER_PORT,
     cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
-    wsPort: 6001,
     forceTLS: false,
+    encrypted: true,
     disableStats: true,
+    enabledTransports: ['ws'],
 })
