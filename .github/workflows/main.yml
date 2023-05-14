@@ -1,0 +1,24 @@
+name: Livewire Planning Poker - quality assurance
+run-name: caused by ${{ github.actor }} 🚀
+on: [push]
+
+jobs:
+
+  install_php:
+    name: Install PHP
+    runs-on: ubuntu-latest
+    steps:
+      - name: setup php
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: intl, mbstring
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          # Make sure the actual branch is checked out when running on pull requests
+          ref: ${{ github.head_ref }}
+      - name: check prettier
+        uses: creyD/prettier_action@v4.3
+        with:
+          prettier_options: --check .

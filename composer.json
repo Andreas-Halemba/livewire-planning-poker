@@ -11,7 +11,7 @@
         "php": "^8.1",
         "beyondcode/laravel-websockets": "^1.14.0",
         "blade-ui-kit/blade-icons": "^1.5.1",
-        "guzzlehttp/guzzle": "^7.5.1",
+        "guzzlehttp/guzzle": "^7.6.0",
         "laravel/framework": "^v10.9.0",
         "laravel/sanctum": "^v3.2.5",
         "laravel/telescope": "^v4.14.2",
