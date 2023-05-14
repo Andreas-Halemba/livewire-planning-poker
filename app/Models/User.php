@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
@@ -94,13 +95,13 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function hasVerifiedEmail(): bool
     {
-        // @TODO: Implement
-        return true;
+        return $this->email_verified_at instanceof Carbon;
     }
 
     public function markEmailAsVerified(): bool
     {
-        // @TODO: Implement
+        $this->email_verified_at = Carbon::now();
+
         return true;
     }
 
