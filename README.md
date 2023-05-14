@@ -85,7 +85,7 @@ php artisan websocket:serve
 npx prettier --write .
 ```
 
-in order to test only use 
+in order to test only use
 
 ```bash
 npx prettier --check .
