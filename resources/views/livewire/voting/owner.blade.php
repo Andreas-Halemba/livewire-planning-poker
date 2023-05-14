@@ -86,9 +86,6 @@
                 </form>
             </div>
         </div>
-        <div class="box-border flex items-center justify-center order-last shadow-xl md:w-1/2 lg:w-1/3 card bg-base-100 col-span-full">
-            <span class="text-9xl text-base-300">+</span>
-        </div>
     </div>
     <div class="grid grid-cols-1 gap-3 p-4 rounded-lg md:grid-cols-2 lg:grid-cols-3 bg-base-300">
         <h2 class="col-span-full">Estimated Issues</h2>
