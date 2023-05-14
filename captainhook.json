@@ -1,0 +1,72 @@
+{
+    "config": {
+        "verbosity": "verbose",
+        "ansi-colors": true,
+        "fail-on-first-error": false
+    },
+    "commit-msg": {
+        "enabled": false,
+        "actions": []
+    },
+    "pre-push": {
+        "enabled": false,
+        "actions": []
+    },
+    "pre-commit": {
+        "enabled": true,
+        "actions": [
+            {
+                "action": "\\CaptainHook\\App\\Hook\\PHP\\Action\\Linting",
+                "options": [],
+                "conditions": []
+            },
+            {
+                "action": "php vendor/bin/pint --test",
+                "options": [],
+                "conditions": []
+            },
+            {
+                "action": "php -d memory_limit=-1 vendor/bin/phpstan analyse",
+                "options": []
+            },
+            {
+                "action": "php artisan test",
+                "options": [],
+                "conditions": []
+            },
+            {
+                "action": "php artisan insights -n",
+                "options": [],
+                "conditions": []
+            },
+            {
+                "action": "npx prettier --check .",
+                "options": []
+            }
+        ]
+    },
+    "prepare-commit-msg": {
+        "enabled": false,
+        "actions": []
+    },
+    "post-commit": {
+        "enabled": false,
+        "actions": []
+    },
+    "post-merge": {
+        "enabled": false,
+        "actions": []
+    },
+    "post-checkout": {
+        "enabled": false,
+        "actions": []
+    },
+    "post-rewrite": {
+        "enabled": false,
+        "actions": []
+    },
+    "post-change": {
+        "enabled": false,
+        "actions": []
+    }
+}

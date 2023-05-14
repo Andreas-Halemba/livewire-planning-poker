@@ -41,6 +41,12 @@ Build the assets
 npm run build
 ```
 
+generate an encryption key
+
+```bash
+php artisan key:generate
+```
+
 ## Start app
 
 if you have valet installed, what i recommend
@@ -73,22 +79,54 @@ php artisan websocket:serve
 
 ## Code style and quality
 
-formats the code
+### formats the code
 
 ```bash
-npm run format
+npx prettier --write .
 ```
 
-static code check
+in order to test only use 
+
+```bash
+npx prettier --check .
+```
+
+### static code check
 
 ```bash
 php vendor/bin/phpstan
 ```
 
-Run tests
+### Run tests
 
 ```bash
 php artisan test
+```
+
+### run PHP code quality checks
+
+```bash
+php artisan insights -n
+```
+
+### run PHP code style check
+
+```bash
+php vendor/bin/pint --test
+```
+
+in order to autofix run
+
+```bash
+php vendor/bin/pint
+```
+
+### pre commit hook
+
+install captainhook via
+
+```bash
+php ./vendor/bin/captainhook install -f
 ```
 
 ## License
