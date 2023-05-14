@@ -29,7 +29,7 @@ import Echo from 'laravel-echo'
 // });
 
 // using soketi or laravel websockets
-window.Echo = new Echo({
+const echoOptions = {
     broadcaster: 'pusher',
     key: import.meta.env.VITE_PUSHER_APP_KEY,
     wsHost: import.meta.env.VITE_PUSHER_HOST,
@@ -39,4 +39,11 @@ window.Echo = new Echo({
     encrypted: true,
     disableStats: true,
     enabledTransports: ['ws'],
-})
+}
+
+if (import.meta.env.VITE_PUSHER_SCHEME === 'https') {
+    echoOptions.wssPort = import.meta.env.VITE_PUSHER_PORT
+    echoOptions.enabledTransports = ['ws', 'wss']
+}
+
+window.Echo = new Echo(echoOptions)
