@@ -1,17 +1,17 @@
-import "./bootstrap";
+import './bootstrap'
 
-import Alpine from "alpinejs";
-import Clipboard from "@ryangjchandler/alpine-clipboard";
+import Alpine from 'alpinejs'
+import Clipboard from '@ryangjchandler/alpine-clipboard'
 
-import.meta.glob(["../images/**"]);
+import.meta.glob(['../images/**'])
 
 Alpine.plugin(
     Clipboard.configure({
         onCopy: () => {
-            console.log("Copied!");
+            console.log('Copied!')
         },
     })
-);
-window.Alpine = Alpine;
+)
+window.Alpine = Alpine
 
-Alpine.start();
+Alpine.start()

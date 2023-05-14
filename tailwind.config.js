@@ -1,13 +1,13 @@
-const defaultTheme = require("tailwindcss/defaultTheme");
+const defaultTheme = require('tailwindcss/defaultTheme')
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
     content: [
-        "./vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php",
-        "./storage/framework/views/*.php",
-        "./storage/framework/views/*.php",
-        "./app/Models/**/*.php",
-        "./resources/**/*.blade.php",
+        './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
+        './storage/framework/views/*.php',
+        './storage/framework/views/*.php',
+        './app/Models/**/*.php',
+        './resources/**/*.blade.php',
     ],
 
     safelist: {
@@ -16,12 +16,12 @@ module.exports = {
     theme: {
         extend: {
             fontFamily: {
-                sans: ["Figtree", ...defaultTheme.fontFamily.sans],
+                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
         },
     },
     daisyui: {
-        themes: ["cupcake", "dark", "light"],
+        themes: ['cupcake', 'dark', 'light'],
     },
-    plugins: [require("@tailwindcss/typography"), require("daisyui")],
-};
+    plugins: [require('@tailwindcss/typography'), require('daisyui')],
+}
