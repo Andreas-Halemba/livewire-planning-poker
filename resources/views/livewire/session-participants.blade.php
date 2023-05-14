@@ -17,8 +17,10 @@
                 ])>
                     @if ($user['id'] === $session->owner_id)
                         PO
+                    @elseif(($votesRevealed || $user['id'] === Auth::id()) && isset($votes[$user['id']]))
+                        {{ $votes[$user['id']]}}
                     @else
-                        {{ $votes[$user['id']] ?? 'X' }}
+                        ?
                     @endif
                 </div>
             </div>
@@ -29,7 +31,7 @@
         </div>
     @endforelse
     @can('owns_session', $session)
-        @unless (blank($participantsVoted))
+        @if (array_filter($votes))
             <button
                 wire:click="sendRevealEvent"
                 class="order-last btn btn-success col-span-full"
