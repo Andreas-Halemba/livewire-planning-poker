@@ -9,10 +9,6 @@ module.exports = {
         './app/Models/**/*.php',
         './resources/**/*.blade.php',
     ],
-
-    safelist: {
-        deep: [/data-theme$/],
-    },
     theme: {
         extend: {
             fontFamily: {
@@ -21,7 +17,7 @@ module.exports = {
         },
     },
     daisyui: {
-        themes: ['cupcake', 'dark', 'light'],
+        themes: ['cupcake', 'dark'],
     },
     plugins: [require('@tailwindcss/typography'), require('daisyui')],
 }

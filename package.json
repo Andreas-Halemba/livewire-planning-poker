@@ -24,6 +24,7 @@
     "dependencies": {
         "@ryangjchandler/alpine-clipboard": "^2.2.0",
         "@tailwindcss/typography": "^0.5.9",
-        "daisyui": "^2.51.6"
+        "daisyui": "^2.51.6",
+        "theme-change": "^2.5.0"
     }
 }
