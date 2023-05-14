@@ -10,8 +10,7 @@ module.exports = {
         "./resources/**/*.blade.php",
     ],
 
-    safelist:
-    {
+    safelist: {
         deep: [/data-theme$/],
     },
     theme: {
@@ -24,8 +23,5 @@ module.exports = {
     daisyui: {
         themes: ["cupcake", "dark", "light"],
     },
-    plugins: [
-        require("@tailwindcss/typography"),
-        require("daisyui")
-    ],
+    plugins: [require("@tailwindcss/typography"), require("daisyui")],
 };
