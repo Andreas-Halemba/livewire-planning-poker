@@ -2,7 +2,7 @@
     <div class="card-body">
         <h2 class="card-title">Your own Sessions</h2>
         <p>Here you can see all your sessions you did create.</p>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
             @foreach ($sessions as $session)
                 <div class="shadow-sm card card-compact bg-base-100 text-base-content">
                     <div class="card-body" x-data>

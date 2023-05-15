@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Voting;
 
 use App\Events\IssueAdded;
 use App\Events\IssueCanceled;
+use App\Events\IssueDeleted;
 use App\Events\IssueSelected;
 use App\Models\Issue;
 use App\Models\Session;
@@ -72,6 +73,12 @@ class Owner extends Component
         $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
         $this->emit('refreshIssues');
         broadcast(new IssueAdded($issue))->toOthers();
+    }
+
+    public function deleteIssue(Issue $issue): void
+    {
+        $issue->forceDelete();
+        broadcast(new IssueDeleted($this->session->invite_code));
     }
 
     private function resetIssuesStatus(): void

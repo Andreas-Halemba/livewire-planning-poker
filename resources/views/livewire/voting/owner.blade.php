@@ -9,10 +9,18 @@
                 ])
                 wire:key="issue-{{ $issue->id }}"
             >
-                <div class="justify-around card-body">
+                <div class="relative justify-between card-body">
+                    <div class="absolute justify-end top-4 right-4 card-actions">
+                        <x-danger-button
+                            class="btn-sm btn-outline btn-square"
+                            wire:click="deleteIssue({{ $issue->id }})"
+                        >X</x-danger-button>
+                    </div>
                     <div class="card-title">{!! $issue->title_html !!}</div>
                     @if (!blank($issue->description))
                         <p>Description: <br> {{ $issue->description }}</p>
+                    @else
+                        <p>No description</p>
                     @endif
                     <div class="flex flex-col gap-2">
                         @if ($issue->status === 'voting')
@@ -25,27 +33,25 @@
                                         class="input-group"
                                         wire:submit.prevent="addPointsToIssue({{ $issue->id }})"
                                     >
-                                        <input
-                                            type="text"
-                                            wire:model.defer="issues.{{ $index }}.storypoints"
+                                        <x-text-input
+                                            class="w-1/3 text-center input-sm"
+                                            name="storypoints"
                                             placeholder="Points"
-                                            class="w-1/3 text-center input input-sm bg-base-200 text-base-content focus:bg-white focus:text-black"
-                                        >
-                                        <button
-                                            type="submit"
-                                            class="btn grow btn-success btn-sm"
-                                        >Save</button>
-                                        <button
+                                            wire:model.defer="issues.{{ $index }}.storypoints"
+                                        />
+                                        <x-success-button class=" grow btn-sm btn">Save</x-success-button>
+                                        <x-danger-button
+                                            class="grow btn-sm"
                                             wire:click.prevent="cancelIssue({{ $issue->id }})"
-                                            class="btn grow btn-error btn-sm"
-                                        >Cancel</button>
+                                        >Cancel</x-danger-button>
+
                                     </form>
                                 </div>
                             @elseif ($issue->status === Issue::STATUS_NEW)
-                                <button
+                                <x-primary-button
                                     wire:click.prevent="voteIssue({{ $issue->id }})"
-                                    class="btn btn-primary btn-sm btn-outline"
-                                >Vote now</button>
+                                    class="w-full btn-sm"
+                                >Vote now</x-primary-button>
                             @endif
                         </div>
                     </div>
@@ -57,24 +63,19 @@
                 <form wire:submit.prevent="addIssue()">
                     <div class="card-title">Add new issue</div>
                     <div class="gap-3 mt-3 form-control">
-                        <input
+                        <x-text-input
                             required
-                            type="text"
-                            name="titleTitle"
+                            class="input-md"
                             wire:model="issueTitle"
                             placeholder="Title"
-                            class="input input-md bg-base-200 text-base-content focus:bg-white focus:text-black"
                         />
                         @error('titleTitle')
                             <span class="text-error">{{ $message }}</span>
                         @enderror
-                        <textarea
-                            type="textarea"
+                        <x-textarea-input
                             wire:model="issueDescription"
-                            naem="issueDescription"
                             placeholder="Description"
-                            class="textarea textarea-md bg-base-200 text-base-content focus:bg-white focus:text-black"
-                        ></textarea>
+                        ></x-textarea-input>
                         @error('issueDescription')
                             <span class="text-error">{{ $message }}</span>
                         @enderror
