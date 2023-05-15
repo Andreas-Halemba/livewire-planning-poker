@@ -1,5 +1,5 @@
 <div>
-    <h1 class="mb-10 text-xl font-bold">Session: <b>{{ $session->name }}</b></h1>
+    <h1 class="mb-10 text-2xl font-bold">Session: <b>{{ $session->name }}</b></h1>
     <livewire:session-participants :session="$session" />
     @can('vote_session', $session)
         <livewire:voting-cards :session="$session" />

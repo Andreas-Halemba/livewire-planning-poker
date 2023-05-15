@@ -32,8 +32,8 @@
 </head>
 
 <body class="bg-base-300">
-    <div class="flex flex-col items-center min-h-screen pt-6 sm:justify-center sm:pt-0">
-        <div class="shadow-xl card lg:card-side bg-base-100">
+    <div class="flex flex-col items-center justify-center min-h-screen sm:pt-0">
+        <div class="w-11/12 max-w-md rounded-2xl sm:shadow-xl md:w-full card bg-base-100">
             <figure>
                 <x-application-logo/>
             </figure>

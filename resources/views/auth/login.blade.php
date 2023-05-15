@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <h2 class="card-title">Login</h2>
+    <h2 class="justify-center w-full card-title">Login</h2>
 
     <!-- Session Status -->
     <x-auth-session-status
@@ -17,11 +17,15 @@
         <!-- Email Address -->
         <div class="w-full form-control">
             <input
+                autofocus
+                required
+                value="{{ old('email') }}"
                 id="email"
                 type="email"
                 name="email"
                 placeholder="Email"
-                class="w-full input input-bordered"
+                class="w-full input bg-base-300 input-bordered border-primary focus:bg-white"
+                autocomplete="email"
             />
             <label class="label">
                 <span class="label-text-alt">
@@ -35,11 +39,13 @@
 
         <div class="w-full form-control">
             <input
+                required
                 id="password"
                 type="password"
                 name="password"
                 placeholder="Password"
-                class="w-full input input-bordered"
+                class="w-full input bg-base-300 input-bordered border-primary focus:bg-white"
+                autocomplete="password"
             />
             <label class="label">
                 <span class="label-text-alt">
@@ -49,12 +55,20 @@
                     />
                 </span>
             </label>
+            @if (Route::has('password.request'))
+            <a
+                class="text-sm text-center link link-hover"
+                href="{{ route('password.request') }}"
+            >
+                {{ __('Forgot your password?') }}
+            </a>
+        @endif
         </div>
 
         <!-- Remember Me -->
         <div class="form-control">
             <label
-                class="cursor-pointer label"
+                class="flex justify-center gap-2 cursor-pointer label"
                 for="remember_me"
             >
                 <span class="label-text">{{ __('Remember me') }}</span>
@@ -62,32 +76,25 @@
                     id="remember_me"
                     name="remember_me"
                     type="checkbox"
-                    class="checkbox checkbox-accent"
+                    class="checkbox checkbox-primary"
                 />
             </label>
         </div>
 
-        <div class="flex items-center justify-end gap-2 mt-4">
-            @if (Route::has('password.request'))
-                <a
-                    class="text-sm text-gray-600 underline rounded-md hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    href="{{ route('password.request') }}"
-                >
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
+        <div class="flex flex-col items-center justify-center gap-2 mt-4">
             <button
                 type="submit"
-                class="btn btn-accent btn-sm "
+                class="btn btn-primary"
             >Login</button>
         </div>
     </form>
     <div class="divider">OR</div>
-    <h2 class="card-title">Register</h2>
-    <a
-        class="text-sm text-gray-600 underline rounded-md hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        href="{{ route('register') }}"
-    >
-        {{ __('Create an account') }}
-    </a>
+    <div class="flex flex-col items-center justify-center gap-2">
+        <a
+            class="btn btn-secondary"
+            href="{{ route('register') }}"
+        >
+            {{ __('Create an account') }}
+        </a>
+    </div>
 </x-guest-layout>
