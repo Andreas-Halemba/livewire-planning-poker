@@ -1,6 +1,6 @@
 <div>
     <div class="grid grid-cols-1 gap-3 p-4 mb-10 rounded-lg md:grid-cols-2 lg:grid-cols-3 bg-base-300">
-        <h2 class="col-span-full">Open Issues</h2>
+        <h2 class="text-lg font-bold col-span-full">Open Issues</h2>
         @foreach ($issues->where('status', '!=', Issue::STATUS_FINISHED) as $index => $issue)
             <div
                 @class([
@@ -44,7 +44,7 @@
                             @elseif ($issue->status === Issue::STATUS_NEW)
                                 <button
                                     wire:click.prevent="voteIssue({{ $issue->id }})"
-                                    class="btn btn-primary btn-sm"
+                                    class="btn btn-primary btn-sm btn-outline"
                                 >Vote now</button>
                             @endif
                         </div>
@@ -80,7 +80,7 @@
                         @enderror
                         <button
                             type="submit"
-                            class="btn btn-primary btn-sm"
+                            class="btn btn-primary btn-sm btn-outline"
                         >Add new issue</button>
                     </div>
                 </form>
@@ -88,7 +88,7 @@
         </div>
     </div>
     <div class="grid grid-cols-1 gap-3 p-4 rounded-lg md:grid-cols-2 lg:grid-cols-3 bg-base-300">
-        <h2 class="col-span-full">Estimated Issues</h2>
+        <h2 class="text-lg font-bold col-span-full">Estimated Issues</h2>
         @foreach ($issues->where('status', Issue::STATUS_FINISHED) as $index => $issue)
             <div
                 class="box-border shadow-xl card bg-base-100 card-compact card-bordered border-accent"
@@ -97,7 +97,7 @@
                 <div class="justify-between card-body">
                     <div class="justify-end card-actions">
                         <div
-                            class="absolute inline-flex items-center justify-center w-8 h-8 text-xl rounded-box bg-accent text-accent-content">
+                            class="absolute inline-flex items-center justify-center w-8 h-8 text-xl border rounded-box border-accent text-accent-content">
                             {{ $issue->storypoints ?? 'X' }}</div>
                     </div>
                     <div class="card-title">{!! $issue->title_html !!}</div>
@@ -107,7 +107,7 @@
                     <div class="justify-end card-actions">
                         <div
                             wire:click.prevent="voteIssue({{ $issue->id }})"
-                            class="btn btn-primary btn-sm"
+                            class="btn btn-primary btn-sm btn-outline"
                         >Vote again</div>
                     </div>
                 </div>

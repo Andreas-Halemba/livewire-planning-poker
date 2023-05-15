@@ -10,13 +10,13 @@
                         <p>{{ Illuminate\Support\Carbon::create($session->created_at)->toFormattedDateString() }}</p>
                         <div class="flex gap-2 card-actions">
                             <button
-                                class="w-full btn btn-primary btn-sm"
+                                class="w-full btn btn-primary btn-sm btn-outline"
                                 wire:click.prevent="joinSession('{{ $session->invite_code }}')"
                             >Join</button>
                             <button
-                                class="w-full btn btn-error btn-sm"
+                                class="w-full btn btn-error btn-sm btn-outline"
                                 wire:click.prevent="leaveSession('{{ $session->id }}')"
-                            >Leave</button>
+                            >Remove</button>
                         </div>
                     </div>
                 </div>

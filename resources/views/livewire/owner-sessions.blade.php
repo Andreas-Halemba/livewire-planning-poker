@@ -10,15 +10,15 @@
                         <p>Created at: {{ Illuminate\Support\Carbon::create($session->created_at)->toFormattedDateString() }}</p>
                         <div class="flex gap-2 mt-2 card-actions">
                             <a
-                            class="w-full btn btn-primary btn-sm"
+                            class="w-full btn btn-primary btn-sm btn-outline"
                             href="{{ route('session.voting', ['inviteCode' => $session->invite_code]) }}"
                             >Join</a>
                             <a
-                                class="w-full btn btn-accent btn-sm"
+                                class="w-full btn btn-accent btn-sm btn-outline"
                                 x-clipboard.raw="{{ route('session.voting', ['inviteCode' => $session->invite_code]) }}"
                             >Copy Invite link</a>
                             <a
-                                class="w-full btn btn-error btn-sm"
+                                class="w-full btn btn-error btn-sm btn-outline"
                                 wire:click.prevent="deleteSession('{{ $session->id }}')"
                             >Delete</a>
                         </div>

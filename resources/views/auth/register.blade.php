@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <h1 class="text-lg">Register</h1>
+    <h1 class="justify-center w-full card-title">Register</h1>
     <form
         method="POST"
         action="{{ route('register') }}"
@@ -10,9 +10,10 @@
         <!-- Name -->
         <div class="form-control">
             <input
+                value="{{ old('name') }}"
                 id="name"
                 name="name"
-                class="w-full input input-bordered"
+                class="w-full input bg-base-300 input-bordered border-primary focus:bg-white"
                 placeholder="Name"
                 type="text"
                 required
@@ -26,11 +27,12 @@
         </div>
         <div class="form-control">
             <input
+                value="{{ old('email') }}"
                 id="email"
                 name="email"
-                class="w-full input input-bordered"
+                class="w-full input bg-base-300 input-bordered border-primary focus:bg-white"
                 placeholder="Email"
-                type="text"
+                type="email"
                 required
                 autofocus
                 autocomplete="email"
@@ -45,7 +47,7 @@
             <input
                 id="password"
                 name="password"
-                class="w-full input input-bordered"
+                class="w-full input bg-base-300 input-bordered border-primary focus:bg-white"
                 placeholder="Password"
                 type="password"
                 required
@@ -62,7 +64,7 @@
             <input
                 id="password_confirmation"
                 name="password_confirmation"
-                class="w-full input input-bordered"
+                class="w-full input bg-base-300 input-bordered border-primary focus:bg-white"
                 placeholder="Confirm Password"
                 type="password"
                 required
@@ -75,17 +77,16 @@
             />
         </div>
 
-        <div class="flex items-center justify-end mt-4">
+        <div class="flex flex-col items-center justify-center gap-2 mt-2">
+            <button class="btn btn-primary">
+                {{ __('Register') }}
+            </button>
             <a
                 class="text-sm text-gray-600 underline rounded-md hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 href="{{ route('login') }}"
             >
                 {{ __('Already registered?') }}
             </a>
-
-            <button class="ml-4 btn btn-primary btn-sm">
-                {{ __('Register') }}
-            </button>
         </div>
     </form>
 </x-guest-layout>

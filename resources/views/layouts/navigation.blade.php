@@ -29,13 +29,10 @@
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ml-6">
-                <div class="flex items-center mr-2 shrink-0">
-                    <x-theme-switcher />
-                </div>
                 <div class="dropdown dropdown-end">
                     <label
                         tabindex="0"
-                        class="m-1 btn btn-primary"
+                        class="m-1 btn btn-primary btn-outline"
                     >{{ Auth::user()->name }}</label>
                     <ul
                         tabindex="0"
@@ -67,9 +64,6 @@
 
             <!-- Hamburger -->
             <div class="flex items-center -mr-2 sm:hidden">
-                <div class="flex items-center shrink-0">
-                    <x-theme-switcher />
-                </div>
                 <button
                     @click="open = ! open"
                     class="inline-flex items-center justify-center p-2 transition duration-150 ease-in-out rounded-md text-base-content hover:bg-base-300 focus:bg-base-300"
