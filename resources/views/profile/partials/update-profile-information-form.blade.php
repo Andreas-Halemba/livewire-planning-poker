@@ -31,15 +31,14 @@
                 :value="__('Name')"
                 class="text-base-content"
             />
-            <input
-                class="input bg-bse-300 input-bordered focus:border-primary focus:bg-white"
+            <x-text-input
+                :value="old('name', $user->name)"
+                class="bg-white input-bordered"
                 id="name"
                 name="name"
-                type="text"
-                :value="old('name', $user - > name)"
+                autocomplete="none"
                 required
                 autofocus
-                autocomplete="name"
             />
             <x-input-error
                 class="mt-2"
@@ -52,14 +51,14 @@
                 for="email"
                 :value="__('Email')"
             />
-            <input
-                class="input bg-bse-300 input-bordered focus:border-primary focus:bg-white"
+            <x-text-input
+                :value="old('name', $user->email)"
+                class="bg-white input-bordered"
                 id="email"
                 name="email"
-                type="email"
-                :value="old('email', $user - > email)"
+                autocomplete="none"
                 required
-                autocomplete="username"
+                autofocus
             />
             <x-input-error
                 class="mt-2"
