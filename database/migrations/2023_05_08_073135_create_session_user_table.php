@@ -6,7 +6,10 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateSessionUserTable extends Migration
 {
-    public function up()
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
     {
         Schema::create('session_user', function (Blueprint $table) {
             $table->id();
@@ -16,7 +19,10 @@ class CreateSessionUserTable extends Migration
         });
     }
 
-    public function down()
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
     {
         Schema::dropIfExists('session_user');
     }

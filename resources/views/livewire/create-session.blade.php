@@ -1,7 +1,7 @@
 <div class="w-full shadow-xl card bg-base-300 text-base-content">
     <div class="card-body">
         <h2 class="card-title">{{ __('Create a new session') }}</h2>
-        <p>{{ __('Please ask your session owner for the invte code') }}</p>
+        <p>{{ __('Provide a name or topic for your session.') }}</p>
         <form
             wire:submit.prevent="createSession"
             class="justify-start card-actions"

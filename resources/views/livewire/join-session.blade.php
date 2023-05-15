@@ -1,7 +1,7 @@
 <div class="w-full shadow-xl card bg-base-300 text-base-content">
     <div class="card-body">
         <h2 class="card-title">{{ __('Join an existing session') }}</h2>
-        <p>{{ __('Please ask your session owner for the invte code') }}</p>
+        <p>{{ __('Please ask your session owner for the invite code') }}</p>
         <form
             class="w-full space-y-2 form-control"
             wire:submit.prevent="joinSession"
