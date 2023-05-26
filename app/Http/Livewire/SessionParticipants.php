@@ -60,6 +60,7 @@ class SessionParticipants extends Component
     public function unsetCurrentIssue(): void
     {
         $this->issue = null;
+        $this->reset('votes', 'votesRevealed');
     }
 
     public function userJoins(User $user): void
