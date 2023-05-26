@@ -28,6 +28,7 @@ uses(TestCase::class, RefreshDatabase::class)->in('Feature');
 */
 
 expect()->extend('toBeOne', function () {
+    /** @phpstan-ignore-next-line */
     return $this->toBe(1);
 });
 
