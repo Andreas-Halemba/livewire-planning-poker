@@ -5,7 +5,10 @@ namespace App\Http\Livewire;
 use App\Events\UserJoins;
 use App\Models\Session;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\RedirectResponse;
 use Livewire\Component;
+use Livewire\Redirector;
 
 class Voting extends Component
 {
@@ -13,15 +16,20 @@ class Voting extends Component
 
     public string $inviteCode;
 
-    public function mount(string $inviteCode): void
+    public function mount(string $inviteCode): Redirector|RedirectResponse|null
     {
         $this->inviteCode = $inviteCode;
-        $this->session = Session::whereInviteCode($this->inviteCode)->firstOrFail();
+        try {
+            $this->session = Session::whereInviteCode($this->inviteCode)->firstOrFail();
+        } catch (ModelNotFoundException $th) {
+            return redirect()->to(route('dashboard'));
+        }
         $user = auth()->user();
         if ($user) {
             $this->attachUserToSession();
             broadcast(new UserJoins($this->session, $user))->toOthers();
         }
+        return null;
     }
 
     public function render(): View
