@@ -41,7 +41,7 @@ class Owner extends Component
         $issue->storypoints = $this->issues->firstOrFail('id', $id)->storypoints;
         $issue->status = Issue::STATUS_FINISHED;
         $issue->save();
-        broadcast(new IssueCanceled($issue))->toOthers();
+        broadcast(new IssueCanceled($issue));
     }
 
     public function voteIssue(int $id): void
