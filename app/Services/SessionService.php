@@ -8,9 +8,7 @@ use Illuminate\Support\Str;
 
 class SessionService
 {
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     public function createSession(): Session
     {

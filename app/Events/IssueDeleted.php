@@ -14,13 +14,11 @@ class IssueDeleted implements ShouldBroadcast
     use InteractsWithSockets;
     use SerializesModels;
 
-    public function __construct(private string $sessionCode)
-    {
-    }
+    public function __construct(private string $sessionCode) {}
 
     public function broadcastOn(): PresenceChannel
     {
-        return new PresenceChannel('session.'.$this->sessionCode);
+        return new PresenceChannel('session.' . $this->sessionCode);
     }
 
     public function broadcastAs(): string

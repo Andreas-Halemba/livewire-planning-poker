@@ -19,13 +19,11 @@ class UserJoins implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
-    public function __construct(public Session $session, public User $user)
-    {
-    }
+    public function __construct(public Session $session, public User $user) {}
 
     public function broadcastOn(): PresenceChannel
     {
-        return new PresenceChannel('session.'.$this->session->invite_code);
+        return new PresenceChannel('session.' . $this->session->invite_code);
     }
 
     public function broadcastAs(): string
