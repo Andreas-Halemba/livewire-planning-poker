@@ -24,7 +24,7 @@ Route::get('/', function () {
 //     return view('dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     // Route for the Session Management component
     Route::get('/dashboard', SessionManagement::class)->name('dashboard');
     // Route for the Voting component
