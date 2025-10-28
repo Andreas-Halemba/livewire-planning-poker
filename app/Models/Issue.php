@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property int|null $storypoints
+ * @property string|null $jira_key
+ * @property string|null $jira_url
  *
  * @property-read float $average_vote
  * @property-read string $title_html
@@ -57,6 +59,8 @@ class Issue extends Model
         'session_id',
         'status',
         'storypoints',
+        'jira_key',
+        'jira_url',
     ];
 
     public function session(): BelongsTo
@@ -77,6 +81,12 @@ class Issue extends Model
 
     public function getTitleHtmlAttribute(): string
     {
+        // If we have Jira URL, create link using Jira key
+        if ($this->jira_url && $this->jira_key) {
+            return "<a href='{$this->jira_url}' class='hover:underline' target='_blank'>{$this->jira_key}</a>";
+        }
+
+        // Fallback to existing URL parsing logic
         $pattern = '/SAN-\d+/';
         if (filter_var($this->title, FILTER_VALIDATE_URL) && preg_match($pattern, $this->title, $matches)) {
             return "<a href='{$this->title}' class='hover:underline' target='_blank'>{$matches[0]}</a>";
