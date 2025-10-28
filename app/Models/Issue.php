@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\IssueFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -41,6 +42,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Issue extends Model
 {
+    /** @use HasFactory<IssueFactory> */
     use HasFactory;
 
     public const STATUS_NEW = 'open';
@@ -62,6 +64,7 @@ class Issue extends Model
         return $this->belongsTo(Session::class);
     }
 
+    /** @return HasMany<Vote, *> */
     public function votes(): HasMany
     {
         return $this->hasMany(Vote::class);

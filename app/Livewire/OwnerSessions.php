@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Livewire;
 
 use App\Models\Session;
 use Illuminate\Contracts\View\View;
@@ -10,6 +10,7 @@ use Livewire\Component;
 
 class OwnerSessions extends Component
 {
+    /** @var Collection<int, \App\Models\Session> */
     public Collection $sessions;
 
     public function render(): View

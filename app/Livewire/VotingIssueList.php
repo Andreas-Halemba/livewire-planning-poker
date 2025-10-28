@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Livewire;
 
 use App\Models\Session;
 use Illuminate\Contracts\View\View;
@@ -9,10 +9,12 @@ use Livewire\Component;
 
 class VotingIssueList extends Component
 {
+    /** @var Collection<int, \App\Models\Issue> */
     public Collection $issues;
 
     public Session $session;
 
+    /** @return array<string, string> */
     public function getListeners(): array
     {
         return [

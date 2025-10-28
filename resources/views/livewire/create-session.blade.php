@@ -3,7 +3,7 @@
         <h2 class="card-title">{{ __('Create a new session') }}</h2>
         <p>{{ __('Provide a name or topic for your session.') }}</p>
         <form
-            wire:submit.prevent="createSession"
+            wire:submit="createSession"
             class="justify-start card-actions"
         >
             @error('sessionName')
@@ -13,7 +13,7 @@
                 <input
                     required
                     id="sessionName"
-                    wire:model="sessionName"
+                    wire:model.live="sessionName"
                     type="text"
                     placeholder="Session name"
                     class="w-full input @error('sessionName') border-error @enderror"

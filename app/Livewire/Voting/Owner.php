@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire\Voting;
+namespace App\Livewire\Voting;
 
 use App\Events\IssueAdded;
 use App\Events\IssueCanceled;
@@ -23,6 +23,7 @@ class Owner extends Component
 
     public string $issueDescription = '';
 
+    /** @var array<string, string> */
     protected array $rules = [
         'issues.*.storypoints' => 'integer|in:0,1,2,3,5,8,13,20,40,100',
         'issueTitle' => 'required|max:255',
@@ -71,7 +72,7 @@ class Owner extends Component
         $this->issueDescription = '';
 
         $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
-        $this->emit('refreshIssues');
+        $this->dispatch('refreshIssues');
         broadcast(new IssueAdded($issue))->toOthers();
     }
 
