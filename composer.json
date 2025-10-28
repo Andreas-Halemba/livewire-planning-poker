@@ -12,6 +12,7 @@
         "blade-ui-kit/blade-icons": "^1.5.1",
         "guzzlehttp/guzzle": "^7.5.1",
         "laravel/framework": "^11.44",
+        "laravel/pulse": "^1.4",
         "laravel/reverb": "^1.6",
         "laravel/sanctum": "^4.0",
         "laravel/telescope": "^5.0",

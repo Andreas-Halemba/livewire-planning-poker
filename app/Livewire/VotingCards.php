@@ -13,7 +13,8 @@ use Livewire\Component;
 
 class VotingCards extends Component
 {
-    public array $cards = [0, 1, 2, 3, 5, 8, 13, 20, 40, 100];
+    /** @var array<int> */
+    public array $cards = [0, 1, 2, 3, 5, 8, 13, 21, 100];
 
     public ?int $vote = null;
 
@@ -21,6 +22,7 @@ class VotingCards extends Component
 
     public ?Issue $currentIssue = null;
 
+    /** @return array<string, string> */
     public function getListeners(): array
     {
         return [

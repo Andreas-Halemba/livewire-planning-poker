@@ -17,6 +17,7 @@ class Voter extends Component
         ]);
     }
 
+    /** @return array<string, string> */
     public function getListeners(): array
     {
         return [
