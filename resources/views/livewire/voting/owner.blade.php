@@ -13,9 +13,19 @@
                     </div>
                     <div class="card-title">{!! $issue->title_html !!}</div>
                     @if (!blank($issue->description))
-                        <p>Description: <br> {{ $issue->description }}</p>
+                        <div class="collapse collapse-arrow">
+                            <input type="checkbox" />
+                            <div class="collapse-title text-sm font-medium">
+                                Description (click to expand)
+                            </div>
+                            <div class="collapse-content">
+                                <div class="prose prose-sm max-w-none">
+                                    {!! $this->formatJiraDescription($issue->description) !!}
+                                </div>
+                            </div>
+                        </div>
                     @else
-                        <p>No description</p>
+                        <p class="text-gray-500 italic">No description</p>
                     @endif
                     <div class="flex flex-col gap-2">
                         @if ($issue->status === 'voting')
@@ -81,7 +91,17 @@
                     </div>
                     <div class="card-title">{!! $issue->title_html !!}</div>
                     @if (!blank($issue->description))
-                        <p>{{ $issue->description }}</p>
+                        <div class="collapse collapse-arrow">
+                            <input type="checkbox" />
+                            <div class="collapse-title text-sm font-medium">
+                                Description (click to expand)
+                            </div>
+                            <div class="collapse-content">
+                                <div class="prose prose-sm max-w-none">
+                                    {!! $this->formatJiraDescription($issue->description) !!}
+                                </div>
+                            </div>
+                        </div>
                     @endif
                     <div class="justify-end card-actions">
                         <div wire:click.prevent="voteIssue({{ $issue->id }})" class="btn btn-primary btn-sm btn-outline">
