@@ -31,7 +31,7 @@ class JiraService
      */
     public function searchIssuesByProjectAndStatus(string $projectKey, string $status): array
     {
-        $jql = "project = {$projectKey} AND status = \"{$status}\"";
+        $jql = "project = \"{$projectKey}\" AND status = \"{$status}\" ORDER BY created DESC";
 
         try {
             $response = $this->issueService->search($jql);

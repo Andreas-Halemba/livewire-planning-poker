@@ -106,12 +106,7 @@ class JiraImport extends Component
     public function getStatusOptionsProperty(): array
     {
         return [
-            'To Do' => 'To Do',
-            'In Progress' => 'In Progress',
-            'Ready for Review' => 'Ready for Review',
-            'Done' => 'Done',
-            'Open' => 'Open',
-            'New' => 'New',
+            'In Estimation' => 'In Estimation',
         ];
     }
 }
