@@ -2,7 +2,7 @@
 
 ## Configuration
 
-These environment variables should be set acodingly
+These environment variables should be set accordingly
 
 ```env
 DB_DATABASE=planning_poker
@@ -101,12 +101,6 @@ php vendor/bin/phpstan
 
 ```bash
 php artisan test
-```
-
-### run PHP code quality checks
-
-```bash
-php artisan insights -n
 ```
 
 ### run PHP code style check
