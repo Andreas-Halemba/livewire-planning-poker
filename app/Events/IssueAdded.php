@@ -15,13 +15,11 @@ class IssueAdded implements ShouldBroadcast
     use InteractsWithSockets;
     use SerializesModels;
 
-    public function __construct(public Issue $issue)
-    {
-    }
+    public function __construct(public Issue $issue) {}
 
     public function broadcastOn(): PresenceChannel
     {
-        return new PresenceChannel('session.'.$this->issue->session->invite_code);
+        return new PresenceChannel('session.' . $this->issue->session->invite_code);
     }
 
     public function broadcastAs(): string

@@ -27,11 +27,11 @@ class AuthServiceProvider extends ServiceProvider
     {
         Gate::define(
             'owns_session',
-            fn (User $user, Session $session) => $user->id === $session->owner_id
+            fn(User $user, Session $session) => $user->id === $session->owner_id,
         );
         Gate::define(
             'vote_session',
-            fn (User $user, Session $session) => $session->users->contains($user)
+            fn(User $user, Session $session) => $session->users->contains($user),
         );
     }
 }

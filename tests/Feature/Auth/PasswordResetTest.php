@@ -31,7 +31,7 @@ test('reset password screen can be rendered', function () {
     post('/forgot-password', ['email' => $user->email]);
 
     Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
-        $response = get('/reset-password/'.$notification->token);
+        $response = get('/reset-password/' . $notification->token);
 
         $response->assertStatus(200);
 

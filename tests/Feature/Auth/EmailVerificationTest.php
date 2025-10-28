@@ -28,7 +28,7 @@ test('email can be verified', function () {
     $verificationUrl = URL::temporarySignedRoute(
         'verification.verify',
         now()->addMinutes(60),
-        ['id' => $user->id, 'hash' => sha1($user->email)]
+        ['id' => $user->id, 'hash' => sha1($user->email)],
     );
 
     $response = actingAs($user)->get($verificationUrl);
@@ -36,7 +36,7 @@ test('email can be verified', function () {
     Event::assertDispatched(Verified::class);
 
     expect($user->hasVerifiedEmail())->toBeTrue();
-    $response->assertRedirect(RouteServiceProvider::HOME.'?verified=1');
+    $response->assertRedirect(RouteServiceProvider::HOME . '?verified=1');
 });
 
 test('email is not verified with invalid hash', function () {
@@ -47,7 +47,7 @@ test('email is not verified with invalid hash', function () {
     $verificationUrl = URL::temporarySignedRoute(
         'verification.verify',
         now()->addMinutes(60),
-        ['id' => $user->id, 'hash' => sha1('wrong-email')]
+        ['id' => $user->id, 'hash' => sha1('wrong-email')],
     );
 
     actingAs($user)->get($verificationUrl);

@@ -73,14 +73,14 @@ class SessionParticipants extends Component
 
     public function userLeaves(User $user): void
     {
-        $this->participants = $this->participants->filter(fn ($participant) => $participant['id'] !== $user->id);
-        $this->participants = $this->participants->filter(fn ($participant) => $participant['id'] !== $user->id);
+        $this->participants = $this->participants->filter(fn($participant) => $participant['id'] !== $user->id);
+        $this->participants = $this->participants->filter(fn($participant) => $participant['id'] !== $user->id);
     }
 
     public function updateUsers(array $users): void
     {
         $this->participants = collect(
-            Arr::map($users, fn ($user) => User::whereId($user['id'])->firstOrFail()->toArray())
+            Arr::map($users, fn($user) => User::whereId($user['id'])->firstOrFail()->toArray()),
         );
     }
 
@@ -118,8 +118,8 @@ class SessionParticipants extends Component
     {
         $this->issue = $this->session->currentIssue();
         if ($this->issue) {
-            $this->votes = $this->issue->votes->filter(fn (Vote $vote) => $vote->value !== null)->mapWithKeys(
-                fn (Vote $vote) => [$vote->user_id => $vote->value]
+            $this->votes = $this->issue->votes->filter(fn(Vote $vote) => $vote->value !== null)->mapWithKeys(
+                fn(Vote $vote) => [$vote->user_id => $vote->value],
             )->toArray();
             $this->votes[auth()->id()] = $this->issue->votes()->whereUserId(auth()->id())->first()?->value;
         }

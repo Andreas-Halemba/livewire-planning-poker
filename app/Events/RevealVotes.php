@@ -18,13 +18,11 @@ class RevealVotes implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
-    public function __construct(private Session $session)
-    {
-    }
+    public function __construct(private Session $session) {}
 
     public function broadcastOn(): PresenceChannel
     {
-        return new PresenceChannel('session.'.$this->session->invite_code);
+        return new PresenceChannel('session.' . $this->session->invite_code);
     }
 
     public function broadcastAs(): string
