@@ -9,12 +9,18 @@ DB_DATABASE=planning_poker
 DB_USERNAME=root
 DB_PASSWORD=
 
-PUSHER_APP_ID=
-PUSHER_APP_KEY=
-PUSHER_APP_SECRET=
-PUSHER_HOST=127.0.0.1
-PUSHER_PORT=6001
-PUSHER_SCHEME=http
+BROADCAST_DRIVER=reverb
+REVERB_APP_ID=your-app-id
+REVERB_APP_KEY=your-app-key
+REVERB_APP_SECRET=your-app-secret
+REVERB_HOST=localhost
+REVERB_PORT=6000
+REVERB_SCHEME=http
+
+VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
+VITE_REVERB_HOST="${REVERB_HOST}"
+VITE_REVERB_PORT="${REVERB_PORT}"
+VITE_REVERB_SCHEME="${REVERB_SCHEME}"
 
 MAIL_MAILER=
 ```
@@ -69,13 +75,25 @@ If you want to use the mail verification feature make sure to start a mailpit
 docker run -d --restart unless-stopped --name=mailpit -p 8025:8025 -p 1025:1025 axllent/mailpit
 ```
 
-For the websocket server, this project uses Laravel Reverb - Laravel's official WebSocket server.
+For the websocket server, this project uses **Laravel Reverb** - Laravel's official WebSocket server.
+
+### Starting Reverb Locally
 
 To start the Reverb server locally:
 
 ```bash
-php artisan reverb:start
+php artisan reverb:start --host=127.0.0.1 --port=6000
 ```
+
+For better local development experience, you can run it in the background:
+
+```bash
+php artisan reverb:start --host=127.0.0.1 --port=6000 &
+```
+
+**Note:** The Reverb server must be running for real-time features like voting to work.
+
+### Production Deployment
 
 **For production deployment**, see [WEBSOCKET.md](WEBSOCKET.md) for detailed instructions using:
 
@@ -83,19 +101,9 @@ php artisan reverb:start
 -   **PM2** (Node.js process manager)
 -   **systemd** (system service manager)
 
-**Note:** Make sure your `.env` file has these settings:
+### Testing the Connection
 
-```env
-BROADCAST_DRIVER=reverb
-REVERB_APP_ID=app-id-poker
-REVERB_APP_KEY=app-key-poker
-REVERB_APP_SECRET=HrX9xcwUAA-poker
-REVERB_HOST=127.0.0.1
-REVERB_PORT=8080
-REVERB_SCHEME=http
-```
-
-The Reverb server runs on port 8080 by default and handles all WebSocket connections for real-time features like voting.
+After starting the Reverb server, open your browser console and check for WebSocket connection errors. The connection should be established to `ws://127.0.0.1:6000`.
 
 ## Code style and quality
 

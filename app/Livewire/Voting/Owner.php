@@ -23,6 +23,7 @@ class Owner extends Component
 
     public string $issueDescription = '';
 
+    /** @var array<string, string> */
     protected array $rules = [
         'issues.*.storypoints' => 'integer|in:0,1,2,3,5,8,13,20,40,100',
         'issueTitle' => 'required|max:255',

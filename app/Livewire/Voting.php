@@ -2,13 +2,11 @@
 
 namespace App\Livewire;
 
-use App\Events\UserJoins;
 use App\Models\Session;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
-use Livewire\Redirector;
 
 class Voting extends Component
 {
@@ -16,18 +14,12 @@ class Voting extends Component
 
     public string $inviteCode;
 
-    public function mount(string $inviteCode): Redirector|RedirectResponse|null
+    public function mount(string $inviteCode): ?RedirectResponse
     {
         $this->inviteCode = $inviteCode;
-        try {
-            $this->session = Session::whereInviteCode($this->inviteCode)->firstOrFail();
-        } catch (ModelNotFoundException $th) {
-            return redirect()->to(route('dashboard'));
-        }
-        $user = auth()->user();
-        if ($user) {
+        $this->session = Session::whereInviteCode($this->inviteCode)->firstOrFail();
+        if (Auth::hasUser()) {
             $this->attachUserToSession();
-            broadcast(new UserJoins($this->session, $user))->toOthers();
         }
         return null;
     }
@@ -39,11 +31,13 @@ class Voting extends Component
 
     private function attachUserToSession(): void
     {
-        if (auth()->user() && auth()->id()
-            !== $this->session->owner_id
-            && ! $this->session->users->contains(auth()->user())
-        ) {
-            $this->session->users()->attach(auth()->user());
+        if (blank(Auth::user())) {
+            return;
         }
+        // if the user is already in the session, return
+        if ($this->session->users->contains(Auth::user())) {
+            return;
+        }
+        $this->session->users()->attach(Auth::user());
     }
 }

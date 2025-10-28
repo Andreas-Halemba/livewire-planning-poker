@@ -26,3 +26,8 @@ parameters:
         - _ide_helper.php (?)
 
     treatPhpDocTypesAsCertain: false
+
+    # Ignore template covariance errors for Eloquent relations
+    ignoreErrors:
+        - '#Template type TDeclaringModel on class Illuminate\\Database\\Eloquent\\Relations\\.* is not covariant#'
+        - '#Method .* return type with generic class Illuminate\\Database\\Eloquent\\Relations\\.* does not specify its types#'

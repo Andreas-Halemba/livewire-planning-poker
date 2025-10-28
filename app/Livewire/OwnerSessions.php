@@ -10,6 +10,7 @@ use Livewire\Component;
 
 class OwnerSessions extends Component
 {
+    /** @var Collection<int, \App\Models\Session> */
     public Collection $sessions;
 
     public function render(): View

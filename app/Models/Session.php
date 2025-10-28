@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\SessionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -38,6 +39,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Session extends Model
 {
+    /** @use HasFactory<SessionFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -56,7 +58,6 @@ class Session extends Model
         return $this->hasMany(Issue::class, 'session_id', 'id');
     }
 
-    // Session model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)->withTimestamps();
@@ -64,6 +65,7 @@ class Session extends Model
 
     public function currentIssue(): ?Issue
     {
+        /** @var Issue|null */
         return $this->issues()->where('status', Issue::STATUS_VOTING)->first();
     }
 }

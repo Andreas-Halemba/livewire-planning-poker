@@ -14,6 +14,7 @@ class CreateSession extends Component
 
     public string $sessionName = '';
 
+    /** @var array<string, string> */
     protected array $rules = [
         'sessionName' => 'required|string|min:2|max:255',
     ];
