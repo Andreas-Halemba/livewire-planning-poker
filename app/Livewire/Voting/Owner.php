@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire\Voting;
+namespace App\Livewire\Voting;
 
 use App\Events\IssueAdded;
 use App\Events\IssueCanceled;
@@ -71,7 +71,7 @@ class Owner extends Component
         $this->issueDescription = '';
 
         $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
-        $this->emit('refreshIssues');
+        $this->dispatch('refreshIssues');
         broadcast(new IssueAdded($issue))->toOthers();
     }
 
