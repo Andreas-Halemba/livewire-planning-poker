@@ -1,9 +1,8 @@
 includes:
-    - ./vendor/nunomaduro/larastan/extension.neon
+    - ./vendor/larastan/larastan/extension.neon
 
 parameters:
     reportUnmatchedIgnoredErrors: false
-    checkGenericClassInNonGenericObjectType: false
 
     paths:
         - app
@@ -18,13 +17,12 @@ parameters:
     level: 8
 
     excludePaths:
-        - %rootDir%/../../../database/factories
-        - %rootDir%/../../../routes/console.php
-        - %rootDir%/../../../server.php
-        - %rootDir%/../../../vendor
-        - %rootDir%/../../../tests/
-        - %rootDir%/../../../database/migrations
-        - %rootDir%/../../../_ide_helper.php
+        - database/factories
+        - routes/console.php
+        - server.php (?)
+        - vendor
+        - tests/
+        - database/migrations
+        - _ide_helper.php (?)
 
-    checkMissingIterableValueType: false
     treatPhpDocTypesAsCertain: false

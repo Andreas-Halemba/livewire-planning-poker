@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Livewire;
 
 use App\Events\IssueAdded;
 use App\Events\IssueDeleted;
@@ -50,13 +50,13 @@ class IssueManagement extends Component
         $this->issueDescription = '';
 
         $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
-        $this->emit('refreshIssues');
+        $this->dispatch('refreshIssues');
         broadcast(new IssueAdded($issue))->toOthers();
     }
 
     public function editIssue(): void
     {
-        $this->emit('refreshIssues');
+        $this->dispatch('refreshIssues');
     }
 
     public function deleteIssue(int $issueId): void
@@ -65,7 +65,7 @@ class IssueManagement extends Component
         $issue->delete();
 
         $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
-        $this->emit('refreshIssues');
+        $this->dispatch('refreshIssues');
         event(new IssueDeleted($this->session->invite_code));
     }
 }

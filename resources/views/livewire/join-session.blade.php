@@ -4,7 +4,7 @@
         <p>{{ __('Please ask your session owner for the invite code') }}</p>
         <form
             class="w-full space-y-2 form-control"
-            wire:submit.prevent="joinSession"
+            wire:submit="joinSession"
         >
             @error('inviteCode')
                 <span class="text-error">{{ $message }}</span>
@@ -13,7 +13,7 @@
                 <input
                     required
                     id="inviteCode"
-                    wire:model="inviteCode"
+                    wire:model.live="inviteCode"
                     type="text"
                     placeholder="Invite code"
                     class="w-full input @error('inviteCode') border-error @enderror"

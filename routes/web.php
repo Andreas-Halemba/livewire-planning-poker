@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Livewire\SessionManagement;
-use App\Http\Livewire\Voting;
+use App\Livewire\SessionManagement;
+use App\Livewire\Voting;
 use Illuminate\Support\Facades\Route;
 
 /*

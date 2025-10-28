@@ -69,13 +69,33 @@ If you want to use the mail verification feature make sure to start a mailpit
 docker run -d --restart unless-stopped --name=mailpit -p 8025:8025 -p 1025:1025 axllent/mailpit
 ```
 
-For the websocket server you can either choose a pusher js or a replacement SAAS solution.
+For the websocket server, this project uses Laravel Reverb - Laravel's official WebSocket server.
 
-If you want to use the open source laravel websocket which is installed run
+To start the Reverb server locally:
 
 ```bash
-php artisan websocket:serve
+php artisan reverb:start
 ```
+
+**For production deployment**, see [WEBSOCKET.md](WEBSOCKET.md) for detailed instructions using:
+
+-   **Supervisor** (recommended for Linux servers)
+-   **PM2** (Node.js process manager)
+-   **systemd** (system service manager)
+
+**Note:** Make sure your `.env` file has these settings:
+
+```env
+BROADCAST_DRIVER=reverb
+REVERB_APP_ID=app-id-poker
+REVERB_APP_KEY=app-key-poker
+REVERB_APP_SECRET=HrX9xcwUAA-poker
+REVERB_HOST=127.0.0.1
+REVERB_PORT=8080
+REVERB_SCHEME=http
+```
+
+The Reverb server runs on port 8080 by default and handles all WebSocket connections for real-time features like voting.
 
 ## Code style and quality
 
