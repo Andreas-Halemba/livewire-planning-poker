@@ -25,8 +25,9 @@
                 </div>
                 @unless (blank($issue->description))
                     <div class="collapse-content">
-                        <p></p>
-                        <p>{{ $issue->description }}</p>
+                        <div class="prose prose-sm max-w-none">
+                            {!! $this->formatJiraDescription($issue->description) !!}
+                        </div>
                     </div>
                 @endunless
             </div>
@@ -51,8 +52,9 @@
                 </div>
                 @unless (blank($issue->description))
                     <div class="collapse-content">
-                        <p></p>
-                        <p>{{ $issue->description }}</p>
+                        <div class="prose prose-sm max-w-none">
+                            {!! $this->formatJiraDescription($issue->description) !!}
+                        </div>
                     </div>
                 @endunless
             </div>
