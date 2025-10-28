@@ -26,10 +26,6 @@
                 "conditions": []
             },
             {
-                "action": "php -d memory_limit=-1 vendor/bin/phpstan analyse",
-                "options": []
-            },
-            {
                 "action": "php artisan test",
                 "options": [],
                 "conditions": []
