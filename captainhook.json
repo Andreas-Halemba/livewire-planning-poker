@@ -35,11 +35,6 @@
                 "conditions": []
             },
             {
-                "action": "php artisan insights -n",
-                "options": [],
-                "conditions": []
-            },
-            {
                 "action": "npx prettier --check .",
                 "options": []
             }
