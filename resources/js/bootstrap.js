@@ -28,22 +28,26 @@ import Echo from 'laravel-echo'
 //     forceTLS: true
 // });
 
-// using soketi or laravel websockets
+// using laravel reverb
 const echoOptions = {
     broadcaster: 'pusher',
-    key: import.meta.env.VITE_PUSHER_APP_KEY,
-    wsHost: import.meta.env.VITE_PUSHER_HOST,
-    wsPort: import.meta.env.VITE_PUSHER_PORT,
-    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
-    forceTLS: false,
-    encrypted: true,
+    key: import.meta.env.VITE_REVERB_APP_KEY,
+    wsHost: import.meta.env.VITE_REVERB_HOST,
+    wsPort: import.meta.env.VITE_REVERB_PORT,
+    wssPort: import.meta.env.VITE_REVERB_PORT,
+    forceTLS: import.meta.env.VITE_REVERB_SCHEME === 'https',
+    encrypted: import.meta.env.VITE_REVERB_SCHEME === 'https',
     disableStats: true,
-    enabledTransports: ['ws'],
+    enabledTransports:
+        import.meta.env.VITE_REVERB_SCHEME === 'https' ? ['ws', 'wss'] : ['ws'],
 }
 
-if (import.meta.env.VITE_PUSHER_SCHEME === 'https') {
-    echoOptions.wssPort = import.meta.env.VITE_PUSHER_PORT
-    echoOptions.enabledTransports = ['ws', 'wss']
-}
+// window.Echo = new Echo(echoOptions)
 
-window.Echo = new Echo(echoOptions)
+/**
+ * Echo exposes an expressive API for subscribing to channels and listening
+ * for events that are broadcast by Laravel. Echo and event broadcasting
+ * allow your team to quickly build robust real-time web applications.
+ */
+
+import './echo'

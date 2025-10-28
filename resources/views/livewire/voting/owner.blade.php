@@ -31,13 +31,13 @@
                                 <div class="w-full form-control">
                                     <form
                                         class="input-group"
-                                        wire:submit.prevent="addPointsToIssue({{ $issue->id }})"
+                                        wire:submit="addPointsToIssue({{ $issue->id }})"
                                     >
                                         <x-text-input
                                             class="w-1/3 text-center input-sm"
                                             name="storypoints"
                                             placeholder="Points"
-                                            wire:model.defer="issues.{{ $index }}.storypoints"
+                                            wire:model="issues.{{ $index }}.storypoints"
                                         />
                                         <x-success-button class=" grow btn-sm btn">Save</x-success-button>
                                         <x-danger-button
@@ -60,20 +60,20 @@
         @endforeach
         <div class="box-border order-last shadow-xl md:w-1/2 lg:w-1/3 card bg-base-100 card-compact col-span-full">
             <div class="justify-between card-body">
-                <form wire:submit.prevent="addIssue()">
+                <form wire:submit="addIssue()">
                     <div class="card-title">Add new issue</div>
                     <div class="gap-3 mt-3 form-control">
                         <x-text-input
                             required
                             class="input-md"
-                            wire:model="issueTitle"
+                            wire:model.live="issueTitle"
                             placeholder="Title"
                         />
                         @error('titleTitle')
                             <span class="text-error">{{ $message }}</span>
                         @enderror
                         <x-textarea-input
-                            wire:model="issueDescription"
+                            wire:model.live="issueDescription"
                             placeholder="Description"
                         ></x-textarea-input>
                         @error('issueDescription')

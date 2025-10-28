@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Livewire;
 
 use App\Models\Session;
 use App\Services\SessionService;
@@ -14,6 +14,7 @@ class SessionManagement extends Component
 
     public string $inviteCode;
 
+    /** @var array<string, string> */
     protected array $rules = [
         'sessionName' => 'required|min:3|max:255',
     ];

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire\Voting;
+namespace App\Livewire\Voting;
 
 use App\Models\Session;
 use Illuminate\Contracts\View\View;
@@ -17,6 +17,7 @@ class Voter extends Component
         ]);
     }
 
+    /** @return array<string, string> */
     public function getListeners(): array
     {
         return [

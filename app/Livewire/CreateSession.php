@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Livewire;
 
 use App\Models\Session;
 use Illuminate\Contracts\View\View;
@@ -14,6 +14,7 @@ class CreateSession extends Component
 
     public string $sessionName = '';
 
+    /** @var array<string, string> */
     protected array $rules = [
         'sessionName' => 'required|string|min:2|max:255',
     ];

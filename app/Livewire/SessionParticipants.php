@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Livewire;
 
 use App\Events\RevealVotes;
 use App\Models\Issue;
@@ -17,19 +17,25 @@ class SessionParticipants extends Component
 {
     public Session $session;
 
+    /** @var Collection<int|string, \App\Models\User> */
     public Collection $participants;
 
     public ?Issue $issue;
 
+    /** @var array<int|string, mixed> */
     public array $votes = [];
 
+    /** @var array<string, bool> */
     public array $participantsVoted = [];
 
     public bool $votesRevealed = false;
 
     public function mount(): void
     {
-        $this->participants = collect([User::query()->find(Auth::id())?->toArray()]);
+        $this->participants = collect([]);
+        if (Auth::user()) {
+            $this->participants->push(Auth::user());
+        }
     }
 
     public function render(): View
@@ -38,6 +44,7 @@ class SessionParticipants extends Component
         return view('livewire.session-participants');
     }
 
+    /** @return array<string, string> */
     public function getListeners(): array
     {
         return [
@@ -63,25 +70,28 @@ class SessionParticipants extends Component
         $this->reset('votes', 'votesRevealed');
     }
 
-    public function userJoins(User $user): void
+
+    /**
+     * User joins the session.
+     * @param array<int|string, mixed> $user
+     */
+    public function userJoins(array $user): void
     {
-        if ($user->id === Auth::id() || $this->participants->contains('id', $user->id)) {
+        if ($user['id'] === Auth::id() || $this->participants->contains('id', $user['id'])) {
             return;
         }
-        $this->participants->push(User::query()->findOrFail($user['id'])->toArray());
+        $this->participants->push(User::whereId($user['id'])->firstOrFail());
     }
 
     public function userLeaves(User $user): void
     {
-        $this->participants = $this->participants->filter(fn($participant) => $participant['id'] !== $user->id);
-        $this->participants = $this->participants->filter(fn($participant) => $participant['id'] !== $user->id);
+        $this->participants = $this->participants->filter(fn(User $participant) => $participant->id !== $user->id);
     }
 
+    /** @param array<int|string, mixed> $users */
     public function updateUsers(array $users): void
     {
-        $this->participants = collect(
-            Arr::map($users, fn($user) => User::whereId($user['id'])->firstOrFail()->toArray()),
-        );
+        $this->participants = collect($users)->map(fn(array $user): User => User::whereId($user['id'])->firstOrFail());
     }
 
     public function revealVotes(): void
@@ -116,12 +126,11 @@ class SessionParticipants extends Component
 
     private function updateIssueData(): void
     {
-        $this->issue = $this->session->currentIssue();
-        if ($this->issue) {
-            $this->votes = $this->issue->votes->filter(fn(Vote $vote) => $vote->value !== null)->mapWithKeys(
+        if ($this->session->currentIssue()) {
+            $this->votes = $this->session->currentIssue()->votes->filter(fn(Vote $vote) => $vote->value !== null)->mapWithKeys(
                 fn(Vote $vote) => [$vote->user_id => $vote->value],
             )->toArray();
-            $this->votes[auth()->id()] = $this->issue->votes()->whereUserId(auth()->id())->first()?->value;
+            $this->votes[Auth::id()] = $this->session->currentIssue()->votes()->whereUserId(Auth::id())->first()?->value;
         }
     }
 }

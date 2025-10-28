@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Livewire;
 
 use App\Models\Session;
 use App\Services\SessionService;
@@ -11,6 +11,7 @@ class JoinSession extends Component
 {
     public string $inviteCode = '';
 
+    /** @var array<string, string> */
     protected array $rules = [
         'inviteCode' => 'required|exists:sessions,invite_code',
     ];
