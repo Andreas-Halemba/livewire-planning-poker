@@ -3,7 +3,7 @@
         <form wire:submit="importTickets">
             <div class="card-title">Import from Jira</div>
             <div class="gap-3 mt-3 form-control">
-                <x-text-input required class="input-md" wire:model="projectKey" placeholder="Project Key (e.g., SAN)" />
+                <x-text-input required class="input-md" wire:model="projectKey" placeholder="Project Key (z.B. SAN)" />
                 @error('projectKey')
                     <span class="text-error">{{ $message }}</span>
                 @enderror
