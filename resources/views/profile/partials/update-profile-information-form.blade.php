@@ -9,71 +9,33 @@
         </p>
     </header>
 
-    <form
-        id="send-verification"
-        method="post"
-        action="{{ route('verification.send') }}"
-    >
+    <form id="send-verification" method="post" action="{{ route('verification.send') }}">
         @csrf
     </form>
 
-    <form
-        method="post"
-        action="{{ route('profile.update') }}"
-        class="mt-6 space-y-6"
-    >
+    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
         @csrf
         @method('patch')
 
-        <div class="gap-2 form-control">
-            <x-input-label
-                for="name"
-                :value="__('Name')"
-                class="text-base-content"
-            />
-            <x-text-input
-                :value="old('name', $user->name)"
-                class="bg-white input-bordered"
-                id="name"
-                name="name"
-                autocomplete="none"
-                required
-                autofocus
-            />
-            <x-input-error
-                class="mt-2"
-                :messages="$errors->get('name')"
-            />
+        <div class="flex flex-col gap-2">
+            <x-input-label for="name" :value="__('Name')" class="text-base-content" />
+            <x-text-input :value="old('name', $user->name)" class="bg-white" id="name" name="name" autocomplete="none"
+                required autofocus />
+            <x-input-error :messages="$errors->get('name')" />
         </div>
 
-        <div class="gap-2 form-control">
-            <x-input-label
-                for="email"
-                :value="__('Email')"
-            />
-            <x-text-input
-                :value="old('name', $user->email)"
-                class="bg-white input-bordered"
-                id="email"
-                name="email"
-                autocomplete="none"
-                required
-                autofocus
-            />
-            <x-input-error
-                class="mt-2"
-                :messages="$errors->get('email')"
-            />
+        <div class="flex flex-col gap-2">
+            <x-input-label for="email" :value="__('Email')" />
+            <x-text-input :value="old('name', $user->email)" class="bg-white" id="email" name="email"
+                autocomplete="none" required autofocus />
+            <x-input-error :messages="$errors->get('email')" />
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !$user->hasVerifiedEmail())
                 <div>
                     <p class="mt-2 text-sm text-gray-800">
                         {{ __('Your email address is unverified.') }}
 
-                        <button
-                            form="send-verification"
-                            class="btn btn-primary btn-sm"
-                        >
+                        <button form="send-verification" class="btn btn-primary btn-sm">
                             {{ __('Click here to re-send the verification email.') }}
                         </button>
                     </p>
@@ -87,16 +49,9 @@
             @endif
         </div>
 
-        <div class="gap-2 form-control">
-            <x-input-label
-                for="theme"
-                :value="__('Theme')"
-            />
-            <select
-                id="theme"
-                data-choose-theme
-                class="w-full select"
-            >
+        <div class="flex flex-col gap-2">
+            <x-input-label for="theme" :value="__('Theme')" />
+            <select id="theme" data-choose-theme class="w-full select">
                 <option value="cupcake">Cupcake</option>
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
@@ -107,13 +62,8 @@
             <x-primary-button class="w-full">{{ __('Save') }}</x-primary-button>
 
             @if (session('status') === 'profile-updated')
-                <p
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-transition
-                    x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-gray-600"
-                >{{ __('Saved.') }}</p>
+                <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)"
+                    class="text-sm text-gray-600">{{ __('Saved.') }}</p>
             @endif
         </div>
     </form>

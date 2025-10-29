@@ -154,9 +154,9 @@ To test the Jira integration:
 
 **For production deployment**, see [WEBSOCKET.md](WEBSOCKET.md) for detailed instructions using:
 
--   **Supervisor** (recommended for Linux servers)
--   **PM2** (Node.js process manager)
--   **systemd** (system service manager)
+- **Supervisor** (recommended for Linux servers)
+- **PM2** (Node.js process manager)
+- **systemd** (system service manager)
 
 ### Testing the Connection
 

@@ -1,6 +1,15 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@plugin 'daisyui' {
+    themes:
+        cupcake --default,
+        dark --prefersdark,
+        light;
+}
+@plugin '@tailwindcss/typography';
+
+@theme {
+    --font-family-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+}
 
 a:hover {
     @apply cursor-pointer;

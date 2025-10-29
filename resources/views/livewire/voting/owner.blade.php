@@ -3,7 +3,7 @@
         <h2 class="text-lg font-bold col-span-full">Open Issues</h2>
         @foreach ($issues->where('status', '!=', Issue::STATUS_FINISHED) as $index => $issue)
             <div @class([
-                'box-border shadow-xl card bg-base-100 card-compact',
+                'box-border shadow-xl card bg-base-100 card-sm',
                 'bg-primary text-primary-content' => $issue->isVoting(),
             ]) wire:key="issue-{{ $issue->id }}">
                 <div class="relative justify-between card-body">
@@ -33,12 +33,12 @@
                         @endif
                         <div class="justify-stretch card-actions">
                             @if ($issue->status === 'voting')
-                                <div class="w-full form-control">
-                                    <form class="input-group" wire:submit="addPointsToIssue({{ $issue->id }})">
-                                        <x-text-input class="w-1/3 text-center input-sm" name="storypoints" placeholder="Points"
-                                            wire:model="issues.{{ $index }}.storypoints" />
-                                        <x-success-button class=" grow btn-sm btn">Save</x-success-button>
-                                        <x-danger-button class="grow btn-sm"
+                                <div class="w-full">
+                                    <form class="join w-full" wire:submit="addPointsToIssue({{ $issue->id }})">
+                                        <x-text-input class="join-item w-1/3 text-center input-sm" name="storypoints"
+                                            placeholder="Points" wire:model="issues.{{ $index }}.storypoints" />
+                                        <x-success-button class="join-item grow btn-sm btn">Save</x-success-button>
+                                        <x-danger-button class="join-item grow btn-sm"
                                             wire:click.prevent="cancelIssue({{ $issue->id }})">Cancel</x-danger-button>
 
                                     </form>
@@ -52,16 +52,16 @@
                 </div>
             </div>
         @endforeach
-        <div class="box-border order-last shadow-xl md:w-1/2 lg:w-1/3 card bg-base-100 card-compact col-span-full">
-            <div class="justify-between card-body">
+        <div class="box-border order-first shadow-xl md:w-1/2 lg:w-1/3 card bg-base-100 card-sm col-span-full">
+            <div class="card-body">
                 <livewire:jira-import :session="$session" />
             </div>
         </div>
-        <div class="box-border order-last shadow-xl md:w-1/2 lg:w-1/3 card bg-base-100 card-compact col-span-full">
+        <div class="box-border order-last shadow-xl md:w-1/2 lg:w-1/3 card bg-base-100 card-sm col-span-full">
             <div class="justify-between card-body">
                 <form wire:submit="addIssue()">
                     <div class="card-title">Add new issue</div>
-                    <div class="gap-3 mt-3 form-control">
+                    <div class="flex flex-col gap-3 mt-3">
                         <x-text-input required class="input-md" wire:model.live="issueTitle" placeholder="Title" />
                         @error('titleTitle')
                             <span class="text-error">{{ $message }}</span>
@@ -80,7 +80,7 @@
     <div class="grid grid-cols-1 gap-3 p-4 rounded-lg md:grid-cols-2 lg:grid-cols-3 bg-base-300">
         <h2 class="text-lg font-bold col-span-full">Estimated Issues</h2>
         @foreach ($issues->where('status', Issue::STATUS_FINISHED) as $index => $issue)
-            <div class="box-border shadow-xl card bg-base-100 card-compact card-bordered border-accent"
+            <div class="box-border shadow-xl card bg-base-100 card-sm card-border border-accent"
                 wire:key="issue-{{ $issue->id }}">
                 <div class="justify-between card-body">
                     <div class="justify-end card-actions">
