@@ -20,7 +20,9 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 });
 
 Broadcast::channel('session.{invite_code}', function (User $user, string $invite_code) {
-    if (Session::whereInviteCode($invite_code)->firstOrFail()) {
+    $session = Session::whereInviteCode($invite_code)->first();
+    if ($session && $session->users->contains($user)) {
         return ['id' => $user->id, 'name' => $user->name];
     }
+    return false;
 });

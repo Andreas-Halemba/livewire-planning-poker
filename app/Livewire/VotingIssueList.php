@@ -18,8 +18,8 @@ class VotingIssueList extends Component
     public function getListeners(): array
     {
         return [
-            "echo:session.{$this->session->invite_code},.IssueAdded" => '$refresh',
-            "echo:session.{$this->session->invite_code},.IssueDeleted" => '$refresh',
+            "echo-presence:session.{$this->session->invite_code},.IssueAdded" => '$refresh',
+            "echo-presence:session.{$this->session->invite_code},.IssueDeleted" => '$refresh',
         ];
     }
 

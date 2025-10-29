@@ -30,6 +30,15 @@ class Owner extends Component
         'issueDescription' => '|max:255',
     ];
 
+    /** @return array<string, string> */
+    public function getListeners(): array
+    {
+        return [
+            "echo-presence:session.{$this->session->invite_code},.IssueAdded" => '$refresh',
+            "echo-presence:session.{$this->session->invite_code},.IssueDeleted" => '$refresh',
+        ];
+    }
+
     public function render(): View
     {
         $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
