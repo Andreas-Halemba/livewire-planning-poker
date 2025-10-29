@@ -5,6 +5,11 @@
         dark --prefersdark,
         light;
 }
+@plugin '@tailwindcss/typography';
+
+@theme {
+    --font-family-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+}
 
 a:hover {
     @apply cursor-pointer;
