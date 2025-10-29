@@ -1,4 +1,10 @@
 @import 'tailwindcss';
+@plugin 'daisyui' {
+    themes:
+        cupcake --default,
+        dark --prefersdark,
+        light;
+}
 
 a:hover {
     @apply cursor-pointer;
