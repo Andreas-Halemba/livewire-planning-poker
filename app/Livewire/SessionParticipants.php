@@ -33,6 +33,7 @@ class SessionParticipants extends Component
     public function mount(): void
     {
         $this->participants = collect([]);
+        $this->issue = null;
         if (Auth::user()) {
             $this->participants->push(Auth::user());
         }
@@ -96,8 +97,9 @@ class SessionParticipants extends Component
 
     public function revealVotes(): void
     {
-        if ($this->issue) {
-            $this->votes = Vote::query()->whereBelongsTo($this->issue)->get()->pluck('value', 'user_id')->toArray();
+        $currentIssue = $this->session->currentIssue();
+        if ($currentIssue) {
+            $this->votes = Vote::query()->whereBelongsTo($currentIssue)->get()->pluck('value', 'user_id')->toArray();
             $this->votesRevealed = true;
         }
     }

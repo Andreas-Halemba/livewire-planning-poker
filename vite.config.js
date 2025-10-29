@@ -8,4 +8,12 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    server: {
+        host: '127.0.0.1',
+        https: false,
+        hmr: {
+            host: 'localhost',
+            protocol: 'ws',
+        },
+    },
 })
