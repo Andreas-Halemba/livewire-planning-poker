@@ -42,6 +42,11 @@ class SessionParticipants extends Component
     public function render(): View
     {
         $this->updateIssueData();
+        // Sort participants: owner first, then others
+        $this->participants = $this->participants->sortBy(function (User $user) {
+            return $user->id === $this->session->owner_id ? 0 : 1;
+        })->values();
+
         return view('livewire.session-participants');
     }
 
@@ -63,12 +68,14 @@ class SessionParticipants extends Component
     public function updateCurrentIssue(Issue $issue): void
     {
         $this->issue = $issue;
+        $this->updateIssueData();
     }
 
     public function unsetCurrentIssue(): void
     {
         $this->issue = null;
         $this->reset('votes', 'votesRevealed');
+        $this->updateIssueData();
     }
 
 
