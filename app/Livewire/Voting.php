@@ -24,6 +24,15 @@ class Voting extends Component
         return null;
     }
 
+    /** @return array<string, string> */
+    public function getListeners(): array
+    {
+        return [
+            "echo-presence:session.{$this->session->invite_code},.IssueSelected" => '$refresh',
+            "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => '$refresh',
+        ];
+    }
+
     public function render(): View
     {
         return view('livewire.voting');

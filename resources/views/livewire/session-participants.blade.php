@@ -1,45 +1,69 @@
-<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
     @forelse ($participants as $user)
         @php
             $isCurrentUser = $user->id === Auth::id();
             $hasVoted = $this->userDidVote((string) $user->id);
             $isOwner = $user->id === $session->owner_id;
-            $initials = strtoupper(substr($user->name, 0, 2));
+            $votingActive = $session->currentIssue() !== null;
+            // Determine status color:
+            // gray = no voting active
+            // yellow = voting active but user hasn't voted
+            // green = voting active and user has voted
+            // red = votes revealed and user hasn't voted
+            $statusBgColor = 'bg-gray-400';
+            $statusBorderColor = 'border-gray-200';
+            $cardBgColor = 'bg-gray-50';
+
+            if ($isOwner) {
+                $statusBgColor = 'bg-amber-500';
+            } elseif (!$votingActive) {
+                // No voting active - gray
+                $statusBgColor = 'bg-gray-400';
+                $cardBgColor = 'bg-gray-50';
+                $statusBorderColor = 'border-gray-200';
+            } elseif ($votesRevealed && !$hasVoted) {
+                // Votes revealed and user hasn't voted - red
+                $statusBgColor = 'bg-red-500';
+                $cardBgColor = 'bg-red-50';
+                $statusBorderColor = 'border-red-500';
+            } elseif ($hasVoted) {
+                // Voting active and user has voted - green
+                $statusBgColor = 'bg-green-500';
+                $cardBgColor = 'bg-green-50';
+                $statusBorderColor = 'border-green-500';
+            } else {
+                // Voting active but user hasn't voted - yellow
+                $statusBgColor = 'bg-yellow-500';
+                $cardBgColor = 'bg-yellow-50';
+                $statusBorderColor = 'border-yellow-500';
+            }
         @endphp
 
         <div @class([
             'flex items-center gap-3 p-2.5 rounded-lg border transition-all',
-            'bg-gray-50 border-gray-200' => !$hasVoted && !$isCurrentUser,
-            'bg-green-50 border-green-500' => $hasVoted,
-            'bg-blue-50 border-blue-500' => $isCurrentUser && !$hasVoted,
+            $cardBgColor,
+            $statusBorderColor,
         ]) wire:key="user-{{ $user->id }}">
             <div @class([
                 'w-9 h-9 rounded-full text-white text-sm font-semibold flex items-center justify-center flex-shrink-0',
-                'bg-green-500' => $hasVoted,
-                'bg-blue-500' => $isCurrentUser && !$hasVoted,
-                'bg-gray-400' => !$hasVoted && !$isCurrentUser,
+                $statusBgColor,
             ])>
-                <span>{{ $initials }}</span>
+                @if ($isOwner)
+                    <span class="text-xs font-bold">PO</span>
+                @elseif($hasVoted)
+                    <span class="text-lg">✓</span>
+                @else
+                    <span class="text-base">?</span>
+                @endif
             </div>
 
             <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-gray-900 truncate">
+                <div class="text-sm font-medium text-gray-900 break-words">
                     {{ $user->name }}
                     @if ($isCurrentUser)
                         <span class="text-xs text-gray-500">(You)</span>
                     @endif
                 </div>
-            </div>
-
-            <div class="flex-shrink-0">
-                @if ($isOwner)
-                    <span
-                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-500 text-white uppercase">PO</span>
-                @elseif($hasVoted)
-                    <span class="text-green-500 text-xl">✓</span>
-                @else
-                    <span class="text-gray-400 text-base">?</span>
-                @endif
             </div>
         </div>
     @empty

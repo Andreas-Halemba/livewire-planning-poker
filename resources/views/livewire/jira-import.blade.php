@@ -33,7 +33,7 @@
 
                     <button type="submit" class="btn btn-primary btn-sm mt-2" wire:loading.attr="disabled"
                         wire:target="loadTickets">
-                        <span wire:loading.remove wire:target="loadTickets">
+                        <span class="flex items-center gap-2" wire:loading.remove wire:target="loadTickets">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
@@ -131,7 +131,7 @@
                 <div class="modal-action mt-4">
                     <button class="btn btn-primary btn-sm" wire:click="importSelectedTickets" wire:loading.attr="disabled"
                         @if(empty($selectedTickets)) disabled @endif>
-                        <span wire:loading.remove wire:target="importSelectedTickets">
+                        <span class="flex items-center gap-2" wire:loading.remove wire:target="importSelectedTickets">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
