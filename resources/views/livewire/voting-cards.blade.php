@@ -1,5 +1,54 @@
 <div>
     @if($currentIssue)
+        <!-- Issue Card - Show when manually selected (not STATUS_VOTING) -->
+        @if($currentIssue->status !== \App\Models\Issue::STATUS_VOTING)
+            <div class="bg-base-100 rounded-xl shadow-md p-6 sm:p-8 mb-6 border-2 border-accent"
+                x-data="{ descriptionOpen: false }">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="text-xs font-semibold text-accent uppercase tracking-wide">Asynchron schätzen</div>
+                    <button wire:click.prevent="clearSelection"
+                        class="btn btn-sm btn-ghost text-base-content/70 hover:text-base-content">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                @if($currentIssue->jira_url && $currentIssue->jira_key)
+                    <a href="{{ $currentIssue->getJiraBrowserUrl() }}" target="_blank"
+                        class="text-base font-bold text-accent hover:text-accent/80 hover:underline mb-2 block">
+                        {{ $currentIssue->jira_key }}
+                    </a>
+                @else
+                    <div class="text-base font-bold text-base-content mb-2">{{ $currentIssue->jira_key ?? 'Issue' }}</div>
+                @endif
+                @if($currentIssue->jira_url && $currentIssue->jira_key)
+                    <a href="{{ $currentIssue->getJiraBrowserUrl() }}" target="_blank"
+                        class="text-xl font-semibold text-accent hover:text-accent/80 hover:underline mb-4 leading-relaxed block">
+                        {{ $currentIssue->title }}
+                    </a>
+                @else
+                    <div class="text-xl font-semibold text-base-content mb-4 leading-relaxed">{{ $currentIssue->title }}</div>
+                @endif
+                @if($currentIssue->description)
+                    <div class="mb-4">
+                        <button @click="descriptionOpen = !descriptionOpen"
+                            class="flex items-center gap-2 text-sm text-accent hover:text-accent/80 font-medium transition-colors">
+                            <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': descriptionOpen }" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                            <span x-text="descriptionOpen ? 'Beschreibung ausblenden' : 'Beschreibung anzeigen'"></span>
+                        </button>
+                        <div x-show="descriptionOpen" x-collapse
+                            class="transition-all mt-3 prose prose-sm max-w-none bg-white/90 text-black p-4 rounded-lg prose-a:text-accent prose-headings:text-black border border-accent">
+                            {!! $currentIssue->formatted_description !!}
+                        </div>
+                    </div>
+                @endif
+            </div>
+        @endif
+
         <div class="bg-base-200 rounded-xl shadow-md border border-base-300 p-6 sm:p-8 mb-6">
             <div class="text-center mb-6">
                 <div class="text-lg sm:text-xl font-semibold text-base-content mb-2">Wähle deine Schätzung</div>

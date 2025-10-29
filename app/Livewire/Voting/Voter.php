@@ -25,6 +25,7 @@ class Voter extends Component
             "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => '$refresh',
             "echo-presence:session.{$this->session->invite_code},.IssueDeleted" => '$refresh',
             "echo-presence:session.{$this->session->invite_code},.IssueAdded" => '$refresh',
+            "echo-presence:session.{$this->session->invite_code},.AddVote" => '$refresh',
         ];
     }
 
