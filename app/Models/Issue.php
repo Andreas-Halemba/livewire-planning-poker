@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 /**
  * App\Models\Issue
@@ -81,9 +82,10 @@ class Issue extends Model
 
     public function getTitleHtmlAttribute(): string
     {
-        // If we have Jira URL, create link using Jira key
+        // If we have Jira URL and key, create link
         if ($this->jira_url && $this->jira_key) {
-            return "<a href='{$this->jira_url}' class='hover:underline' target='_blank'>{$this->jira_key}</a>";
+            $browserUrl = $this->getJiraBrowserUrl();
+            return "<a href='{$browserUrl}' class='hover:underline text-accent' target='_blank'>{$this->jira_key}<br>" . Str::limit($this->title, 100) . "</a>";
         }
 
         // Fallback to existing URL parsing logic
@@ -93,6 +95,101 @@ class Issue extends Model
         }
 
         return $this->title;
+    }
+
+    /**
+     * Convert Jira API URL to browser URL if needed
+     */
+    public function getJiraBrowserUrl(): string
+    {
+        if (empty($this->jira_url) || empty($this->jira_key)) {
+            return $this->jira_url ?? '';
+        }
+
+        // If it's already a browser URL (contains /browse/), return as is
+        if (str_contains($this->jira_url, '/browse/')) {
+            return $this->jira_url;
+        }
+
+        // If it's an API URL (contains /rest/api/), convert it
+        if (str_contains($this->jira_url, '/rest/api/')) {
+            $baseUrl = preg_replace('#/rest/api/.*#', '', $this->jira_url);
+            return $baseUrl . '/browse/' . $this->jira_key;
+        }
+
+        // Fallback: assume it's a base URL and append /browse/key
+        // This handles cases where only the base URL was stored
+        return rtrim($this->jira_url, '/') . '/browse/' . $this->jira_key;
+    }
+
+    /**
+     * Get formatted HTML description with converted attachment URLs
+     */
+    public function getFormattedDescriptionAttribute(): ?string
+    {
+        if (empty($this->description)) {
+            return null;
+        }
+
+        $html = $this->description;
+
+        // Extract base URL from jira_url to convert relative attachment URLs
+        $baseUrl = $this->getJiraBaseUrl();
+
+        if ($baseUrl) {
+            // Convert relative attachment URLs to absolute URLs
+            // Pattern: /rest/api/3/attachment/content/639676
+            $html = preg_replace_callback(
+                '#(/rest/api/\d+/attachment/content/\d+)#',
+                function ($matches) use ($baseUrl) {
+                    return rtrim($baseUrl, '/') . $matches[1];
+                },
+                $html,
+            );
+
+            // Also handle attachment URLs in img src attributes
+            $html = preg_replace_callback(
+                '#src=["\'](/rest/api/\d+/attachment/content/\d+)(.*?)["\']#',
+                function ($matches) use ($baseUrl) {
+                    return 'src="' . rtrim($baseUrl, '/') . $matches[1] . $matches[2] . '"';
+                },
+                $html,
+            );
+
+            // Convert relative links to absolute URLs
+            $html = preg_replace_callback(
+                '#href=["\'](/secure/attachment/[^"\']+)["\']#',
+                function ($matches) use ($baseUrl) {
+                    return 'href="' . rtrim($baseUrl, '/') . $matches[1] . '"';
+                },
+                $html,
+            );
+        }
+
+        return $html;
+    }
+
+    /**
+     * Extract base URL from jira_url
+     */
+    private function getJiraBaseUrl(): ?string
+    {
+        if (empty($this->jira_url)) {
+            return null;
+        }
+
+        // If it's a browser URL (contains /browse/), extract base
+        if (str_contains($this->jira_url, '/browse/')) {
+            return preg_replace('#/browse/.*#', '', $this->jira_url);
+        }
+
+        // If it's an API URL (contains /rest/api/), extract base
+        if (str_contains($this->jira_url, '/rest/api/')) {
+            return preg_replace('#/rest/api/.*#', '', $this->jira_url);
+        }
+
+        // Otherwise assume it's already a base URL
+        return $this->jira_url;
     }
 
     // function that returns true if the status is voiting

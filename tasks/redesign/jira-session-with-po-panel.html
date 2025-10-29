@@ -1,0 +1,1257 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Session: jira import - Redesign mit PO Panel</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+                    sans-serif;
+                background: #f5f6f8;
+                padding: 20px;
+                color: #1a1a1a;
+            }
+
+            .container {
+                max-width: 1400px;
+                margin: 0 auto;
+            }
+
+            .header {
+                background: white;
+                padding: 24px 32px;
+                border-radius: 12px;
+                margin-bottom: 24px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            }
+
+            .header h1 {
+                font-size: 24px;
+                font-weight: 600;
+                color: #1a1a1a;
+                margin-bottom: 20px;
+            }
+
+            .participants-list {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 8px;
+            }
+
+            .participant-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 10px 14px;
+                background: #f9fafb;
+                border-radius: 8px;
+                border: 1px solid #e5e7eb;
+                transition: all 0.2s;
+            }
+
+            .participant-item.voted {
+                background: #ecfdf5;
+                border-color: #10b981;
+            }
+
+            .participant-item.current-user {
+                background: #f0f4ff;
+                border-color: #4f46e5;
+            }
+
+            .avatar-small {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: #9ca3af;
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                font-size: 14px;
+                flex-shrink: 0;
+            }
+
+            .participant-item.voted .avatar-small {
+                background: #10b981;
+            }
+
+            .participant-item.current-user .avatar-small {
+                background: #4f46e5;
+            }
+
+            .participant-info {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .participant-list-name {
+                font-size: 14px;
+                font-weight: 500;
+                color: #1a1a1a;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .participant-status {
+                font-size: 20px;
+                color: #10b981;
+                flex-shrink: 0;
+            }
+
+            .participant-status.pending {
+                font-size: 16px;
+                color: #9ca3af;
+            }
+
+            .participant-status.hidden {
+                font-size: 16px;
+                color: #9ca3af;
+            }
+
+            .reveal-votes-container {
+                margin-bottom: 20px;
+            }
+
+            .reveal-votes-btn {
+                width: 100%;
+                padding: 14px 20px;
+                background: #10b981;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 15px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .reveal-votes-btn:hover {
+                background: #059669;
+            }
+
+            .reveal-votes-btn:disabled {
+                background: #d1d5db;
+                cursor: not-allowed;
+            }
+
+            /* PO Panel Styles */
+            .po-panel {
+                background: white;
+                padding: 24px 32px;
+                border-radius: 12px;
+                margin-bottom: 24px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+                border: 2px solid #f59e0b;
+            }
+
+            .po-panel-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+
+            .po-badge {
+                background: #f59e0b;
+                color: white;
+                padding: 4px 12px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+
+            .po-panel-title {
+                font-size: 18px;
+                font-weight: 600;
+                color: #1a1a1a;
+            }
+
+            .current-issue-section {
+                background: #fffbeb;
+                padding: 16px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                border: 1px solid #fde68a;
+            }
+
+            .current-issue-label {
+                font-size: 12px;
+                color: #92400e;
+                font-weight: 500;
+                text-transform: uppercase;
+                margin-bottom: 8px;
+            }
+
+            .current-issue-id {
+                font-size: 20px;
+                font-weight: 700;
+                color: #1a1a1a;
+                margin-bottom: 4px;
+            }
+
+            .current-issue-description {
+                font-size: 14px;
+                color: #4b5563;
+            }
+
+            .votes-results {
+                margin-bottom: 20px;
+            }
+
+            .votes-results-title {
+                font-size: 14px;
+                font-weight: 600;
+                color: #6b7280;
+                margin-bottom: 12px;
+            }
+
+            .estimates-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+
+            .estimate-option {
+                background: #f9fafb;
+                border: 2px solid #e5e7eb;
+                border-radius: 8px;
+                padding: 16px;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .estimate-option:hover {
+                border-color: #4f46e5;
+                background: #f0f4ff;
+            }
+
+            .estimate-option.selected {
+                border-color: #10b981;
+                background: #ecfdf5;
+                box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+            }
+
+            .estimate-value {
+                font-size: 28px;
+                font-weight: 700;
+                color: #1a1a1a;
+                margin-bottom: 4px;
+            }
+
+            .estimate-count {
+                font-size: 13px;
+                color: #6b7280;
+            }
+
+            .estimate-participants {
+                font-size: 11px;
+                color: #9ca3af;
+                margin-top: 4px;
+            }
+
+            .custom-estimate {
+                display: flex;
+                gap: 12px;
+                align-items: center;
+                margin-top: 16px;
+            }
+
+            .custom-estimate-label {
+                font-size: 14px;
+                font-weight: 500;
+                color: #6b7280;
+                white-space: nowrap;
+            }
+
+            .custom-estimate-input {
+                flex: 1;
+                padding: 10px 14px;
+                border: 2px solid #e5e7eb;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .custom-estimate-input:focus {
+                outline: none;
+                border-color: #4f46e5;
+                box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            }
+
+            .confirm-estimate-btn {
+                padding: 12px 24px;
+                background: #10b981;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+
+            .confirm-estimate-btn:hover {
+                background: #059669;
+            }
+
+            .confirm-estimate-btn:disabled {
+                background: #d1d5db;
+                cursor: not-allowed;
+            }
+
+            .no-active-vote {
+                text-align: center;
+                padding: 32px;
+                color: #9ca3af;
+            }
+
+            .no-active-vote-icon {
+                font-size: 48px;
+                margin-bottom: 12px;
+            }
+
+            .main-grid {
+                display: grid;
+                grid-template-columns: 380px 1fr;
+                gap: 24px;
+                margin-bottom: 24px;
+            }
+
+            .sidebar {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .card {
+                background: white;
+                border-radius: 12px;
+                padding: 24px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            }
+
+            .card-title {
+                font-size: 16px;
+                font-weight: 600;
+                margin-bottom: 16px;
+                color: #1a1a1a;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .card-title .icon {
+                width: 20px;
+                height: 20px;
+                opacity: 0.7;
+            }
+
+            .action-button {
+                width: 100%;
+                padding: 12px 20px;
+                background: #4f46e5;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                transition: background 0.2s;
+            }
+
+            .action-button:hover {
+                background: #4338ca;
+            }
+
+            .input-field {
+                width: 100%;
+                padding: 10px 14px;
+                border: 1px solid #e5e7eb;
+                border-radius: 6px;
+                font-size: 14px;
+                margin-bottom: 12px;
+            }
+
+            .input-field:focus {
+                outline: none;
+                border-color: #4f46e5;
+                box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            }
+
+            textarea.input-field {
+                min-height: 80px;
+                resize: vertical;
+                font-family: inherit;
+            }
+
+            .issue-columns {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .tabs {
+                display: flex;
+                gap: 8px;
+                background: white;
+                padding: 8px;
+                border-radius: 12px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            }
+
+            .tab {
+                flex: 1;
+                padding: 12px 20px;
+                background: transparent;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+                color: #6b7280;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .tab:hover {
+                background: #f9fafb;
+            }
+
+            .tab.active {
+                background: #4f46e5;
+                color: white;
+            }
+
+            .badge {
+                background: rgba(0, 0, 0, 0.1);
+                padding: 2px 8px;
+                border-radius: 12px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+
+            .issues-grid {
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+                overflow: hidden;
+            }
+
+            .issue-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 16px 20px;
+                border-bottom: 1px solid #f3f4f6;
+                transition: background 0.15s;
+            }
+
+            .issue-item:last-child {
+                border-bottom: none;
+            }
+
+            .issue-item:hover {
+                background: #f9fafb;
+            }
+
+            .issue-item.active {
+                background: #fffbeb;
+                border-left: 3px solid #f59e0b;
+            }
+
+            .issue-info {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .issue-id {
+                font-size: 13px;
+                font-weight: 600;
+                color: #4f46e5;
+                margin-bottom: 2px;
+            }
+
+            .issue-description {
+                font-size: 14px;
+                color: #6b7280;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .issue-actions {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                flex-shrink: 0;
+            }
+
+            .vote-button {
+                padding: 8px 16px;
+                background: #10b981;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-size: 13px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: background 0.2s;
+                white-space: nowrap;
+            }
+
+            .vote-button:hover {
+                background: #059669;
+            }
+
+            .remove-btn {
+                width: 32px;
+                height: 32px;
+                background: #fee2e2;
+                color: #dc2626;
+                border: none;
+                border-radius: 6px;
+                font-size: 20px;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .remove-btn:hover {
+                background: #fecaca;
+            }
+
+            .issue-estimate {
+                font-size: 16px;
+                font-weight: 600;
+                color: #10b981;
+                margin-right: 8px;
+            }
+
+            .hidden {
+                display: none !important;
+            }
+
+            .empty-state {
+                text-align: center;
+                padding: 64px 20px;
+                color: #9ca3af;
+            }
+
+            .empty-state-icon {
+                font-size: 64px;
+                margin-bottom: 16px;
+            }
+
+            @media (max-width: 1024px) {
+                .main-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .sidebar {
+                    order: 2;
+                }
+
+                .issue-columns {
+                    order: 1;
+                }
+            }
+
+            @media (max-width: 640px) {
+                body {
+                    padding: 12px;
+                }
+
+                .header,
+                .po-panel,
+                .card {
+                    padding: 16px;
+                }
+
+                .main-grid {
+                    gap: 16px;
+                }
+
+                .sidebar {
+                    gap: 12px;
+                }
+
+                .participants-list {
+                    grid-template-columns: 1fr;
+                }
+
+                .participant-item {
+                    padding: 8px 12px;
+                }
+
+                .avatar-small {
+                    width: 32px;
+                    height: 32px;
+                    font-size: 13px;
+                }
+
+                .participant-list-name {
+                    font-size: 13px;
+                }
+
+                .issue-item {
+                    padding: 12px 16px;
+                }
+
+                .issue-id {
+                    font-size: 12px;
+                }
+
+                .issue-description {
+                    font-size: 13px;
+                }
+
+                .vote-button {
+                    padding: 6px 12px;
+                    font-size: 12px;
+                }
+
+                .remove-btn {
+                    width: 28px;
+                    height: 28px;
+                    font-size: 18px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <!-- Header: Session Info and Participants -->
+            <div class="header">
+                <h1>Session: jira import</h1>
+                <div class="participants-list">
+                    <div class="participant-item current-user voted">
+                        <div class="avatar-small">JS</div>
+                        <div class="participant-info">
+                            <div class="participant-list-name">
+                                John Smith (You)
+                            </div>
+                        </div>
+                        <div class="participant-status">✓</div>
+                    </div>
+                    <div class="participant-item voted">
+                        <div class="avatar-small">SJ</div>
+                        <div class="participant-info">
+                            <div class="participant-list-name">Sarah Jones</div>
+                        </div>
+                        <div class="participant-status">✓</div>
+                    </div>
+                    <div class="participant-item voted">
+                        <div class="avatar-small">MD</div>
+                        <div class="participant-info">
+                            <div class="participant-list-name">Mike Davis</div>
+                        </div>
+                        <div class="participant-status">✓</div>
+                    </div>
+                    <div class="participant-item voted">
+                        <div class="avatar-small">AB</div>
+                        <div class="participant-info">
+                            <div class="participant-list-name">Anna Brown</div>
+                        </div>
+                        <div class="participant-status">✓</div>
+                    </div>
+                    <div class="participant-item voted">
+                        <div class="avatar-small">TW</div>
+                        <div class="participant-info">
+                            <div class="participant-list-name">Tom Wilson</div>
+                        </div>
+                        <div class="participant-status">✓</div>
+                    </div>
+                    <div class="participant-item voted">
+                        <div class="avatar-small">LM</div>
+                        <div class="participant-info">
+                            <div class="participant-list-name">
+                                Lisa Martinez
+                            </div>
+                        </div>
+                        <div class="participant-status">✓</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Owner Panel -->
+            <div class="po-panel" id="poPanel">
+                <div class="po-panel-header">
+                    <span class="po-badge">Product Owner</span>
+                    <h2 class="po-panel-title">Estimation Control</h2>
+                </div>
+
+                <!-- Current Issue Being Estimated -->
+                <div class="current-issue-section">
+                    <div class="current-issue-label">Aktuell zu schätzen</div>
+                    <div class="current-issue-id">SAN-4585</div>
+                    <div class="current-issue-description">
+                        API Integration für Zahlungsabwicklung implementieren
+                    </div>
+                </div>
+
+                <!-- Reveal Button -->
+                <div class="reveal-votes-container">
+                    <button
+                        class="reveal-votes-btn"
+                        onclick="revealVotes()"
+                        disabled
+                    >
+                        <svg
+                            width="20"
+                            height="20"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            style="margin-right: 8px"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                        </svg>
+                        Votes revealed
+                    </button>
+                </div>
+
+                <!-- Vote Results (shown after reveal) -->
+                <div class="votes-results" id="votesResults">
+                    <div class="votes-results-title">
+                        Schätzungen der Team-Mitglieder
+                    </div>
+
+                    <div class="estimates-grid" id="estimatesGrid">
+                        <div class="estimate-option">
+                            <div class="estimate-value">3</div>
+                            <div class="estimate-count">1 Stimme</div>
+                            <div class="estimate-participants">
+                                Lisa Martinez
+                            </div>
+                        </div>
+
+                        <div class="estimate-option selected">
+                            <div class="estimate-value">5</div>
+                            <div class="estimate-count">3 Stimmen</div>
+                            <div class="estimate-participants">
+                                John Smith, Sarah Jones, Anna Brown
+                            </div>
+                        </div>
+
+                        <div class="estimate-option">
+                            <div class="estimate-value">8</div>
+                            <div class="estimate-count">1 Stimme</div>
+                            <div class="estimate-participants">Mike Davis</div>
+                        </div>
+
+                        <div class="estimate-option">
+                            <div class="estimate-value">13</div>
+                            <div class="estimate-count">1 Stimme</div>
+                            <div class="estimate-participants">Tom Wilson</div>
+                        </div>
+                    </div>
+
+                    <div class="custom-estimate">
+                        <label class="custom-estimate-label"
+                            >Oder manuell eingeben:</label
+                        >
+                        <input
+                            type="number"
+                            class="custom-estimate-input"
+                            id="customEstimate"
+                            placeholder="z.B. 3, 5, 8, 13..."
+                            min="0"
+                        />
+                        <button
+                            class="confirm-estimate-btn"
+                            onclick="confirmEstimate()"
+                        >
+                            Schätzung übernehmen
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Grid Layout -->
+            <div class="main-grid">
+                <!-- Left Sidebar: Actions -->
+                <div class="sidebar">
+                    <!-- Import Section -->
+                    <div class="card">
+                        <div class="card-title">
+                            <svg
+                                class="icon"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+                                />
+                            </svg>
+                            Issues importieren
+                        </div>
+                        <button class="action-button">
+                            <svg
+                                width="20"
+                                height="20"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 4v16m8-8H4"
+                                />
+                            </svg>
+                            Issues aus Jira importieren
+                        </button>
+                    </div>
+
+                    <!-- Manual Add Section -->
+                    <div class="card">
+                        <div class="card-title">
+                            <svg
+                                class="icon"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                            </svg>
+                            Manuell hinzufügen
+                        </div>
+                        <input
+                            type="text"
+                            class="input-field"
+                            placeholder="Issue-Titel"
+                        />
+                        <textarea
+                            class="input-field"
+                            placeholder="Beschreibung (optional)"
+                        ></textarea>
+                        <button class="action-button">
+                            <svg
+                                width="20"
+                                height="20"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 4v16m8-8H4"
+                                />
+                            </svg>
+                            Issue hinzufügen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: Issue Management -->
+                <div class="issue-columns">
+                    <div class="tabs">
+                        <button class="tab active" onclick="switchTab('open')">
+                            Offene Issues
+                            <span class="badge">9</span>
+                        </button>
+                        <button class="tab" onclick="switchTab('estimated')">
+                            Geschätzte Issues
+                            <span class="badge">1</span>
+                        </button>
+                    </div>
+
+                    <!-- Open Issues List -->
+                    <div class="issues-grid" id="openIssues">
+                        <div class="issue-item active">
+                            <div class="issue-info">
+                                <div class="issue-id">SAN-4585</div>
+                                <div class="issue-description">
+                                    API Integration für Zahlungsabwicklung
+                                    implementieren
+                                </div>
+                            </div>
+                            <div class="issue-actions">
+                                <button class="vote-button">Vote now</button>
+                                <button class="remove-btn">×</button>
+                            </div>
+                        </div>
+
+                        <div class="issue-item">
+                            <div class="issue-info">
+                                <div class="issue-id">SAN-4580</div>
+                                <div class="issue-description">
+                                    User Dashboard Performance optimieren
+                                </div>
+                            </div>
+                            <div class="issue-actions">
+                                <button class="vote-button">Vote now</button>
+                                <button class="remove-btn">×</button>
+                            </div>
+                        </div>
+
+                        <div class="issue-item">
+                            <div class="issue-info">
+                                <div class="issue-id">SAN-4574</div>
+                                <div class="issue-description">
+                                    Dark Mode Theme implementieren
+                                </div>
+                            </div>
+                            <div class="issue-actions">
+                                <button class="vote-button">Vote now</button>
+                                <button class="remove-btn">×</button>
+                            </div>
+                        </div>
+
+                        <div class="issue-item">
+                            <div class="issue-info">
+                                <div class="issue-id">SAN-4573</div>
+                                <div class="issue-description">
+                                    Email Benachrichtigungen einrichten
+                                </div>
+                            </div>
+                            <div class="issue-actions">
+                                <button class="vote-button">Vote now</button>
+                                <button class="remove-btn">×</button>
+                            </div>
+                        </div>
+
+                        <div class="issue-item">
+                            <div class="issue-info">
+                                <div class="issue-id">SAN-4567</div>
+                                <div class="issue-description">
+                                    Datenbankmigrationen dokumentieren
+                                </div>
+                            </div>
+                            <div class="issue-actions">
+                                <button class="vote-button">Vote now</button>
+                                <button class="remove-btn">×</button>
+                            </div>
+                        </div>
+
+                        <div class="issue-item">
+                            <div class="issue-info">
+                                <div class="issue-id">SAN-4563</div>
+                                <div class="issue-description">
+                                    Security Audit durchführen
+                                </div>
+                            </div>
+                            <div class="issue-actions">
+                                <button class="vote-button">Vote now</button>
+                                <button class="remove-btn">×</button>
+                            </div>
+                        </div>
+
+                        <div class="issue-item">
+                            <div class="issue-info">
+                                <div class="issue-id">SAN-4562</div>
+                                <div class="issue-description">
+                                    CI/CD Pipeline konfigurieren
+                                </div>
+                            </div>
+                            <div class="issue-actions">
+                                <button class="vote-button">Vote now</button>
+                                <button class="remove-btn">×</button>
+                            </div>
+                        </div>
+
+                        <div class="issue-item">
+                            <div class="issue-info">
+                                <div class="issue-id">SAN-4561</div>
+                                <div class="issue-description">
+                                    Unit Tests für API erweitern
+                                </div>
+                            </div>
+                            <div class="issue-actions">
+                                <button class="vote-button">Vote now</button>
+                                <button class="remove-btn">×</button>
+                            </div>
+                        </div>
+
+                        <div class="issue-item">
+                            <div class="issue-info">
+                                <div class="issue-id">SAN-4558</div>
+                                <div class="issue-description">
+                                    Mobile Responsive Design verbessern
+                                </div>
+                            </div>
+                            <div class="issue-actions">
+                                <button class="vote-button">Vote now</button>
+                                <button class="remove-btn">×</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estimated Issues List -->
+                    <div class="issues-grid hidden" id="estimatedIssues">
+                        <div class="issue-item">
+                            <div class="issue-info">
+                                <div class="issue-id">SAN-4579</div>
+                                <div class="issue-description">
+                                    Login System refactoring
+                                </div>
+                            </div>
+                            <div class="issue-actions">
+                                <span class="issue-estimate">5 SP</span>
+                                <button class="remove-btn">×</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            let selectedEstimate = null
+
+            function switchTab(tab) {
+                const openTab = document.querySelector('.tab:first-child')
+                const estimatedTab = document.querySelector('.tab:last-child')
+                const openIssues = document.getElementById('openIssues')
+                const estimatedIssues =
+                    document.getElementById('estimatedIssues')
+
+                if (tab === 'open') {
+                    openTab.classList.add('active')
+                    estimatedTab.classList.remove('active')
+                    openIssues.classList.remove('hidden')
+                    estimatedIssues.classList.add('hidden')
+                } else {
+                    estimatedTab.classList.add('active')
+                    openTab.classList.remove('active')
+                    estimatedIssues.classList.remove('hidden')
+                    openIssues.classList.add('hidden')
+                }
+            }
+
+            function revealVotes() {
+                // Get all hidden/pending statuses
+                const hiddenStatuses = document.querySelectorAll(
+                    '.participant-status.hidden, .participant-status.pending',
+                )
+
+                // Simulated vote values (in real app, these would come from backend)
+                const votes = [
+                    { value: '5', name: 'John Smith' },
+                    { value: '8', name: 'Sarah Jones' },
+                    { value: '5', name: 'Mike Davis' },
+                    { value: '5', name: 'Anna Brown' },
+                    { value: '13', name: 'Tom Wilson' },
+                    { value: '3', name: 'Lisa Martinez' },
+                ]
+
+                // Show checkmarks on participant list instead of numbers
+                hiddenStatuses.forEach((status) => {
+                    status.classList.remove('hidden', 'pending')
+                    status.textContent = '✓'
+                })
+
+                // Disable reveal button
+                const revealBtn = document.querySelector('.reveal-votes-btn')
+                revealBtn.disabled = true
+                const icon = revealBtn.querySelector('svg')
+                icon.remove()
+                revealBtn.textContent = 'Votes revealed'
+
+                // Show PO panel results
+                showPOResults(votes)
+            }
+
+            function showPOResults(votes) {
+                // Show results section
+                document
+                    .getElementById('votesResults')
+                    .classList.remove('hidden')
+
+                // Group votes by value
+                const groupedVotes = {}
+                votes.forEach((vote) => {
+                    if (!groupedVotes[vote.value]) {
+                        groupedVotes[vote.value] = {
+                            count: 0,
+                            participants: [],
+                        }
+                    }
+                    groupedVotes[vote.value].count++
+                    groupedVotes[vote.value].participants.push(vote.name)
+                })
+
+                // Sort by value (for proper fibonacci order)
+                const sortedValues = Object.keys(groupedVotes).sort(
+                    (a, b) => parseInt(a) - parseInt(b),
+                )
+
+                // Generate estimate option cards
+                const estimatesGrid = document.getElementById('estimatesGrid')
+                estimatesGrid.innerHTML = ''
+
+                sortedValues.forEach((value) => {
+                    const data = groupedVotes[value]
+                    const card = document.createElement('div')
+                    card.className = 'estimate-option'
+                    card.onclick = () => selectEstimate(value, card)
+                    card.innerHTML = `
+                    <div class="estimate-value">${value}</div>
+                    <div class="estimate-count">${data.count} ${data.count === 1 ? 'Stimme' : 'Stimmen'}</div>
+                    <div class="estimate-participants">${data.participants.join(', ')}</div>
+                `
+                    estimatesGrid.appendChild(card)
+                })
+            }
+
+            function selectEstimate(value, element) {
+                // Remove previous selection
+                document.querySelectorAll('.estimate-option').forEach((el) => {
+                    el.classList.remove('selected')
+                })
+
+                // Add selection to clicked element
+                element.classList.add('selected')
+                selectedEstimate = value
+
+                // Clear custom input
+                document.getElementById('customEstimate').value = ''
+            }
+
+            function confirmEstimate() {
+                let finalEstimate = selectedEstimate
+
+                // Check if custom estimate was entered
+                const customValue =
+                    document.getElementById('customEstimate').value
+                if (customValue) {
+                    finalEstimate = customValue
+                }
+
+                if (!finalEstimate) {
+                    alert(
+                        'Bitte wähle eine Schätzung aus oder gib einen Wert ein.',
+                    )
+                    return
+                }
+
+                // In real app, this would save to backend
+                alert(
+                    `Story Points bestätigt: ${finalEstimate} SP für Issue SAN-4585`,
+                )
+
+                // Move issue to estimated tab
+                moveToEstimated('SAN-4585', finalEstimate)
+
+                // Reset PO panel
+                resetPOPanel()
+            }
+
+            function moveToEstimated(issueId, estimate) {
+                // Remove from open issues
+                const openIssuesGrid = document.getElementById('openIssues')
+                const issueItem = Array.from(openIssuesGrid.children).find(
+                    (item) =>
+                        item.querySelector('.issue-id').textContent === issueId,
+                )
+
+                if (issueItem) {
+                    // Update badge counts
+                    const openBadge = document.querySelector(
+                        '.tab:first-child .badge',
+                    )
+                    const estimatedBadge = document.querySelector(
+                        '.tab:last-child .badge',
+                    )
+                    openBadge.textContent = parseInt(openBadge.textContent) - 1
+                    estimatedBadge.textContent =
+                        parseInt(estimatedBadge.textContent) + 1
+
+                    // Clone and modify item
+                    const newItem = issueItem.cloneNode(true)
+                    newItem.classList.remove('active')
+                    const actions = newItem.querySelector('.issue-actions')
+                    actions.innerHTML = `
+                    <span class="issue-estimate">${estimate} SP</span>
+                    <button class="remove-btn">×</button>
+                `
+
+                    // Add to estimated issues
+                    document
+                        .getElementById('estimatedIssues')
+                        .appendChild(newItem)
+
+                    // Remove from open issues
+                    issueItem.remove()
+                }
+            }
+
+            function resetPOPanel() {
+                // Reset selections
+                selectedEstimate = null
+                document.querySelectorAll('.estimate-option').forEach((el) => {
+                    el.classList.remove('selected')
+                })
+                document.getElementById('customEstimate').value = ''
+
+                // Hide results
+                document.getElementById('votesResults').classList.add('hidden')
+
+                // Reset participant statuses (back to ?)
+                document
+                    .querySelectorAll('.participant-status')
+                    .forEach((status) => {
+                        if (!status.classList.contains('pending')) {
+                            status.classList.add('hidden')
+                            status.textContent = '?'
+                        }
+                    })
+
+                // Re-enable reveal button
+                const revealBtn = document.querySelector('.reveal-votes-btn')
+                revealBtn.disabled = false
+                revealBtn.textContent = 'Reveal votes'
+            }
+        </script>
+    </body>
+</html>

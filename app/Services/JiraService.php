@@ -47,7 +47,7 @@ class JiraService
         $jql = "project = \"{$projectKey}\" AND status = \"{$status}\" ORDER BY created DESC";
 
         try {
-            $response = $this->issueService->search($jql);
+            $response = $this->issueService->search($jql, '', 100, [], 'renderedFields');
             return $response->getIssues();
         } catch (JiraException $e) {
             Log::error('Jira API error: ' . $e->getMessage());
@@ -66,9 +66,11 @@ class JiraService
         $issueKey = $jiraIssue->key ?? '';
         $browserUrl = $this->convertApiUrlToBrowserUrl($jiraIssue->self ?? '', $issueKey);
 
+        ray($jiraIssue->fields);
+
         return [
             'title' => $jiraIssue->fields->summary ?? 'No title',
-            'description' => $jiraIssue->fields->description ?? null,
+            'description' => $jiraIssue->renderedFields['description'] ?? null,
             'jira_key' => $issueKey,
             'jira_url' => $browserUrl,
         ];
@@ -94,6 +96,158 @@ class JiraService
         $baseUrl = preg_replace('#/rest/api/.*#', '', $apiUrl);
 
         return $baseUrl . '/browse/' . $issueKey;
+    }
+
+    /**
+     * Update story points for a Jira issue
+     *
+     * @param string $issueKey The Jira issue key (e.g., "PROJECT-123")
+     * @param int $storyPoints The story points value to set
+     * @return bool True if successful, false otherwise
+     */
+    public function updateStoryPoints(string $issueKey, int $storyPoints): bool
+    {
+        if (!$this->issueService) {
+            Log::error('Jira service not initialized for updating story points');
+            return false;
+        }
+
+        try {
+            // First, get the issue to find the custom field ID for story points
+            $issue = $this->issueService->get($issueKey);
+
+            // Try to find the story points field
+            // Story points can be stored in different fields depending on Jira configuration:
+            // - customfield_10002 (common default)
+            // - customfield_10004 (alternative)
+            // - storyPoints (if using Jira Software)
+            $storyPointsField = null;
+
+            // Check common story points field names
+            $possibleFields = ['customfield_10002', 'customfield_10004', 'storyPoints'];
+
+            foreach ($possibleFields as $fieldName) {
+                if (isset($issue->fields->{$fieldName})) {
+                    $storyPointsField = $fieldName;
+                    break;
+                }
+            }
+
+            // If no standard field found, try to use REST API to find it
+            if (!$storyPointsField) {
+                return $this->updateStoryPointsViaRestApi($issueKey, $storyPoints);
+            }
+
+            // Update using IssueService with IssueField
+            $issueField = new \JiraRestApi\Issue\IssueField(true);
+
+            // Use addCustomField if it's a custom field, otherwise set directly
+            if (str_starts_with($storyPointsField, 'customfield_')) {
+                $issueField->addCustomField($storyPointsField, $storyPoints);
+            } else {
+                // For standard fields, we need to set them directly
+                // Since storyPoints might be a standard field in some Jira configurations
+                $issueField->customFields = [$storyPointsField => $storyPoints];
+            }
+
+            $this->issueService->update($issueKey, $issueField);
+
+            Log::info("Successfully updated story points for {$issueKey} to {$storyPoints}");
+            return true;
+
+        } catch (JiraException $e) {
+            Log::error("Failed to update story points for {$issueKey}: " . $e->getMessage());
+            // Try REST API as fallback
+            return $this->updateStoryPointsViaRestApi($issueKey, $storyPoints);
+        } catch (\Exception $e) {
+            Log::error("Error updating story points for {$issueKey}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Update story points using REST API directly (fallback method)
+     */
+    private function updateStoryPointsViaRestApi(string $issueKey, int $storyPoints): bool
+    {
+        try {
+            // Use REST API to update story points
+            // First, get issue metadata to find story points field
+            $metadataUrl = $this->user->jira_url . '/rest/api/2/issue/' . $issueKey . '/editmeta';
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $metadataUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+            ]);
+            curl_setopt($ch, CURLOPT_USERPWD, $this->user->jira_user . ':' . $this->user->jira_api_key);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode !== 200) {
+                Log::error("Failed to get issue metadata for {$issueKey}");
+                return false;
+            }
+
+            $metadata = json_decode($response, true);
+            $storyPointsField = null;
+
+            // Find story points field in metadata
+            foreach ($metadata['fields'] ?? [] as $fieldId => $field) {
+                if (isset($field['name']) && (
+                    stripos($field['name'], 'story point') !== false
+                    || $fieldId === 'customfield_10002'
+                    || $fieldId === 'customfield_10004'
+                )) {
+                    $storyPointsField = $fieldId;
+                    break;
+                }
+            }
+
+            if (!$storyPointsField) {
+                Log::warning("Story points field not found for issue {$issueKey}");
+                return false;
+            }
+
+            // Update the issue
+            $updateUrl = $this->user->jira_url . '/rest/api/2/issue/' . $issueKey;
+            $updateData = json_encode([
+                'fields' => [
+                    $storyPointsField => $storyPoints,
+                ],
+            ]);
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $updateUrl);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $updateData);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+            ]);
+            curl_setopt($ch, CURLOPT_USERPWD, $this->user->jira_user . ':' . $this->user->jira_api_key);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode === 204 || $httpCode === 200) {
+                Log::info("Successfully updated story points for {$issueKey} to {$storyPoints} via REST API");
+                return true;
+            }
+
+            Log::error("Failed to update story points for {$issueKey}: HTTP {$httpCode}");
+            return false;
+
+        } catch (\Exception $e) {
+            Log::error("Error updating story points via REST API for {$issueKey}: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**

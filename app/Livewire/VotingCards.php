@@ -13,10 +13,12 @@ use Livewire\Component;
 
 class VotingCards extends Component
 {
-    /** @var array<int> */
-    public array $cards = [0, 1, 2, 3, 5, 8, 13, 21, 100];
+    /** @var array<int|string> */
+    public array $cards = [0, 1, 2, 3, 5, 8, 13, 21, 100, '?'];
 
     public ?int $vote = null;
+
+    public int|string|null $selectedCard = null;
 
     public Session $session;
 
@@ -37,36 +39,98 @@ class VotingCards extends Component
             ->whereSessionId($this->session->id)
             ->first(['id', 'title']);
         if ($this->currentIssue) {
-            $this->vote = Vote::whereUserId(auth()->id())
+            $userVote = Vote::whereUserId(auth()->id())
                 ->whereIssueId($this->currentIssue->id)
-                ->first()
-                ?->value;
+                ->first();
+            $this->vote = $userVote?->value;
+
+            // If user has already voted, set selectedCard to match
+            if ($this->vote !== null) {
+                $this->selectedCard = $this->vote;
+            } elseif ($userVote && $userVote->value === null) {
+                // User voted with "?"
+                $this->selectedCard = '?';
+            }
+        } else {
+            // Reset selection when no current issue
+            $this->selectedCard = null;
         }
 
         return view('livewire.voting-cards');
     }
 
-    public function voteIssue(int $vote): void
+    public function selectCard(int|string $card): void
     {
-        if (Auth::user()) {
-            Vote::query()->updateOrCreate([
-                'user_id' => auth()->id(),
-                'issue_id' => $this->currentIssue?->id,
-            ], [
-                'value' => $vote,
-            ]);
-            $this->vote = $vote;
-
-            broadcast(new HideVotes($this->session));
-            broadcast(new AddVote($this->session, Auth::user()));
+        // Only allow selection if user hasn't voted yet
+        if (!$this->hasVoted()) {
+            // Normalize the card value - handle both string and int
+            if ($card === '?' || $card === "?") {
+                $this->selectedCard = '?';
+            } else {
+                $this->selectedCard = (int) $card;
+            }
         }
+    }
+
+    public function confirmVote(): void
+    {
+        if (!$this->selectedCard || !Auth::user() || !$this->currentIssue) {
+            return;
+        }
+
+        // Convert '?' to null for database storage
+        $voteValue = $this->selectedCard === '?' ? null : (int) $this->selectedCard;
+
+        Vote::query()->updateOrCreate([
+            'user_id' => auth()->id(),
+            'issue_id' => $this->currentIssue->id,
+        ], [
+            'value' => $voteValue,
+        ]);
+
+        $this->vote = $this->selectedCard === '?' ? null : (int) $this->selectedCard;
+
+        broadcast(new HideVotes($this->session));
+        broadcast(new AddVote($this->session, Auth::user()));
     }
 
     public function removeVote(): void
     {
-        Vote::whereUserId(auth()->id())->whereIssueId($this->currentIssue?->id)->delete();
+        if (!Auth::user() || !$this->currentIssue) {
+            return;
+        }
+
+        // Reload issue to get current status
+        $issue = Issue::findOrFail($this->currentIssue->id);
+
+        // Delete the vote
+        Vote::whereUserId(auth()->id())->whereIssueId($issue->id)->delete();
+
+        // If issue status is not voting, reset it to voting
+        if ($issue->status !== Issue::STATUS_VOTING) {
+            $issue->status = Issue::STATUS_VOTING;
+            $issue->save();
+        }
+
+        // Send HideVotes event to reset votes revealed state for all users
+        broadcast(new HideVotes($this->session));
+
+        // Send AddVote event to update vote status
         // @phpstan-ignore-next-line use can not be null here
         broadcast(new AddVote($this->session, auth()->user()));
+
         $this->vote = null;
+        $this->selectedCard = null;
+    }
+
+    private function hasVoted(): bool
+    {
+        if (!$this->currentIssue) {
+            return false;
+        }
+
+        return Vote::whereUserId(auth()->id())
+            ->whereIssueId($this->currentIssue->id)
+            ->exists();
     }
 }
