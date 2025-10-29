@@ -11,11 +11,6 @@
             <span>Theme</span>
         </li>
         <li>
-            <a data-set-theme="fantasy" class="flex items-center gap-2">
-                <span>Fantasy</span>
-            </a>
-        </li>
-        <li>
             <a data-set-theme="light" class="flex items-center gap-2">
                 <span>Light</span>
             </a>

@@ -19,7 +19,7 @@
                     </thead>
                     <tbody>
                         @foreach ($sessions as $session)
-                            <tr class="hover" x-data>
+                            <tr class="hover" x-data="{ copied: false }">
                                 <td class="font-medium text-base-content">{{ $session->name }}</td>
                                 <td class="text-base-content/70">
                                     {{ Illuminate\Support\Carbon::create($session->created_at)->toFormattedDateString() }}
@@ -31,7 +31,8 @@
                                             Join
                                         </a>
                                         <button class="btn btn-accent btn-sm"
-                                            x-clipboard.raw="{{ route('session.voting', ['inviteCode' => $session->invite_code]) }}">
+                                            @click="navigator.clipboard.writeText('{{ route('session.voting', ['inviteCode' => $session->invite_code]) }}').then(() => { copied = true; setTimeout(() => copied = false, 2000) })"
+                                            x-text="copied ? 'Copied!' : 'Copy Link'">
                                             Copy Link
                                         </button>
                                         <button class="btn btn-error btn-sm"

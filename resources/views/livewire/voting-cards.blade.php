@@ -40,18 +40,9 @@
             <div class="flex flex-col sm:flex-row gap-3">
                 @if($hasVoted)
                     <button wire:click.prevent="removeVote"
-                        class="flex-1 px-6 py-3.5 bg-base-200 hover:bg-base-300 text-base-content font-semibold rounded-lg transition-colors">
+                        class="flex-1 px-6 cursor-pointer py-3.5 bg-warning hover:bg-warning/90 text-warning-content font-semibold rounded-lg transition-colors">
                         Schätzung ändern
                     </button>
-                    <div
-                        class="flex-1 px-6 py-3.5 bg-success text-success-content font-semibold rounded-lg flex items-center justify-center">
-                        ✓ Schätzung abgegeben
-                        @if($vote !== null)
-                            ({{ $vote }} SP)
-                        @else
-                            (?)
-                        @endif
-                    </div>
                 @elseif($selectedCard !== null)
                     <button wire:click.prevent="confirmVote"
                         class="flex-1 px-6 py-3.5 bg-success hover:bg-success/90 text-success-content font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
