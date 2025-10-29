@@ -23,6 +23,11 @@ VITE_REVERB_PORT="${REVERB_PORT}"
 VITE_REVERB_SCHEME="${REVERB_SCHEME}"
 
 MAIL_MAILER=
+
+# Jira Integration (optional)
+JIRA_HOST=https://your-jira-instance.atlassian.net
+JIRA_USER=your-email@example.com
+JIRA_PASS=your-api-token
 ```
 
 ## Setup
@@ -92,6 +97,48 @@ php artisan reverb:start --host=127.0.0.1 --port=6000 &
 ```
 
 **Note:** The Reverb server must be running for real-time features like voting to work.
+
+## Jira Integration
+
+This application supports importing issues from Jira into your planning poker sessions.
+
+### Configuration
+
+To enable Jira integration, add the following environment variables to your `.env` file:
+
+```env
+JIRA_HOST=https://your-jira-instance.atlassian.net
+JIRA_USER=your-email@example.com
+JIRA_PASS=your-api-token
+```
+
+**Note:** You need to use an API token, not your regular password. You can generate one in your [Atlassian Account Settings](https://id.atlassian.com/manage-profile/security/api-tokens).
+
+### Usage
+
+1. As a Product Owner, navigate to your session management page
+2. Enter your Jira Project Key (e.g., "SAN")
+3. Select the status of tickets you want to import (e.g., "In Estimation")
+4. Click "Load Tickets" to fetch all matching tickets from Jira
+5. A modal will open showing all available tickets
+6. Select the tickets you want to import using the checkboxes
+7. Use "Select All" to quickly select/deselect all tickets
+8. Click "Import Selected" to import the chosen tickets
+9. Tickets that were already imported will be marked and disabled
+
+### Testing the Jira Integration
+
+To test the Jira integration:
+
+1. Make sure you have valid Jira credentials configured in your `.env` file
+2. Create a session or navigate to an existing one
+3. Look for the "Import from Jira" card
+4. Enter a valid project key and status
+5. Click "Load Tickets" - you should see a modal with tickets
+6. Select some tickets and import them
+7. Verify that the tickets appear in your session's issue list
+
+**Note:** Make sure your Jira instance is accessible and you have permission to view the tickets in the specified project and status.
 
 ### Production Deployment
 
