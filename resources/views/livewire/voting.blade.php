@@ -21,8 +21,11 @@
                 $currentIssue = $session->currentIssue();
             @endphp
 
+            <!-- Voting Cards Section - Shows for active voting or manually selected issue -->
+            <livewire:voting-cards :session="$session" key="voting-cards-{{ $session->id }}" />
+
+            <!-- Current Issue Card - Only show if there's an active voting issue -->
             @if($currentIssue)
-                <!-- Current Issue Card -->
                 <div class="bg-base-100 rounded-xl shadow-md p-6 sm:p-8 mb-6 border-2 border-primary"
                     x-data="{ descriptionOpen: false }">
                     <div class="text-xs font-semibold text-primary uppercase tracking-wide mb-3">Aktuell zu schätzen</div>
@@ -59,9 +62,6 @@
                         </div>
                     @endif
                 </div>
-
-                <!-- Voting Cards Section -->
-                <livewire:voting-cards :session="$session" />
             @endif
 
             <!-- Upcoming Issues & History -->

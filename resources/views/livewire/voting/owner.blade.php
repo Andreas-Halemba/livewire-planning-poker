@@ -1,4 +1,61 @@
-<div>
+<div
+    x-data="{
+        sessionInviteCode: '{{ $session->invite_code }}',
+        ownerId: {{ $session->owner_id }},
+        currentUserId: {{ Auth::id() ?? 0 }},
+        sessionPath: '{{ parse_url(route('session.voting', ['inviteCode' => $session->invite_code]), PHP_URL_PATH) }}',
+        isLeavingSession: false,
+        init() {
+            // Fallback: Cancel voting when owner leaves the session (especially if PO is alone)
+            // This ensures voting is canceled even if no other participants are present
+            
+            // Listen for link clicks that leave the session page
+            document.addEventListener('click', (e) => {
+                const link = e.target.closest('a');
+                if (link && link.href) {
+                    try {
+                        const linkUrl = new URL(link.href, window.location.origin);
+                        const currentPath = window.location.pathname;
+                        // Only set flag if clicking a link that navigates away from session page
+                        if (linkUrl.pathname !== currentPath && currentPath === this.sessionPath) {
+                            this.isLeavingSession = true;
+                        }
+                    } catch (err) {
+                        // Invalid URL, ignore
+                    }
+                }
+            }, true);
+            
+            // Listen for beforeunload - only cancel if actually leaving session (not refresh)
+            window.addEventListener('beforeunload', (e) => {
+                // Only cancel if we detected navigation away from session page
+                if (this.ownerId === this.currentUserId && this.isLeavingSession) {
+                    // Use sendBeacon for reliable delivery even during page unload
+                    const url = '{{ route('api.sessions.cancel-voting-on-leave', ['inviteCode' => $session->invite_code]) }}';
+                    const csrfToken = document.querySelector('meta[name=csrf-token]')?.content || '';
+                    
+                    // navigator.sendBeacon is more reliable than fetch during page unload
+                    // We need to send CSRF token as form data since sendBeacon doesn't support custom headers
+                    if (navigator.sendBeacon) {
+                        const formData = new FormData();
+                        formData.append('_token', csrfToken);
+                        navigator.sendBeacon(url, formData);
+                    } else {
+                        // Fallback for older browsers
+                        fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            body: JSON.stringify({}),
+                            keepalive: true
+                        }).catch(() => {});
+                    }
+                }
+            });
+        }
+    }">
     @php
         $openIssues = $issues->where('status', '!=', Issue::STATUS_FINISHED);
         $estimatedIssues = $issues->where('status', Issue::STATUS_FINISHED);

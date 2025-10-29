@@ -91,9 +91,23 @@ class SessionParticipants extends Component
         $this->participants->push(User::whereId($user['id'])->firstOrFail());
     }
 
-    public function userLeaves(User $user): void
+    public function userLeaves(array|User $userData): void
     {
-        $this->participants = $this->participants->filter(fn(User $participant) => $participant->id !== $user->id);
+        // Handle both array (from Presence Channel) and User object formats
+        $userId = is_array($userData) ? ($userData['id'] ?? null) : $userData->id;
+
+        // Remove user from participants list
+        $this->participants = $this->participants->filter(fn(User $participant) => $participant->id !== $userId);
+
+        // If the owner leaves, cancel the current voting
+        if ($userId && $userId === $this->session->owner_id) {
+            $currentIssue = $this->session->currentIssue();
+            if ($currentIssue && $currentIssue->status === Issue::STATUS_VOTING) {
+                $currentIssue->status = Issue::STATUS_NEW;
+                $currentIssue->save();
+                broadcast(new \App\Events\IssueCanceled($currentIssue));
+            }
+        }
     }
 
     /** @param array<int|string, mixed> $users */
