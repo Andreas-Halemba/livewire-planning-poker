@@ -13,8 +13,8 @@ use Livewire\Component;
 
 class VotingCards extends Component
 {
-    /** @var array<int> */
-    public array $cards = [0, 1, 2, 3, 5, 8, 13, 21, 100];
+    /** @var array<int|string> */
+    public array $cards = [0, 1, 2, 3, 5, 8, 13, 21, 100, '?'];
 
     public ?int $vote = null;
 
@@ -37,25 +37,28 @@ class VotingCards extends Component
             ->whereSessionId($this->session->id)
             ->first(['id', 'title']);
         if ($this->currentIssue) {
-            $this->vote = Vote::whereUserId(auth()->id())
+            $userVote = Vote::whereUserId(auth()->id())
                 ->whereIssueId($this->currentIssue->id)
-                ->first()
-                ?->value;
+                ->first();
+            $this->vote = $userVote?->value;
         }
 
         return view('livewire.voting-cards');
     }
 
-    public function voteIssue(int $vote): void
+    public function voteIssue(int|string $vote): void
     {
         if (Auth::user()) {
+            // Convert '?' to null for database storage
+            $voteValue = $vote === '?' ? null : (int) $vote;
+
             Vote::query()->updateOrCreate([
                 'user_id' => auth()->id(),
                 'issue_id' => $this->currentIssue?->id,
             ], [
-                'value' => $vote,
+                'value' => $voteValue,
             ]);
-            $this->vote = $vote;
+            $this->vote = $vote === '?' ? null : (int) $vote;
 
             broadcast(new HideVotes($this->session));
             broadcast(new AddVote($this->session, Auth::user()));

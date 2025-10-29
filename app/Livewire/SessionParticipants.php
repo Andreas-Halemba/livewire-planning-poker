@@ -121,16 +121,40 @@ class SessionParticipants extends Component
 
     public function userDidVote(string $id): bool
     {
-        return Arr::has($this->votes, $id) && $this->votes[$id] !== null;
+        // User has voted if there's an entry in votes array (value can be null for "?" vote)
+        return Arr::has($this->votes, $id);
     }
 
     private function updateIssueData(): void
     {
-        if ($this->session->currentIssue()) {
-            $this->votes = $this->session->currentIssue()->votes->filter(fn(Vote $vote) => $vote->value !== null)->mapWithKeys(
-                fn(Vote $vote) => [$vote->user_id => $vote->value],
-            )->toArray();
-            $this->votes[Auth::id()] = $this->session->currentIssue()->votes()->whereUserId(Auth::id())->first()?->value;
+        $currentIssue = $this->session->currentIssue();
+        if ($currentIssue) {
+            // If votes are revealed, show actual values (including null for "?")
+            if ($this->votesRevealed) {
+                $this->votes = $currentIssue->votes->mapWithKeys(
+                    fn(Vote $vote) => [$vote->user_id => $vote->value],
+                )->toArray();
+            } else {
+                // Otherwise, just mark that users have voted (without showing values)
+                // Include ALL votes, even those with null value (for "?" vote)
+                $this->votes = $currentIssue->votes->mapWithKeys(
+                    fn(Vote $vote) => [$vote->user_id => 'X'], // 'X' indicates vote exists (value hidden)
+                )->toArray();
+            }
+
+            // Current user can always see their own vote value
+            $currentUserVote = $currentIssue->votes()->whereUserId(Auth::id())->first();
+            if ($currentUserVote) {
+                if ($this->votesRevealed) {
+                    $this->votes[Auth::id()] = $currentUserVote->value;
+                } else {
+                    // Still show 'X' for current user if votes not revealed
+                    $this->votes[Auth::id()] = 'X';
+                }
+            }
+        } else {
+            // No current issue - clear votes
+            $this->votes = [];
         }
     }
 }

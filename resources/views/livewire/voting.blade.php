@@ -1,18 +1,68 @@
-<div>
-    <h1 class="mb-10 text-2xl font-bold">Session: <b>{{ $session->name }}</b></h1>
-    <livewire:session-participants :session="$session" />
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <!-- Session Header -->
+    <div class="bg-white rounded-xl shadow-sm p-5 sm:p-6 mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <h1 class="text-xl sm:text-2xl font-semibold text-gray-900">
+                Session: <span class="font-bold">{{ $session->name }}</span>
+            </h1>
+            <div class="text-sm text-gray-600">
+                {{ $session->users->count() }} Teilnehmer •
+                {{ $session->issues->where('status', 'finished')->count() }} von {{ $session->issues->count() }} Issues
+                geschätzt
+            </div>
+        </div>
+    </div>
+
+    <!-- Participants Section -->
+    <div class="bg-white rounded-xl shadow-sm p-5 sm:p-6 mb-6">
+        <div class="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">Teilnehmer</div>
+        <livewire:session-participants :session="$session" />
+    </div>
+
     @can('vote_session', $session)
-        <livewire:voting-cards :session="$session" />
+        @if(Auth::id() !== $session->owner_id)
+            @php
+                $currentIssue = $session->currentIssue();
+            @endphp
+
+            @if($currentIssue)
+                <!-- Current Issue Card -->
+                <div class="bg-white rounded-xl shadow-sm p-6 sm:p-8 mb-6 border-2 border-indigo-500"
+                    x-data="{ descriptionOpen: false }">
+                    <div class="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-3">Aktuell zu schätzen</div>
+                    <div class="text-base font-bold text-gray-900 mb-2">{{ $currentIssue->jira_key ?? 'Issue' }}</div>
+                    <div class="text-xl font-semibold text-gray-900 mb-4 leading-relaxed">{{ $currentIssue->title }}</div>
+                    @if($currentIssue->description)
+                        @php
+                            $voter = new \App\Livewire\Voting\Voter();
+                            $formattedDescription = $voter->formatJiraDescription($currentIssue->description);
+                        @endphp
+                        <div class="mb-4">
+                            <button @click="descriptionOpen = !descriptionOpen"
+                                class="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors">
+                                <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': descriptionOpen }" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                                <span x-text="descriptionOpen ? 'Beschreibung ausblenden' : 'Beschreibung anzeigen'"></span>
+                            </button>
+                            <div x-show="descriptionOpen" x-collapse class="mt-3 text-sm sm:text-base text-gray-600 leading-relaxed">
+                                {!! $formattedDescription !!}
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Voting Cards Section -->
+                <livewire:voting-cards :session="$session" />
+            @endif
+
+            <!-- Upcoming Issues & History -->
+            <livewire:voting.voter :session="$session" />
+        @endif
     @endcan
-    <div class="w-full">
-        @can('owns_session', $session)
-            <livewire:voting.owner :session="$session" />
-        @elsecan('vote_session', $session)
-            @if ($session->issues->count() > 0)
-                <livewire:voting.voter :session="$session" />
-            @else
-                <x-empty-session-warning :session="$session" />
-            @endisset
-        @endcan
-</div>
+
+    @can('owns_session', $session)
+        <livewire:voting.owner :session="$session" />
+    @endcan
 </div>

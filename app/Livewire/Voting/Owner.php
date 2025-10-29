@@ -6,6 +6,7 @@ use App\Events\IssueAdded;
 use App\Events\IssueCanceled;
 use App\Events\IssueDeleted;
 use App\Events\IssueSelected;
+use App\Events\RevealVotes;
 use App\Models\Issue;
 use App\Models\Session;
 use Illuminate\Contracts\View\View;
@@ -23,6 +24,14 @@ class Owner extends Component
 
     public string $issueDescription = '';
 
+    public string $activeTab = 'open';
+
+    public ?string $selectedEstimate = null;
+
+    public ?int $customEstimate = null;
+
+    public bool $votesRevealed = false;
+
     /** @var array<string, string> */
     protected array $rules = [
         'issues.*.storypoints' => 'integer|in:0,1,2,3,5,8,13,20,40,100',
@@ -36,22 +45,86 @@ class Owner extends Component
         return [
             "echo-presence:session.{$this->session->invite_code},.IssueAdded" => '$refresh',
             "echo-presence:session.{$this->session->invite_code},.IssueDeleted" => '$refresh',
+            "echo-presence:session.{$this->session->invite_code},.RevealVotes" => 'handleRevealVotes',
+            "echo-presence:session.{$this->session->invite_code},.HideVotes" => 'handleHideVotes',
+            "echo-presence:session.{$this->session->invite_code},.IssueSelected" => 'handleIssueSelected',
+            "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => 'handleIssueCanceled',
         ];
+    }
+
+    public function handleRevealVotes(): void
+    {
+        $this->votesRevealed = true;
+    }
+
+    public function handleHideVotes(): void
+    {
+        $this->votesRevealed = false;
+        $this->selectedEstimate = null;
+        $this->customEstimate = null;
+    }
+
+    public function handleIssueSelected(): void
+    {
+        $this->votesRevealed = false;
+        $this->selectedEstimate = null;
+        $this->customEstimate = null;
+    }
+
+    public function handleIssueCanceled(): void
+    {
+        $this->votesRevealed = false;
+        $this->selectedEstimate = null;
+        $this->customEstimate = null;
     }
 
     public function render(): View
     {
         $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
-        return view('livewire.voting.owner');
+
+        // Get grouped votes for current voting issue (only if revealed)
+        $groupedVotes = [];
+        $currentIssue = $this->session->currentIssue();
+        if ($currentIssue && $this->votesRevealed) {
+            $votes = $currentIssue->votes()->with('user')->get();
+            foreach ($votes as $vote) {
+                if ($vote->value !== null) {
+                    $value = (string) $vote->value;
+                    if (!isset($groupedVotes[$value])) {
+                        $groupedVotes[$value] = [
+                            'count' => 0,
+                            'participants' => [],
+                        ];
+                    }
+                    $groupedVotes[$value]['count']++;
+                    $groupedVotes[$value]['participants'][] = $vote->user->name;
+                }
+            }
+            // Sort by value
+            ksort($groupedVotes, SORT_NUMERIC);
+        }
+
+        return view('livewire.voting.owner', [
+            'groupedVotes' => $groupedVotes,
+            'currentIssue' => $currentIssue,
+        ]);
     }
 
-    public function addPointsToIssue(int $id): void
+    public function addPointsToIssue(int $id, ?int $customPoints = null): void
     {
         $issue = Issue::query()->whereId($id)->firstOrFail();
-        $issue->storypoints = $this->issues->firstOrFail('id', $id)->storypoints;
+
+        // Use custom points if provided, otherwise use the value from the issues collection
+        if ($customPoints !== null) {
+            $issue->storypoints = $customPoints;
+        } else {
+            $issue->storypoints = $this->issues->firstOrFail('id', $id)->storypoints;
+        }
+
         $issue->status = Issue::STATUS_FINISHED;
         $issue->save();
         broadcast(new IssueCanceled($issue));
+        $this->dispatch('refreshIssues');
     }
 
     public function voteIssue(int $id): void
@@ -103,7 +176,44 @@ class Owner extends Component
         $issue = Issue::query()->whereId($id)->firstOrFail();
         $issue->status = Issue::STATUS_VOTING;
         $issue->save();
+        $this->votesRevealed = false; // Reset votes revealed when starting new voting
         broadcast(new IssueSelected($issue));
+    }
+
+    public function revealVotes(): void
+    {
+        $currentIssue = $this->session->currentIssue();
+        if ($currentIssue) {
+            $this->votesRevealed = true;
+            broadcast(new RevealVotes($this->session))->toOthers();
+            $this->dispatch('votes-revealed');
+        }
+    }
+
+    public function selectEstimate(string $value): void
+    {
+        $this->selectedEstimate = $value;
+        $this->customEstimate = null;
+    }
+
+    public function confirmEstimate(int $issueId): void
+    {
+        $finalEstimate = $this->customEstimate ?? (int) $this->selectedEstimate;
+
+        if (!$finalEstimate || $finalEstimate <= 0) {
+            $this->dispatch('show-message', [
+                'type' => 'error',
+                'message' => 'Bitte wähle eine Schätzung aus oder gib einen Wert ein.',
+            ]);
+            return;
+        }
+
+        $this->addPointsToIssue($issueId, $finalEstimate);
+
+        // Reset
+        $this->selectedEstimate = null;
+        $this->customEstimate = null;
+        $this->votesRevealed = false;
     }
 
     public function formatJiraDescription(?string $description): string
