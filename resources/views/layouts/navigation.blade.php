@@ -68,76 +68,82 @@
                     </x-nav-link>
                 </div> --}}
             </div>
+            <div class="flex items-center gap-1">
+                <x-theme-switcher class="self-end" />
 
-            <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ml-6">
-                <div class="dropdown dropdown-end">
-                    <label tabindex="0"
-                        class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity p-1 rounded-full hover:bg-base-300/50">
-                        <div class="avatar placeholder">
-                            <div
-                                class="bg-primary text-primary-content rounded-full w-9 h-9 flex items-center justify-center">
-                                <span class="text-xs font-semibold">
-                                    {{ strtoupper(substr(Auth::user()->name, 0, 1) . (str_contains(Auth::user()->name, ' ') ? substr(Auth::user()->name, strpos(Auth::user()->name, ' ') + 1, 1) : '')) }}
-                                </span>
+                <!-- Settings Dropdown -->
+                <div class="hidden sm:flex">
+                    <div class="dropdown dropdown-end">
+                        <label tabindex="0"
+                            class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity p-1 rounded-full hover:bg-base-300/50">
+                            <div class="avatar placeholder">
+                                <div
+                                    class="bg-primary text-primary-content rounded-full w-9 h-9 flex items-center justify-center">
+                                    <span class="text-xs font-semibold">
+                                        {{ strtoupper(substr(Auth::user()->name, 0, 1) . (str_contains(Auth::user()->name, ' ') ? substr(Auth::user()->name, strpos(Auth::user()->name, ' ') + 1, 1) : '')) }}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                        <span
-                            class="hidden md:inline text-sm font-medium text-base-content">{{ Auth::user()->name }}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/60" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </label>
-                    <ul tabindex="0"
-                        class="p-2 shadow-lg dropdown-content menu bg-base-100 border border-base-300 rounded-box w-56 mt-2">
-                        <li class="menu-title">
-                            <span>{{ Auth::user()->name }}</span>
-                            <span class="text-xs text-base-content/70">{{ Auth::user()->email }}</span>
-                        </li>
-                        <div class="divider my-1"></div>
-                        <li>
-                            <a href="{{ route('profile.edit') }}" class="flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                                {{ __('Profile') }}
-                            </a>
-                        </li>
-                        <li>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <a href="{{ route('logout') }}" onclick="event.preventDefault();
-                                                    this.closest('form').submit();"
-                                    class="flex items-center gap-2 text-error">
+                            <span
+                                class="hidden md:inline text-sm font-medium text-base-content">{{ Auth::user()->name }}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/60" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </label>
+                        <ul tabindex="0"
+                            class="p-2 shadow-lg dropdown-content menu bg-base-100 border border-base-300 rounded-box w-56 mt-2">
+                            <li class="menu-title">
+                                <span>{{ Auth::user()->name }}</span>
+                                <span class="text-xs text-base-content/70">{{ Auth::user()->email }}</span>
+                            </li>
+                            <div class="divider my-1"></div>
+                            <li>
+                                <a href="{{ route('profile.edit') }}" class="flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
-                                    {{ __('Log Out') }}
+                                    {{ __('Profile') }}
                                 </a>
-                            </form>
-                        </li>
-                    </ul>
+                            </li>
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <a href="{{ route('logout') }}" onclick="event.preventDefault();
+                                                    this.closest('form').submit();"
+                                        class="flex items-center gap-2 text-error">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                        </svg>
+                                        {{ __('Log Out') }}
+                                    </a>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Hamburger -->
+                <div class="flex items-center -mr-2 sm:hidden">
+                    <button @click="open = ! open"
+                        class="inline-flex items-center justify-center p-2 transition duration-150 ease-in-out rounded-md text-base-content hover:bg-base-300 focus:bg-base-300">
+                        <svg class="w-6 h-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                            <path :class="{ 'hidden': open, 'inline-flex': !open }" class="inline-flex"
+                                stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                            <path :class="{ 'hidden': !open, 'inline-flex': open }" class="hidden"
+                                stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
             </div>
 
-            <!-- Hamburger -->
-            <div class="flex items-center -mr-2 sm:hidden">
-                <button @click="open = ! open"
-                    class="inline-flex items-center justify-center p-2 transition duration-150 ease-in-out rounded-md text-base-content hover:bg-base-300 focus:bg-base-300">
-                    <svg class="w-6 h-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{ 'hidden': open, 'inline-flex': !open }" class="inline-flex"
-                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{ 'hidden': !open, 'inline-flex': open }" class="hidden" stroke-linecap="round"
-                            stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
         </div>
     </div>
 

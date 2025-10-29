@@ -42,7 +42,7 @@
                 @endphp
                 @if($hasVotes && !$votesRevealed)
                     <button wire:click="revealVotes"
-                        class="w-full px-5 py-3.5 bg-success hover:bg-success/90 text-success-content font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+                        class="w-full px-5 py-3.5 bg-success cursor-pointer hover:bg-success/90 text-success-content font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -50,19 +50,19 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
-                        Votes revealen
+                        Schätzungen anzeigen
                     </button>
                 @elseif($votesRevealed)
                     <button
                         class="w-full px-5 py-3.5 bg-base-300 text-base-content/60 font-semibold rounded-lg cursor-not-allowed flex items-center justify-center gap-2"
                         disabled>
-                        Votes revealed
+                        Schätzungen angezeigt
                     </button>
                 @else
                     <button
                         class="w-full px-5 py-3.5 bg-base-300 text-base-content/60 font-semibold rounded-lg cursor-not-allowed flex items-center justify-center gap-2"
                         disabled>
-                        Warte auf Votes...
+                        Warte auf Schätzungen...
                     </button>
                 @endif
             </div>
@@ -108,7 +108,7 @@
 
                     <!-- Custom Estimate Input -->
                     <div class="flex flex-col sm:flex-row gap-3 items-end">
-                        <div class="flex-1 w-full">
+                        <div class="flex-1 w-1/2">
                             <label class="block text-sm font-medium text-base-content mb-1">Oder manuell
                                 eingeben:</label>
                             <input type="number"
@@ -116,7 +116,7 @@
                                 wire:model.live="customEstimate" placeholder="z.B. 3, 5, 8, 13..." min="0" />
                         </div>
                         <button wire:click="confirmEstimate({{ $currentIssue->id }})"
-                            class="px-6 py-2 bg-success hover:bg-success/90 text-success-content font-semibold rounded-lg transition-colors whitespace-nowrap">
+                            class="px-6 py-2 w-1/2 bg-success cursor-pointer hover:bg-success/90 text-success-content font-semibold rounded-lg transition-colors whitespace-nowrap">
                             Schätzung übernehmen
                         </button>
                     </div>
