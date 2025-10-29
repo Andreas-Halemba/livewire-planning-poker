@@ -58,7 +58,17 @@ class JiraImport extends Component
         $this->selectedTickets = [];
 
         try {
-            $jiraService = app(JiraService::class);
+            $user = auth()->user();
+
+            // Check if user has configured Jira credentials
+            if (!$user->jira_url || !$user->jira_user || !$user->jira_api_key) {
+                $this->message = 'Please configure your Jira credentials in your profile settings first.';
+                $this->messageType = 'error';
+                $this->isLoading = false;
+                return;
+            }
+
+            $jiraService = new JiraService($user);
             $jiraIssues = $jiraService->searchIssuesByProjectAndStatus($this->projectKey, $this->status);
 
             if (empty($jiraIssues)) {
@@ -90,6 +100,9 @@ class JiraImport extends Component
             $this->message = 'Tickets loaded. Please select the ones you want to import.';
             $this->messageType = 'success';
 
+        } catch (\RuntimeException $e) {
+            $this->message = $e->getMessage();
+            $this->messageType = 'error';
         } catch (JiraException $e) {
             $this->message = 'Failed to connect to Jira. Please check your credentials and try again.';
             $this->messageType = 'error';
@@ -114,7 +127,17 @@ class JiraImport extends Component
         $this->messageType = '';
 
         try {
-            $jiraService = app(JiraService::class);
+            $user = auth()->user();
+
+            // Check if user has configured Jira credentials
+            if (!$user->jira_url || !$user->jira_user || !$user->jira_api_key) {
+                $this->message = 'Please configure your Jira credentials in your profile settings first.';
+                $this->messageType = 'error';
+                $this->isLoading = false;
+                return;
+            }
+
+            $jiraService = new JiraService($user);
             $importedCount = 0;
             $skippedCount = 0;
 

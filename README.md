@@ -23,11 +23,6 @@ VITE_REVERB_PORT="${REVERB_PORT}"
 VITE_REVERB_SCHEME="${REVERB_SCHEME}"
 
 MAIL_MAILER=
-
-# Jira Integration (optional)
-JIRA_HOST=https://your-jira-instance.atlassian.net
-JIRA_USER=your-email@example.com
-JIRA_PASS=your-api-token
 ```
 
 ## Setup
@@ -104,41 +99,56 @@ This application supports importing issues from Jira into your planning poker se
 
 ### Configuration
 
-To enable Jira integration, add the following environment variables to your `.env` file:
+Each user can configure their own Jira credentials in their profile settings:
 
-```env
-JIRA_HOST=https://your-jira-instance.atlassian.net
-JIRA_USER=your-email@example.com
-JIRA_PASS=your-api-token
-```
+1. Navigate to your **Profile** page
+2. Scroll to the **Jira Credentials** section
+3. Enter your Jira instance URL (e.g., `https://yourcompany.atlassian.net`)
+4. Enter your Jira email address
+5. Enter your Jira API token
 
-**Note:** You need to use an API token, not your regular password. You can generate one in your [Atlassian Account Settings](https://id.atlassian.com/manage-profile/security/api-tokens).
+**How to get your API Token:**
+
+1. Go to [Atlassian Account Settings](https://id.atlassian.com/manage-profile/security/api-tokens)
+2. Click on "API tokens"
+3. Click "Create API token"
+4. Give it a label (e.g., "Planning Poker")
+5. Copy the generated token
+6. Paste it in the profile field
+
+**Note:** Each user needs their own API token. The token is encrypted and stored securely in the database.
+
+**Important:** You must configure your Jira credentials before you can import issues. The Jira import section will only be visible after configuring your credentials in your profile.
 
 ### Usage
 
-1. As a Product Owner, navigate to your session management page
-2. Enter your Jira Project Key (e.g., "SAN")
-3. Select the status of tickets you want to import (e.g., "In Estimation")
-4. Click "Load Tickets" to fetch all matching tickets from Jira
-5. A modal will open showing all available tickets
-6. Select the tickets you want to import using the checkboxes
-7. Use "Select All" to quickly select/deselect all tickets
-8. Click "Import Selected" to import the chosen tickets
-9. Tickets that were already imported will be marked and disabled
+1. Configure your Jira credentials in your profile (see above)
+2. As a Product Owner, navigate to your session management page
+3. Enter your Jira Project Key (e.g., "SAN")
+4. Select the status of tickets you want to import (e.g., "In Estimation")
+5. Click "Load Tickets" to fetch all matching tickets from Jira
+6. A modal will open showing all available tickets
+7. Select the tickets you want to import using the checkboxes
+8. Use "Select All" to quickly select/deselect all tickets
+9. Click "Import Selected" to import the chosen tickets
+10. Tickets that were already imported will be marked and disabled
 
 ### Testing the Jira Integration
 
 To test the Jira integration:
 
-1. Make sure you have valid Jira credentials configured in your `.env` file
-2. Create a session or navigate to an existing one
-3. Look for the "Import from Jira" card
-4. Enter a valid project key and status
-5. Click "Load Tickets" - you should see a modal with tickets
-6. Select some tickets and import them
-7. Verify that the tickets appear in your session's issue list
+1. Configure your Jira credentials in your profile
+2. Use the "Test Connection" button in the profile to verify your credentials
+3. Create a session or navigate to an existing one
+4. Look for the "Import from Jira" card
+5. Enter a valid project key and status
+6. Click "Load Tickets" - you should see a modal with tickets
+7. Select some tickets and import them
+8. Verify that the tickets appear in your session's issue list
 
 **Note:** Make sure your Jira instance is accessible and you have permission to view the tickets in the specified project and status.
+
+**If you don't see the Jira import section:** Navigate to your profile settings and configure your Jira credentials first. You'll see a link in the import section that takes you directly to the profile settings.
 
 ### Production Deployment
 
