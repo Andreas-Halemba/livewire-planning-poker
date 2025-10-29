@@ -16,17 +16,12 @@
             </a>
         </li>
         <li>
-            <a data-set-theme="cupcake" class="flex items-center gap-2">
-                <span>Cupcake</span>
-            </a>
-        </li>
-        <li>
             <a data-set-theme="light" class="flex items-center gap-2">
                 <span>Light</span>
             </a>
         </li>
         <li>
-            <a data-set-theme="dark" class="flex items-center gap-2">
+            <a data-set-theme="dracula" class="flex items-center gap-2">
                 <span>Dark</span>
             </a>
         </li>
