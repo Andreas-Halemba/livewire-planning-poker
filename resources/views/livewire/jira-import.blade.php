@@ -119,10 +119,6 @@
                                             @endif
                                         </div>
                                         <p class="text-sm {{ $ticket['already_imported'] ? 'text-base-content/60' : 'text-base-content font-medium' }}">{{ $ticket['title'] }}</p>
-                                        @if($ticket['description'])
-                                            <p class="mt-1 text-xs text-base-content/70 line-clamp-2">
-                                                {{ Str::limit($ticket['description'], 100) }}</p>
-                                        @endif
                                     </div>
                                 </div>
                             </div>

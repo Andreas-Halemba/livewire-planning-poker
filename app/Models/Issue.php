@@ -100,7 +100,7 @@ class Issue extends Model
     /**
      * Convert Jira API URL to browser URL if needed
      */
-    private function getJiraBrowserUrl(): string
+    public function getJiraBrowserUrl(): string
     {
         if (empty($this->jira_url) || empty($this->jira_key)) {
             return $this->jira_url ?? '';
@@ -120,6 +120,76 @@ class Issue extends Model
         // Fallback: assume it's a base URL and append /browse/key
         // This handles cases where only the base URL was stored
         return rtrim($this->jira_url, '/') . '/browse/' . $this->jira_key;
+    }
+
+    /**
+     * Get formatted HTML description with converted attachment URLs
+     */
+    public function getFormattedDescriptionAttribute(): ?string
+    {
+        if (empty($this->description)) {
+            return null;
+        }
+
+        $html = $this->description;
+
+        // Extract base URL from jira_url to convert relative attachment URLs
+        $baseUrl = $this->getJiraBaseUrl();
+
+        if ($baseUrl) {
+            // Convert relative attachment URLs to absolute URLs
+            // Pattern: /rest/api/3/attachment/content/639676
+            $html = preg_replace_callback(
+                '#(/rest/api/\d+/attachment/content/\d+)#',
+                function ($matches) use ($baseUrl) {
+                    return rtrim($baseUrl, '/') . $matches[1];
+                },
+                $html,
+            );
+
+            // Also handle attachment URLs in img src attributes
+            $html = preg_replace_callback(
+                '#src=["\'](/rest/api/\d+/attachment/content/\d+)(.*?)["\']#',
+                function ($matches) use ($baseUrl) {
+                    return 'src="' . rtrim($baseUrl, '/') . $matches[1] . $matches[2] . '"';
+                },
+                $html,
+            );
+
+            // Convert relative links to absolute URLs
+            $html = preg_replace_callback(
+                '#href=["\'](/secure/attachment/[^"\']+)["\']#',
+                function ($matches) use ($baseUrl) {
+                    return 'href="' . rtrim($baseUrl, '/') . $matches[1] . '"';
+                },
+                $html,
+            );
+        }
+
+        return $html;
+    }
+
+    /**
+     * Extract base URL from jira_url
+     */
+    private function getJiraBaseUrl(): ?string
+    {
+        if (empty($this->jira_url)) {
+            return null;
+        }
+
+        // If it's a browser URL (contains /browse/), extract base
+        if (str_contains($this->jira_url, '/browse/')) {
+            return preg_replace('#/browse/.*#', '', $this->jira_url);
+        }
+
+        // If it's an API URL (contains /rest/api/), extract base
+        if (str_contains($this->jira_url, '/rest/api/')) {
+            return preg_replace('#/rest/api/.*#', '', $this->jira_url);
+        }
+
+        // Otherwise assume it's already a base URL
+        return $this->jira_url;
     }
 
     // function that returns true if the status is voiting

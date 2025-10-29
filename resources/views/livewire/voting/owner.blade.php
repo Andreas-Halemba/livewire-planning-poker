@@ -14,16 +14,29 @@
             </div>
 
             <!-- Current Issue Display -->
-            <div class="bg-info/10 border border-info/30 rounded-lg p-4 mb-5">
+            <div class="bg-info/10 border border-info/30 rounded-lg p-4 mb-5" x-data="{ descriptionOpen: false }">
                 <div class="text-xs font-semibold uppercase text-info mb-2">Aktuell zu schätzen</div>
                 <div class="text-xl font-bold mb-1 text-base-content">{!! $currentIssue->title_html !!}</div>
-                <div class="text-sm text-base-content/70">
-                    {{ $currentIssue->description ? Str::limit($currentIssue->description, 100) : 'Keine Beschreibung' }}
-                </div>
+                @if($currentIssue->description)
+                    <div class="mb-4">
+                        <button @click="descriptionOpen = !descriptionOpen"
+                            class="flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors">
+                            <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': descriptionOpen }" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                            <span x-text="descriptionOpen ? 'Beschreibung ausblenden' : 'Beschreibung anzeigen'"></span>
+                        </button>
+                        <div x-show="descriptionOpen" x-collapse
+                            class="mt-3 prose prose-sm max-w-none bg-white/90 text-black p-4 rounded-lg prose-a:text-accent prose-headings:text-black border border-accent">
+                            {!! $currentIssue->formatted_description !!}
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Reveal Votes Button -->
-            <div class="mb-5">
+            <div class=" mb-5">
                 @php
                     $hasVotes = $currentIssue->votes()->whereNotNull('value')->exists();
                 @endphp
@@ -61,17 +74,32 @@
 
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
                         @foreach($groupedVotes as $value => $data)
+                            @php
+                                $isSelected = (string) $selectedEstimate === (string) $value;
+                            @endphp
                             <div @class([
-                                'bg-base-200 border-2 rounded-lg p-4 text-center cursor-pointer transition-all hover:border-primary hover:bg-primary/10',
-                                'border-base-300' => $selectedEstimate !== $value,
-                                'bg-success/20 border-success shadow-md' => $selectedEstimate === $value,
-                            ])
-                                wire:click="selectEstimate('{{ $value }}')" wire:key="estimate-{{ $value }}">
-                                <div class="text-3xl font-bold mb-1 text-base-content">{{ $value }}</div>
-                                <div class="text-xs text-base-content/70">
+                                'border-2 rounded-lg p-4 text-center cursor-pointer transition-all',
+                                'bg-base-200 border-base-300 hover:border-primary hover:bg-primary/10' => !$isSelected,
+                                'bg-success border-success shadow-md hover:bg-success/90' => $isSelected,
+                            ]) wire:click="selectEstimate('{{ $value }}')"
+                                wire:key="estimate-{{ $value }}">
+                                <div @class([
+                                    'text-3xl font-bold mb-1',
+                                    'text-base-content' => !$isSelected,
+                                    'text-success-content' => $isSelected,
+                                ])>{{ $value }}</div>
+                                <div @class([
+                                    'text-xs',
+                                    'text-base-content/70' => !$isSelected,
+                                    'text-success-content/90' => $isSelected,
+                                ])>
                                     {{ $data['count'] }} {{ $data['count'] === 1 ? 'Stimme' : 'Stimmen' }}
                                 </div>
-                                <div class="text-xs text-base-content/60 mt-1">
+                                <div @class([
+                                    'text-xs mt-1',
+                                    'text-base-content/60' => !$isSelected,
+                                    'text-success-content/80' => $isSelected,
+                                ])>
                                     {{ implode(', ', $data['participants']) }}
                                 </div>
                             </div>
@@ -81,7 +109,8 @@
                     <!-- Custom Estimate Input -->
                     <div class="flex flex-col sm:flex-row gap-3 items-end">
                         <div class="flex-1 w-full">
-                            <label class="block text-sm font-medium text-base-content mb-1">Oder manuell eingeben:</label>
+                            <label class="block text-sm font-medium text-base-content mb-1">Oder manuell
+                                eingeben:</label>
                             <input type="number"
                                 class="w-full px-3 py-2 border border-base-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-base-100 text-base-content"
                                 wire:model.live="customEstimate" placeholder="z.B. 3, 5, 8, 13..." min="0" />
@@ -231,9 +260,6 @@
                                 <div class="flex-1 min-w-0 overflow-hidden">
                                     <div class="text-sm font-semibold text-primary mb-1 break-words">
                                         {!! $issue->title_html !!}
-                                    </div>
-                                    <div class="text-sm text-base-content/70 truncate">
-                                        {{ $issue->description ? Str::limit($issue->description, 80) : 'Keine Beschreibung' }}
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2 flex-shrink-0">

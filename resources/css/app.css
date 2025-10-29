@@ -1,12 +1,13 @@
 @import 'tailwindcss';
+
+@source "../**/*.blade.php";
+@source "../**/*.js";
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
+@source "../../storage/framework/views/*.php";
+
 @plugin '@tailwindcss/typography';
 @plugin "daisyui" {
-    themes:
-        corporate --default,
-        fantasy --default,
-        business,
-        dracula --prefersdark,
-        light --preferslight;
+    themes: all;
 }
 
 /* Custom styles for components that DaisyUI doesn't fully cover */
