@@ -50,12 +50,37 @@ class JiraService
      */
     public function mapJiraIssueToArray(object $jiraIssue): array
     {
+        $issueKey = $jiraIssue->key ?? '';
+        $browserUrl = $this->convertApiUrlToBrowserUrl($jiraIssue->self ?? '', $issueKey);
+
         return [
             'title' => $jiraIssue->fields->summary ?? 'No title',
             'description' => $jiraIssue->fields->description ?? null,
-            'jira_key' => $jiraIssue->key ?? '',
-            'jira_url' => $jiraIssue->self ?? '',
+            'jira_key' => $issueKey,
+            'jira_url' => $browserUrl,
         ];
+    }
+
+    /**
+     * Convert Jira API URL to browser URL
+     *
+     * @param string $apiUrl
+     * @param string $issueKey
+     * @return string
+     */
+    private function convertApiUrlToBrowserUrl(string $apiUrl, string $issueKey): string
+    {
+        if (empty($apiUrl) || empty($issueKey)) {
+            return '';
+        }
+
+        // Extract base URL from API URL
+        // Example: https://jira.example.com/rest/api/2/issue/12345
+        // Should become: https://jira.example.com/browse/PROJECT-123
+
+        $baseUrl = preg_replace('#/rest/api/.*#', '', $apiUrl);
+
+        return $baseUrl . '/browse/' . $issueKey;
     }
 
     /**
