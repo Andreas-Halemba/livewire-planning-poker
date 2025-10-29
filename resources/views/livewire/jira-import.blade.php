@@ -51,17 +51,19 @@
             </div>
         </div>
     @else
-        <div class="alert alert-info">
+    <div class="flex flex-col gap-2">
+        <div class="alert alert-warning text-warning-content">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="h-5 w-5 shrink-0 stroke-current">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            <div class="flex-1">
-                <span class="text-sm">Configure Jira credentials to import issues</span>
-                <a href="{{ route('profile.edit') }}" class="btn btn-sm btn-ghost mt-2">
-                    Configure Now
-                </a>
+            <div class="flex-1 flex flex-col gap-2">
+                <span class="text-sm">Konfiguriere Jira-Zugangsdaten, um Tickets zu importieren</span>
             </div>
         </div>
+        <a href="{{ route('profile.edit') }}" class="btn  btn-accent w-full">
+            Jetzt konfigurieren
+        </a>
+    </div>
     @endif
 
     <!-- Ticket Selection Modal -->
@@ -101,22 +103,22 @@
 
                 <div class="overflow-y-auto max-h-96 space-y-2" wire:key="tickets-list">
                     @foreach($availableTickets as $ticket)
-                        <div class="card card-sm bg-base-200 {{ $ticket['already_imported'] ? 'opacity-60' : '' }}">
+                        <div class="card card-sm bg-base-200 {{ $ticket['already_imported'] ? 'border border-base-300' : '' }}">
                             <div class="card-body">
                                 <div class="flex items-start gap-3">
-                                    <input type="checkbox" class="mt-1 checkbox checkbox-primary checkbox-sm"
+                                    <input type="checkbox" class="mt-1 checkbox checkbox-primary checkbox-sm {{ $ticket['already_imported'] ? 'opacity-50' : '' }}"
                                         value="{{ $ticket['key'] }}"
                                         wire:key="ticket-{{ $ticket['key'] }}"
                                         wire:model.live="selectedTickets"
                                         @if($ticket['already_imported']) disabled @endif />
                                     <div class="flex-1">
                                         <div class="flex items-center gap-2 mb-1">
-                                            <span class="font-semibold text-sm">{{ $ticket['key'] }}</span>
+                                            <span class="font-semibold text-sm {{ $ticket['already_imported'] ? 'text-base-content/60' : 'text-base-content' }}">{{ $ticket['key'] }}</span>
                                             @if($ticket['already_imported'])
                                                 <span class="badge badge-warning badge-sm">Already Imported</span>
                                             @endif
                                         </div>
-                                        <p class="text-sm text-base-content font-medium">{{ $ticket['title'] }}</p>
+                                        <p class="text-sm {{ $ticket['already_imported'] ? 'text-base-content/60' : 'text-base-content font-medium' }}">{{ $ticket['title'] }}</p>
                                         @if($ticket['description'])
                                             <p class="mt-1 text-xs text-base-content/70 line-clamp-2">
                                                 {{ Str::limit($ticket['description'], 100) }}</p>

@@ -1,9 +1,12 @@
 @import 'tailwindcss';
+@plugin '@tailwindcss/typography';
 @plugin "daisyui" {
     themes:
+        corporate --default,
         fantasy --default,
-        dark --prefersdark,
-        cupcake;
+        business,
+        dracula --prefersdark,
+        light --preferslight;
 }
 
 /* Custom styles for components that DaisyUI doesn't fully cover */

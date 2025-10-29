@@ -47,7 +47,7 @@ class JiraService
         $jql = "project = \"{$projectKey}\" AND status = \"{$status}\" ORDER BY created DESC";
 
         try {
-            $response = $this->issueService->search($jql);
+            $response = $this->issueService->search(jql: $jql, expand: 'renderedFields');
             return $response->getIssues();
         } catch (JiraException $e) {
             Log::error('Jira API error: ' . $e->getMessage());
@@ -66,9 +66,11 @@ class JiraService
         $issueKey = $jiraIssue->key ?? '';
         $browserUrl = $this->convertApiUrlToBrowserUrl($jiraIssue->self ?? '', $issueKey);
 
+        ray($jiraIssue->fields);
+
         return [
             'title' => $jiraIssue->fields->summary ?? 'No title',
-            'description' => $jiraIssue->fields->description ?? null,
+            'description' => $jiraIssue->renderedFields['description'] ?? null,
             'jira_key' => $issueKey,
             'jira_url' => $browserUrl,
         ];

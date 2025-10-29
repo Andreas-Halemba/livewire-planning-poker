@@ -1,0 +1,8 @@
+<svg width="200" height="120" viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="85" y="20" width="50" height="70" rx="6" fill="#E5E7EB" transform="rotate(8 110 55)"/>
+                        <rect x="75" y="20" width="50" height="70" rx="6" fill="#10B981"/>
+                        <text x="100" y="65" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white" text-anchor="middle">5</text>
+                        <rect x="65" y="20" width="50" height="70" rx="6" fill="#4F46E5" transform="rotate(-8 90 55)"/>
+                        <text x="90" y="65" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white" text-anchor="middle" transform="rotate(-8 90 65)">8</text>
+                        <text x="100" y="108" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#1A1A1A" text-anchor="middle">SCRUM POKER</text>
+                    </svg>

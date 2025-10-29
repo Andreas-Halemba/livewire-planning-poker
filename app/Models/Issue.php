@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 /**
  * App\Models\Issue
@@ -81,9 +82,10 @@ class Issue extends Model
 
     public function getTitleHtmlAttribute(): string
     {
-        // If we have Jira URL, create link using Jira key
+        // If we have Jira URL and key, create link
         if ($this->jira_url && $this->jira_key) {
-            return "<a href='{$this->jira_url}' class='hover:underline' target='_blank'>{$this->jira_key}</a>";
+            $browserUrl = $this->getJiraBrowserUrl();
+            return "<a href='{$browserUrl}' class='hover:underline text-accent' target='_blank'>{$this->jira_key}<br>" . Str::limit($this->title, 100) . "</a>";
         }
 
         // Fallback to existing URL parsing logic
@@ -93,6 +95,31 @@ class Issue extends Model
         }
 
         return $this->title;
+    }
+
+    /**
+     * Convert Jira API URL to browser URL if needed
+     */
+    private function getJiraBrowserUrl(): string
+    {
+        if (empty($this->jira_url) || empty($this->jira_key)) {
+            return $this->jira_url ?? '';
+        }
+
+        // If it's already a browser URL (contains /browse/), return as is
+        if (str_contains($this->jira_url, '/browse/')) {
+            return $this->jira_url;
+        }
+
+        // If it's an API URL (contains /rest/api/), convert it
+        if (str_contains($this->jira_url, '/rest/api/')) {
+            $baseUrl = preg_replace('#/rest/api/.*#', '', $this->jira_url);
+            return $baseUrl . '/browse/' . $this->jira_key;
+        }
+
+        // Fallback: assume it's a base URL and append /browse/key
+        // This handles cases where only the base URL was stored
+        return rtrim($this->jira_url, '/') . '/browse/' . $this->jira_key;
     }
 
     // function that returns true if the status is voiting
