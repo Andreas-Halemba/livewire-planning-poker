@@ -123,6 +123,24 @@ class Owner extends Component
 
         $issue->status = Issue::STATUS_FINISHED;
         $issue->save();
+
+        // Update story points in Jira if issue has Jira key and owner has Jira credentials
+        if ($issue->jira_key && $issue->storypoints !== null) {
+            $owner = $this->session->owner()->first();
+            if ($owner && $owner->jira_url && $owner->jira_user && $owner->jira_api_key) {
+                try {
+                    $jiraService = new \App\Services\JiraService($owner);
+                    $success = $jiraService->updateStoryPoints($issue->jira_key, $issue->storypoints);
+                    if (!$success) {
+                        \Illuminate\Support\Facades\Log::warning("Jira story points update returned false for {$issue->jira_key}");
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("Failed to update Jira story points for {$issue->jira_key}: " . $e->getMessage());
+                    // Don't fail the entire operation if Jira update fails
+                }
+            }
+        }
+
         broadcast(new IssueCanceled($issue));
         $this->dispatch('refreshIssues');
     }

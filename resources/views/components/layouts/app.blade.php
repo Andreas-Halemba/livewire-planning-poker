@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="corporate">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="light">
 
 <head>
     <meta charset="utf-8">
@@ -37,6 +37,6 @@
         </main>
     </div>
 </body>
-<script src="https://cdn.jsdelivr.net/npm/theme-change@2.0.2/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/theme-change@2.0.2/index.js" defer></script>
 
 </html>
