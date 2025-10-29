@@ -1,16 +1,10 @@
 @import 'tailwindcss';
-@plugin 'daisyui' {
+@plugin "daisyui" {
     themes:
-        cupcake --default,
+        fantasy --default,
         dark --prefersdark,
-        light;
-}
-@plugin '@tailwindcss/typography';
-
-@theme {
-    --font-family-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+        cupcake;
 }
 
-a:hover {
-    @apply cursor-pointer;
-}
+/* Custom styles for components that DaisyUI doesn't fully cover */
+/* Note: Most styling is handled via DaisyUI classes directly in Blade templates */

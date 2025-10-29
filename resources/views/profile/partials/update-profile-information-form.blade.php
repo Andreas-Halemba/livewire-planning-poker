@@ -52,6 +52,7 @@
         <div class="flex flex-col gap-2">
             <x-input-label for="theme" :value="__('Theme')" />
             <select id="theme" data-choose-theme class="w-full select">
+                <option value="fantasy">Fantasy</option>
                 <option value="cupcake">Cupcake</option>
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
