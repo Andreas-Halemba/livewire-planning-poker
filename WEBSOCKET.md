@@ -6,17 +6,17 @@ This project uses **Laravel Reverb** for real-time WebSocket connections. Reverb
 
 Reverb handles real-time features such as:
 
--   Live voting updates
--   Session participant changes
--   Vote reveal notifications
--   Real-time collaboration features
+- Live voting updates
+- Session participant changes
+- Vote reveal notifications
+- Real-time collaboration features
 
 ## Prerequisites
 
--   PHP 8.2 or higher
--   Laravel 11.x
--   Laravel Reverb package installed
--   A process manager (Supervisor, PM2, or systemd)
+- PHP 8.2 or higher
+- Laravel 11.x
+- Laravel Reverb package installed
+- A process manager (Supervisor, PM2, or systemd)
 
 ## Installation
 
@@ -380,27 +380,27 @@ TELESCOPE_ENABLED=true
 
 ### Connection Refused
 
--   Ensure Reverb is running: `sudo supervisorctl status reverb:*`
--   Check firewall settings for port 8080
--   Verify the host binding (use `0.0.0.0` for production)
+- Ensure Reverb is running: `sudo supervisorctl status reverb:*`
+- Check firewall settings for port 8080
+- Verify the host binding (use `0.0.0.0` for production)
 
 ### WebSocket Connection Failed
 
--   Check browser console for errors
--   Verify `.env` variables match between Laravel and Vite build
--   Ensure SSL certificates are valid (for HTTPS)
+- Check browser console for errors
+- Verify `.env` variables match between Laravel and Vite build
+- Ensure SSL certificates are valid (for HTTPS)
 
 ### High Memory Usage
 
--   Restart Reverb periodically
--   Consider running multiple instances
--   Monitor for memory leaks
+- Restart Reverb periodically
+- Consider running multiple instances
+- Monitor for memory leaks
 
 ### Connection Drops
 
--   Increase timeout values in proxy configuration
--   Check network stability
--   Verify Redis connection (if using scaling)
+- Increase timeout values in proxy configuration
+- Check network stability
+- Verify Redis connection (if using scaling)
 
 ## Quick Start Commands
 
@@ -431,6 +431,6 @@ sudo supervisorctl stop reverb:*
 
 ## Additional Resources
 
--   [Laravel Reverb Documentation](https://laravel.com/docs/reverb)
--   [Supervisor Documentation](http://supervisord.org/)
--   [Nginx WebSocket Proxy](https://nginx.org/en/docs/http/websocket.html)
+- [Laravel Reverb Documentation](https://laravel.com/docs/reverb)
+- [Supervisor Documentation](http://supervisord.org/)
+- [Nginx WebSocket Proxy](https://nginx.org/en/docs/http/websocket.html)
