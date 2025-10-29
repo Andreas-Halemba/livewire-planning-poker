@@ -1,53 +1,65 @@
 <div>
     @if(auth()->user() && auth()->user()->jira_url && auth()->user()->jira_user && auth()->user()->jira_api_key)
-        <div class="box-border shadow-xl card bg-base-100 card-compact">
-            <div class="justify-between card-body">
-                <form wire:submit="loadTickets">
-                    <div class="card-title">Import from Jira</div>
-                    <div class="gap-3 mt-3 form-control">
-                        <x-text-input required class="input-md" wire:model="projectKey" placeholder="Project Key (z.B. SAN)" />
+        <div class="collapse collapse-arrow bg-base-200">
+            <input type="checkbox" />
+            <div class="collapse-title text-base font-semibold flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Import from Jira
+            </div>
+            <div class="collapse-content">
+                <form wire:submit="loadTickets" class="flex flex-col gap-3 mt-2">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-medium text-base-content/70">Project Key</label>
+                        <x-text-input required class="input-sm" wire:model="projectKey" placeholder="e.g. SAN" />
                         @error('projectKey')
-                            <span class="text-error">{{ $message }}</span>
+                            <span class="text-xs text-error">{{ $message }}</span>
                         @enderror
+                    </div>
 
-                        <select class="select select-bordered w-full" wire:model="status" required>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-medium text-base-content/70">Status</label>
+                        <select class="select select-sm w-full" wire:model="status" required>
                             <option value="">Select Status</option>
                             @foreach($this->statusOptions as $value => $label)
                                 <option value="{{ $value }}">{{ $label }}</option>
                             @endforeach
                         </select>
                         @error('status')
-                            <span class="text-error">{{ $message }}</span>
+                            <span class="text-xs text-error">{{ $message }}</span>
                         @enderror
-
-                        <button type="submit" class="btn btn-primary btn-sm btn-outline" wire:loading.attr="disabled"
-                            wire:target="loadTickets">
-                            <span wire:loading.remove wire:target="loadTickets">Load Tickets</span>
-                            <span wire:loading wire:target="loadTickets" class="loading loading-spinner loading-sm"></span>
-                        </button>
                     </div>
+
+                    <button type="submit" class="btn btn-primary btn-sm mt-2" wire:loading.attr="disabled"
+                        wire:target="loadTickets">
+                        <span wire:loading.remove wire:target="loadTickets">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Load Tickets
+                        </span>
+                        <span wire:loading wire:target="loadTickets" class="loading loading-spinner loading-sm"></span>
+                    </button>
                 </form>
 
                 @if(isset($message) && $message)
-                    <div
-                        class="mt-3 alert alert-{{ $messageType === 'error' ? 'error' : ($messageType === 'success' ? 'success' : ($messageType === 'warning' ? 'warning' : 'info')) }}">
-                        <span>{{ $message }}</span>
+                    <div class="mt-3 alert alert-sm alert-{{ $messageType === 'error' ? 'error' : ($messageType === 'success' ? 'success' : ($messageType === 'warning' ? 'warning' : 'info')) }}">
+                        <span class="text-xs">{{ $message }}</span>
                     </div>
                 @endif
             </div>
         </div>
     @else
-        <div class="box-border shadow-xl card bg-base-100 card-compact">
-            <div class="card-body">
-                <div class="card-title">Import from Jira</div>
-                <div class="p-4 rounded-lg bg-base-200 border border-base-300">
-                    <p class="text-sm text-base-content">
-                        {{ __('Please configure your Jira credentials in your profile settings to import issues from Jira.') }}
-                    </p>
-                    <a href="{{ route('profile.edit') }}" class="btn btn-primary btn-sm mt-3">
-                        {{ __('Go to Profile Settings') }}
-                    </a>
-                </div>
+        <div class="alert alert-info">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="h-5 w-5 shrink-0 stroke-current">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div class="flex-1">
+                <span class="text-sm">Configure Jira credentials to import issues</span>
+                <a href="{{ route('profile.edit') }}" class="btn btn-sm btn-ghost mt-2">
+                    Configure Now
+                </a>
             </div>
         </div>
     @endif
@@ -56,69 +68,79 @@
     @if($showModal && !empty($availableTickets))
         <div class="modal modal-open" wire:click="closeModal">
             <div class="modal-box max-w-4xl relative" wire:click.stop>
-                <h3 class="text-lg font-bold mb-4">Select Tickets to Import</h3>
-                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" wire:click="closeModal">✕</button>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Select Tickets to Import
+                    </h3>
+                    <button class="btn btn-sm btn-circle btn-ghost" wire:click="closeModal">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
 
                 @if($message && ($messageType === 'warning' || $messageType === 'error'))
-                    <div class="mt-3 alert alert-{{ $messageType }}">
-                        <span>{{ $message }}</span>
+                    <div class="mb-4 alert alert-{{ $messageType }} alert-sm">
+                        <span class="text-xs">{{ $message }}</span>
                     </div>
                 @endif
 
-                <div class="mt-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="form-control">
-                            <label class="cursor-pointer label">
-                                <input type="checkbox" class="checkbox checkbox-primary" wire:click="toggleSelectAll"
-                                    @if(count($selectedTickets) === count($availableTickets)) checked @endif />
-                                <span class="ml-2 label-text">Select All</span>
-                            </label>
-                        </div>
-                        <span class="text-sm text-gray-500">
-                            {{ count($selectedTickets) }} / {{ count($availableTickets) }} selected
-                        </span>
-                    </div>
-
-                    <div class="overflow-y-auto max-h-96">
-                        <div class="space-y-2" wire:key="tickets-list">
-                            @foreach($availableTickets as $ticket)
-                                <div
-                                    class="p-3 border rounded-lg {{ $ticket['already_imported'] ? 'bg-gray-100 opacity-75' : '' }}">
-                                    <div class="flex items-start gap-3">
-                                        <input type="checkbox" class="mt-1 checkbox checkbox-primary"
-                                            value="{{ $ticket['key'] }}"
-                                            wire:key="ticket-{{ $ticket['key'] }}"
-                                            wire:model.live="selectedTickets"
-                                            @if($ticket['already_imported']) disabled @endif />
-                                        <label class="flex-1 cursor-pointer">
-                                            <div class="flex items-center gap-2">
-                                                <span class="font-semibold">{{ $ticket['key'] }}</span>
-                                                @if($ticket['already_imported'])
-                                                    <span class="badge badge-warning badge-sm">Already Imported</span>
-                                                @endif
-                                            </div>
-                                            <p class="mt-1 text-sm text-gray-700">{{ $ticket['title'] }}</p>
-                                            @if($ticket['description'])
-                                                <p class="mt-1 text-xs text-gray-500 line-clamp-2">
-                                                    {{ Str::limit($ticket['description'], 100) }}</p>
-                                            @endif
-                                        </label>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
+                <div class="flex items-center justify-between mb-4 p-3 bg-base-200 rounded-lg">
+                    <label class="cursor-pointer label flex items-center gap-2">
+                        <input type="checkbox" class="checkbox checkbox-primary checkbox-sm" wire:click="toggleSelectAll"
+                            @if(count($selectedTickets) === count($availableTickets)) checked @endif />
+                        <span class="text-sm font-medium">Select All</span>
+                    </label>
+                    <span class="badge badge-sm badge-primary">
+                        {{ count($selectedTickets) }} / {{ count($availableTickets) }} selected
+                    </span>
                 </div>
 
-            <div class="modal-action">
-                <button class="btn btn-primary" wire:click="importSelectedTickets" wire:loading.attr="disabled"
-                    @if(empty($selectedTickets)) disabled @endif>
-                    <span wire:loading.remove wire:target="importSelectedTickets">Import Selected</span>
-                    <span wire:loading wire:target="importSelectedTickets"
-                        class="loading loading-spinner loading-sm"></span>
-                </button>
+                <div class="overflow-y-auto max-h-96 space-y-2" wire:key="tickets-list">
+                    @foreach($availableTickets as $ticket)
+                        <div class="card card-sm bg-base-200 {{ $ticket['already_imported'] ? 'opacity-60' : '' }}">
+                            <div class="card-body">
+                                <div class="flex items-start gap-3">
+                                    <input type="checkbox" class="mt-1 checkbox checkbox-primary checkbox-sm"
+                                        value="{{ $ticket['key'] }}"
+                                        wire:key="ticket-{{ $ticket['key'] }}"
+                                        wire:model.live="selectedTickets"
+                                        @if($ticket['already_imported']) disabled @endif />
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="font-semibold text-sm">{{ $ticket['key'] }}</span>
+                                            @if($ticket['already_imported'])
+                                                <span class="badge badge-warning badge-sm">Already Imported</span>
+                                            @endif
+                                        </div>
+                                        <p class="text-sm text-base-content font-medium">{{ $ticket['title'] }}</p>
+                                        @if($ticket['description'])
+                                            <p class="mt-1 text-xs text-base-content/70 line-clamp-2">
+                                                {{ Str::limit($ticket['description'], 100) }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="modal-action mt-4">
+                    <button class="btn btn-primary btn-sm" wire:click="importSelectedTickets" wire:loading.attr="disabled"
+                        @if(empty($selectedTickets)) disabled @endif>
+                        <span wire:loading.remove wire:target="importSelectedTickets">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Import Selected ({{ count($selectedTickets) }})
+                        </span>
+                        <span wire:loading wire:target="importSelectedTickets" class="loading loading-spinner loading-sm"></span>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
     @endif
 </div>

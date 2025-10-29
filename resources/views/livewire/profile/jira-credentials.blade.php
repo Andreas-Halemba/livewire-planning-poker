@@ -25,30 +25,30 @@
         </div>
 
         <!-- Jira URL -->
-        <div class="gap-2 form-control">
+        <div class="flex flex-col gap-2">
             <x-input-label for="jira_url" :value="__('Jira URL')" class="text-base-content" />
-            <x-text-input wire:model="jira_url" class="bg-white input-bordered" id="jira_url" type="url"
+            <x-text-input wire:model="jira_url" class="bg-white" id="jira_url" type="url"
                 placeholder="https://yourcompany.atlassian.net" />
-            <x-input-error :messages="$errors->get('jira_url')" class="mt-2" />
+            <x-input-error :messages="$errors->get('jira_url')" />
         </div>
 
         <!-- Jira User -->
-        <div class="gap-2 form-control">
+        <div class="flex flex-col gap-2">
             <x-input-label for="jira_user" :value="__('Jira Email')" class="text-base-content" />
-            <x-text-input wire:model="jira_user" class="bg-white input-bordered" id="jira_user" type="email"
+            <x-text-input wire:model="jira_user" class="bg-white" id="jira_user" type="email"
                 placeholder="your-email@company.com" />
-            <x-input-error :messages="$errors->get('jira_user')" class="mt-2" />
+            <x-input-error :messages="$errors->get('jira_user')" />
         </div>
 
         <!-- Jira API Key -->
-        <div class="gap-2 form-control">
+        <div class="flex flex-col gap-2">
             <x-input-label for="jira_api_key" :value="__('Jira API Token')" class="text-base-content" />
-            <x-text-input wire:model="jira_api_key" class="bg-white input-bordered" id="jira_api_key" type="password"
+            <x-text-input wire:model="jira_api_key" class="bg-white" id="jira_api_key" type="password"
                 placeholder="Enter API token" />
-            <p class="mt-1 text-xs text-base-content/70">
+            <p class="text-xs text-base-content/70">
                 {{ __('Stars indicate an existing API token. Leave as is to keep your current token, or enter a new one to change it.') }}
             </p>
-            <x-input-error :messages="$errors->get('jira_api_key')" class="mt-2" />
+            <x-input-error :messages="$errors->get('jira_api_key')" />
         </div>
 
         <!-- Connection Test Result -->
