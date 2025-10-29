@@ -14,6 +14,12 @@
 
         <div class="p-4 shadow bg-base-300 sm:p-8 sm:rounded-lg">
             <div>
+                @livewire('profile.jira-credentials')
+            </div>
+        </div>
+
+        <div class="p-4 shadow bg-base-300 sm:p-8 sm:rounded-lg">
+            <div>
                 @include('profile.partials.delete-user-form')
             </div>
         </div>
