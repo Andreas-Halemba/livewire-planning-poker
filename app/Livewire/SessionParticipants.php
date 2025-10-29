@@ -33,6 +33,7 @@ class SessionParticipants extends Component
     public function mount(): void
     {
         $this->participants = collect([]);
+        $this->issue = null;
         if (Auth::user()) {
             $this->participants->push(Auth::user());
         }
@@ -41,6 +42,11 @@ class SessionParticipants extends Component
     public function render(): View
     {
         $this->updateIssueData();
+        // Sort participants: owner first, then others
+        $this->participants = $this->participants->sortBy(function (User $user) {
+            return $user->id === $this->session->owner_id ? 0 : 1;
+        })->values();
+
         return view('livewire.session-participants');
     }
 
@@ -62,12 +68,14 @@ class SessionParticipants extends Component
     public function updateCurrentIssue(Issue $issue): void
     {
         $this->issue = $issue;
+        $this->updateIssueData();
     }
 
     public function unsetCurrentIssue(): void
     {
         $this->issue = null;
         $this->reset('votes', 'votesRevealed');
+        $this->updateIssueData();
     }
 
 
@@ -96,8 +104,9 @@ class SessionParticipants extends Component
 
     public function revealVotes(): void
     {
-        if ($this->issue) {
-            $this->votes = Vote::query()->whereBelongsTo($this->issue)->get()->pluck('value', 'user_id')->toArray();
+        $currentIssue = $this->session->currentIssue();
+        if ($currentIssue) {
+            $this->votes = Vote::query()->whereBelongsTo($currentIssue)->get()->pluck('value', 'user_id')->toArray();
             $this->votesRevealed = true;
         }
     }
@@ -121,16 +130,40 @@ class SessionParticipants extends Component
 
     public function userDidVote(string $id): bool
     {
-        return Arr::has($this->votes, $id) && $this->votes[$id] !== null;
+        // User has voted if there's an entry in votes array (value can be null for "?" vote)
+        return Arr::has($this->votes, $id);
     }
 
     private function updateIssueData(): void
     {
-        if ($this->session->currentIssue()) {
-            $this->votes = $this->session->currentIssue()->votes->filter(fn(Vote $vote) => $vote->value !== null)->mapWithKeys(
-                fn(Vote $vote) => [$vote->user_id => $vote->value],
-            )->toArray();
-            $this->votes[Auth::id()] = $this->session->currentIssue()->votes()->whereUserId(Auth::id())->first()?->value;
+        $currentIssue = $this->session->currentIssue();
+        if ($currentIssue) {
+            // If votes are revealed, show actual values (including null for "?")
+            if ($this->votesRevealed) {
+                $this->votes = $currentIssue->votes->mapWithKeys(
+                    fn(Vote $vote) => [$vote->user_id => $vote->value],
+                )->toArray();
+            } else {
+                // Otherwise, just mark that users have voted (without showing values)
+                // Include ALL votes, even those with null value (for "?" vote)
+                $this->votes = $currentIssue->votes->mapWithKeys(
+                    fn(Vote $vote) => [$vote->user_id => 'X'], // 'X' indicates vote exists (value hidden)
+                )->toArray();
+            }
+
+            // Current user can always see their own vote value
+            $currentUserVote = $currentIssue->votes()->whereUserId(Auth::id())->first();
+            if ($currentUserVote) {
+                if ($this->votesRevealed) {
+                    $this->votes[Auth::id()] = $currentUserVote->value;
+                } else {
+                    // Still show 'X' for current user if votes not revealed
+                    $this->votes[Auth::id()] = 'X';
+                }
+            }
+        } else {
+            // No current issue - clear votes
+            $this->votes = [];
         }
     }
 }

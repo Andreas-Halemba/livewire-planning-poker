@@ -26,8 +26,8 @@
 
         <!-- Jira URL -->
         <div class="flex flex-col gap-2">
-            <x-input-label for="jira_url" :value="__('Jira URL')" class="text-base-content" />
-            <x-text-input wire:model="jira_url" class="bg-white" id="jira_url" type="url"
+            <x-input-label for="jira_url" :value="__('Jira URL')" />
+            <x-text-input wire:model="jira_url" id="jira_url" type="url"
                 placeholder="https://yourcompany.atlassian.net" />
             <x-input-error :messages="$errors->get('jira_url')" />
         </div>
@@ -35,16 +35,14 @@
         <!-- Jira User -->
         <div class="flex flex-col gap-2">
             <x-input-label for="jira_user" :value="__('Jira Email')" class="text-base-content" />
-            <x-text-input wire:model="jira_user" class="bg-white" id="jira_user" type="email"
-                placeholder="your-email@company.com" />
+            <x-text-input wire:model="jira_user" id="jira_user" type="email" placeholder="your-email@company.com" />
             <x-input-error :messages="$errors->get('jira_user')" />
         </div>
 
         <!-- Jira API Key -->
         <div class="flex flex-col gap-2">
             <x-input-label for="jira_api_key" :value="__('Jira API Token')" class="text-base-content" />
-            <x-text-input wire:model="jira_api_key" class="bg-white" id="jira_api_key" type="password"
-                placeholder="Enter API token" />
+            <x-text-input wire:model="jira_api_key" id="jira_api_key" type="password" placeholder="Enter API token" />
             <p class="text-xs text-base-content/70">
                 {{ __('Stars indicate an existing API token. Leave as is to keep your current token, or enter a new one to change it.') }}
             </p>

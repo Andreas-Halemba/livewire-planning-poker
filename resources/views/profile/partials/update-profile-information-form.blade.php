@@ -19,15 +19,15 @@
 
         <div class="flex flex-col gap-2">
             <x-input-label for="name" :value="__('Name')" class="text-base-content" />
-            <x-text-input :value="old('name', $user->name)" class="bg-white" id="name" name="name" autocomplete="none"
-                required autofocus />
+            <x-text-input :value="old('name', $user->name)" id="name" name="name" autocomplete="none" required
+                autofocus />
             <x-input-error :messages="$errors->get('name')" />
         </div>
 
         <div class="flex flex-col gap-2">
             <x-input-label for="email" :value="__('Email')" />
-            <x-text-input :value="old('name', $user->email)" class="bg-white" id="email" name="email"
-                autocomplete="none" required autofocus />
+            <x-text-input :value="old('name', $user->email)" id="email" name="email" autocomplete="none" required
+                autofocus />
             <x-input-error :messages="$errors->get('email')" />
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !$user->hasVerifiedEmail())
@@ -52,9 +52,9 @@
         <div class="flex flex-col gap-2">
             <x-input-label for="theme" :value="__('Theme')" />
             <select id="theme" data-choose-theme class="w-full select">
-                <option value="cupcake">Cupcake</option>
+                <option value="fantasy">Fantasy</option>
+                <option value="dracula">Dark</option>
                 <option value="light">Light</option>
-                <option value="dark">Dark</option>
             </select>
         </div>
 

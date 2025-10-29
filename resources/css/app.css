@@ -1,16 +1,14 @@
 @import 'tailwindcss';
-@plugin 'daisyui' {
-    themes:
-        cupcake --default,
-        dark --prefersdark,
-        light;
-}
+
+@source "../**/*.blade.php";
+@source "../**/*.js";
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
+@source "../../storage/framework/views/*.php";
+
 @plugin '@tailwindcss/typography';
-
-@theme {
-    --font-family-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+@plugin "daisyui" {
+    themes: all;
 }
 
-a:hover {
-    @apply cursor-pointer;
-}
+/* Custom styles for components that DaisyUI doesn't fully cover */
+/* Note: Most styling is handled via DaisyUI classes directly in Blade templates */
