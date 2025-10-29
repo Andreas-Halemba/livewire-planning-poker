@@ -93,13 +93,70 @@ php artisan reverb:start --host=127.0.0.1 --port=6000 &
 
 **Note:** The Reverb server must be running for real-time features like voting to work.
 
+## Jira Integration
+
+This application supports importing issues from Jira into your planning poker sessions.
+
+### Configuration
+
+Each user can configure their own Jira credentials in their profile settings:
+
+1. Navigate to your **Profile** page
+2. Scroll to the **Jira Credentials** section
+3. Enter your Jira instance URL (e.g., `https://yourcompany.atlassian.net`)
+4. Enter your Jira email address
+5. Enter your Jira API token
+
+**How to get your API Token:**
+
+1. Go to [Atlassian Account Settings](https://id.atlassian.com/manage-profile/security/api-tokens)
+2. Click on "API tokens"
+3. Click "Create API token"
+4. Give it a label (e.g., "Planning Poker")
+5. Copy the generated token
+6. Paste it in the profile field
+
+**Note:** Each user needs their own API token. The token is encrypted and stored securely in the database.
+
+**Important:** You must configure your Jira credentials before you can import issues. The Jira import section will only be visible after configuring your credentials in your profile.
+
+### Usage
+
+1. Configure your Jira credentials in your profile (see above)
+2. As a Product Owner, navigate to your session management page
+3. Enter your Jira Project Key (e.g., "SAN")
+4. Select the status of tickets you want to import (e.g., "In Estimation")
+5. Click "Load Tickets" to fetch all matching tickets from Jira
+6. A modal will open showing all available tickets
+7. Select the tickets you want to import using the checkboxes
+8. Use "Select All" to quickly select/deselect all tickets
+9. Click "Import Selected" to import the chosen tickets
+10. Tickets that were already imported will be marked and disabled
+
+### Testing the Jira Integration
+
+To test the Jira integration:
+
+1. Configure your Jira credentials in your profile
+2. Use the "Test Connection" button in the profile to verify your credentials
+3. Create a session or navigate to an existing one
+4. Look for the "Import from Jira" card
+5. Enter a valid project key and status
+6. Click "Load Tickets" - you should see a modal with tickets
+7. Select some tickets and import them
+8. Verify that the tickets appear in your session's issue list
+
+**Note:** Make sure your Jira instance is accessible and you have permission to view the tickets in the specified project and status.
+
+**If you don't see the Jira import section:** Navigate to your profile settings and configure your Jira credentials first. You'll see a link in the import section that takes you directly to the profile settings.
+
 ### Production Deployment
 
 **For production deployment**, see [WEBSOCKET.md](WEBSOCKET.md) for detailed instructions using:
 
--   **Supervisor** (recommended for Linux servers)
--   **PM2** (Node.js process manager)
--   **systemd** (system service manager)
+- **Supervisor** (recommended for Linux servers)
+- **PM2** (Node.js process manager)
+- **systemd** (system service manager)
 
 ### Testing the Connection
 

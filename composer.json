@@ -17,6 +17,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/telescope": "^5.0",
         "laravel/tinker": "^v2.8.1",
+        "lesstif/php-jira-rest-client": "^5.12",
         "livewire/livewire": "^3.4",
         "pusher/pusher-php-server": "^7.2.2",
         "saloonphp/laravel-plugin": "^3.0",

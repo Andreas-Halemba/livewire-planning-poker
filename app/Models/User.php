@@ -59,11 +59,15 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'jira_url',
+        'jira_user',
+        'jira_api_key',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+        'jira_api_key',
     ];
 
     /**
@@ -73,6 +77,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'jira_api_key' => 'encrypted',
     ];
 
     public function sessions(): BelongsToMany
