@@ -23,7 +23,7 @@
                     @enderror
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-sm mt-2" wire:loading.attr="disabled"
+                <button type="submit" class="btn btn-primary btn-sm mt-2 cursor-pointer" wire:loading.attr="disabled"
                     wire:target="loadTickets">
                     <span class="flex items-center gap-2" wire:loading.remove wire:target="loadTickets">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -51,7 +51,7 @@
                 <span class="text-sm">Konfiguriere Jira-Zugangsdaten, um Tickets zu importieren</span>
             </div>
         </div>
-        <a href="{{ route('profile.edit') }}" class="btn  btn-accent w-full">
+        <a href="{{ route('profile.edit') }}" class="btn btn-accent w-full cursor-pointer">
             Jetzt konfigurieren
         </a>
     </div>
@@ -68,7 +68,7 @@
                         </svg>
                         Select Tickets to Import
                     </h3>
-                    <button class="btn btn-sm btn-circle btn-ghost" wire:click="closeModal">
+                    <button class="btn btn-sm btn-circle btn-ghost cursor-pointer" wire:click="closeModal">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -118,7 +118,7 @@
                 </div>
 
                 <div class="modal-action mt-4">
-                    <button class="btn btn-primary btn-sm" wire:click="importSelectedTickets" wire:loading.attr="disabled"
+                    <button class="btn btn-primary btn-sm cursor-pointer" wire:click="importSelectedTickets" wire:loading.attr="disabled"
                         @if(empty($selectedTickets)) disabled @endif>
                         <span class="flex items-center gap-2" wire:loading.remove wire:target="importSelectedTickets">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">

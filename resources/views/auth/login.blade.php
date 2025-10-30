@@ -34,12 +34,12 @@
         </div>
 
         <div class="flex flex-col items-center justify-center gap-2 mt-4">
-            <button type="submit" class="btn btn-primary">Login</button>
+            <button type="submit" class="btn btn-primary cursor-pointer">Login</button>
         </div>
     </form>
     <div class="divider">OR</div>
     <div class="flex flex-col items-center justify-center gap-2">
-        <a class="btn btn-secondary" href="{{ route('register') }}">
+        <a class="btn btn-secondary cursor-pointer" href="{{ route('register') }}">
             {{ __('Create an account') }}
         </a>
     </div>
