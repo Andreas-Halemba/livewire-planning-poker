@@ -9,7 +9,7 @@
             <div class="join w-full">
                 <input required id="sessionName" wire:model.live="sessionName" type="text" placeholder="Session name"
                     class="join-item input flex-1 @error('sessionName') border-error @enderror" />
-                <button class="join-item btn btn-primary" type="submit">{{ __('Create') }}</button>
+                <button class="join-item btn btn-primary cursor-pointer" type="submit">{{ __('Create') }}</button>
             </div>
         </form>
     </div>

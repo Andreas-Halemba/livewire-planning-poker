@@ -26,16 +26,16 @@
                                 </td>
                                 <td>
                                     <div class="flex gap-2 justify-end">
-                                        <a class="btn btn-primary btn-sm"
+                                        <a class="btn btn-primary btn-sm cursor-pointer"
                                             href="{{ route('session.voting', ['inviteCode' => $session->invite_code]) }}">
                                             Join
                                         </a>
-                                        <button class="btn btn-accent btn-sm"
+                                        <button class="btn btn-accent btn-sm cursor-pointer"
                                             @click="navigator.clipboard.writeText('{{ route('session.voting', ['inviteCode' => $session->invite_code]) }}').then(() => { copied = true; setTimeout(() => copied = false, 2000) })"
                                             x-text="copied ? 'Copied!' : 'Copy Link'">
                                             Copy Link
                                         </button>
-                                        <button class="btn btn-error btn-sm"
+                                        <button class="btn btn-error btn-sm cursor-pointer"
                                             wire:click.prevent="deleteSession('{{ $session->id }}')">
                                             Delete
                                         </button>

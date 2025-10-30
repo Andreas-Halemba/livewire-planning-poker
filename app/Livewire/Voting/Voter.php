@@ -12,6 +12,11 @@ class Voter extends Component
 
     public function render(): View
     {
+        // Ensure issues are loaded for the view
+        if (!$this->session->relationLoaded('issues')) {
+            $this->session->load('issues');
+        }
+
         return view('livewire.voting.voter', [
             'session' => $this->session,
         ]);
@@ -21,11 +26,24 @@ class Voter extends Component
     public function getListeners(): array
     {
         return [
-            "echo-presence:session.{$this->session->invite_code},.IssueSelected" => '$refresh',
-            "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => '$refresh',
-            "echo-presence:session.{$this->session->invite_code},.IssueDeleted" => '$refresh',
-            "echo-presence:session.{$this->session->invite_code},.IssueAdded" => '$refresh',
+            "echo-presence:session.{$this->session->invite_code},.IssueSelected" => 'handleIssueEvent',
+            "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => 'handleIssueEvent',
+            "echo-presence:session.{$this->session->invite_code},.IssueDeleted" => 'handleIssueEvent',
+            "echo-presence:session.{$this->session->invite_code},.IssueAdded" => 'handleIssueEvent',
+            "echo-presence:session.{$this->session->invite_code},.AddVote" => 'handleVoteEvent',
         ];
+    }
+
+    public function handleIssueEvent(): void
+    {
+        // Reload session with issues to ensure fresh data
+        $this->session->load('issues');
+    }
+
+    public function handleVoteEvent(): void
+    {
+        // Reload session with issues and votes
+        $this->session->load(['issues.votes']);
     }
 
     public function formatJiraDescription(?string $description): string

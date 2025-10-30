@@ -26,11 +26,11 @@
                                 </td>
                                 <td>
                                     <div class="flex gap-2 justify-end">
-                                        <button class="btn btn-primary btn-sm"
+                                        <button class="btn btn-primary btn-sm cursor-pointer"
                                             wire:click.prevent="joinSession('{{ $session->invite_code }}')">
                                             Join
                                         </button>
-                                        <button class="btn btn-error btn-sm"
+                                        <button class="btn btn-error btn-sm cursor-pointer"
                                             wire:click.prevent="leaveSession('{{ $session->id }}')">
                                             Leave
                                         </button>
