@@ -99,7 +99,7 @@
                 @endphp
                 @if($hasVotes && !$votesRevealed)
                     <button wire:click="revealVotes"
-                        class="w-full px-5 py-3.5 bg-success cursor-pointer hover:bg-success/90 text-success-content font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+                        class="w-full px-5 py-3.5 btn btn-success cursor-pointer hover:bg-success/90 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -181,7 +181,7 @@
                                 wire:model.live="customEstimate" placeholder="z.B. 3, 5, 8, 13..." min="0" />
                         </div>
                         <button wire:click="confirmEstimate({{ $currentIssue->id }})"
-                            class="px-6 py-2 w-1/2 bg-success cursor-pointer hover:bg-success/90 text-success-content font-semibold rounded-lg transition-colors whitespace-nowrap">
+                            class="px-6 py-2 w-1/2 btn btn-success cursor-pointer font-semibold rounded-lg transition-colors whitespace-nowrap">
                             Schätzung übernehmen
                         </button>
                     </div>
@@ -250,18 +250,18 @@
             <!-- Tabs -->
             <div class="bg-base-200 rounded-xl shadow-md border border-base-300 p-1 flex gap-1">
                 <button @class([
-                    'flex-1 flex items-center justify-center px-5 py-3 rounded-lg font-medium transition-colors',
-                    'bg-primary text-primary-content' => $activeTab !== 'estimated',
-                    'text-base-content/70 hover:bg-base-200' => $activeTab === 'estimated',
+                    'btn flex-1 flex items-center justify-center px-5 py-3 rounded-lg font-medium transition-colors cursor-pointer',
+                    'btn-primary' => $activeTab !== 'estimated',
+                    'btn-ghost text-base-content/70' => $activeTab === 'estimated',
                 ])    wire:click="$set('activeTab', 'open')">
                     Offene Issues
                     <span
                         class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-secondary text-secondary-content">{{ $openIssues->count() }}</span>
                 </button>
                 <button @class([
-                    'flex-1 flex items-center justify-center px-5 py-3 rounded-lg font-medium transition-colors',
-                    'bg-primary text-primary-content' => $activeTab === 'estimated',
-                    'text-base-content/70 hover:bg-base-200' => $activeTab !== 'estimated',
+                    'btn flex-1 flex items-center justify-center px-5 py-3 rounded-lg font-medium transition-colors cursor-pointer',
+                    'btn-primary' => $activeTab === 'estimated',
+                    'btn-ghost text-base-content/70' => $activeTab !== 'estimated',
                 ])    wire:click="$set('activeTab', 'estimated')">
                     Geschätzte Issues
                     <span
@@ -290,7 +290,7 @@
                                         </span>
                                     @else
                                         <button wire:click="voteIssue({{ $issue->id }})"
-                                            class=" cursor-pointer px-3 py-1.5 text-sm bg-primary hover:bg-primary/90 text-primary-content font-medium rounded transition-colors">
+                                            class="btn btn-primary btn-sm cursor-pointer font-medium rounded transition-colors">
                                             Schätzen
                                         </button>
                                     @endif
