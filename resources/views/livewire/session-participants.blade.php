@@ -1,12 +1,4 @@
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2" 
-     data-participants-count="{{ $participants->count() }}"
-     x-init="
-         $dispatch('participants-count-updated', { count: {{ $participants->count() }} });
-         $watch('$wire.participants', () => {
-             const count = Array.isArray($wire.participants) ? $wire.participants.length : Object.keys($wire.participants || {}).length;
-             $dispatch('participants-count-updated', { count: count || 0 });
-         });
-     ">
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
     @forelse ($participants as $user)
         @php
             $isCurrentUser = $user->id === Auth::id();

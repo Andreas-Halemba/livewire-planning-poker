@@ -93,6 +93,7 @@ class VotingCards extends Component
             // Only clear if user doesn't have a vote on this finished issue
             if (!Vote::whereUserId(auth()->id())->whereIssueId($this->currentIssue->id)->exists()) {
                 $this->selectedIssueId = null;
+                $this->currentIssue = null;
             }
         }
 

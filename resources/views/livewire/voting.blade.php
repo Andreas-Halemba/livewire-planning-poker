@@ -5,16 +5,10 @@
             <h1 class="text-xl sm:text-2xl font-semibold text-base-content">
                 Session: <span class="font-bold">{{ $session->name }}</span>
             </h1>
-            <div class="text-sm text-base-content/70" 
-                 x-data="{ count: 1 }"
-                 x-init="
-                     $watch('count', (val) => {
-                         $el.textContent = `${val} Teilnehmer • {{ $session->issues->where('status', 'finished')->count() }} von {{ $session->issues->count() }} Issues geschätzt`;
-                     });
-                     window.addEventListener('participants-count-updated', (e) => { count = e.detail.count || 1 });
-                 "
-                 x-text="`${count} Teilnehmer • {{ $session->issues->where('status', 'finished')->count() }} von {{ $session->issues->count() }} Issues geschätzt`">
-                1 Teilnehmer • {{ $session->issues->where('status', 'finished')->count() }} von {{ $session->issues->count() }} Issues geschätzt
+            <div class="text-sm text-base-content/70">
+                {{ $participantsCount }} Teilnehmer •
+                {{ $session->issues->where('status', 'finished')->count() }} von {{ $session->issues->count() }} Issues
+                geschätzt
             </div>
         </div>
         <div class="text-sm font-semibold mt-3 mb-3 uppercase tracking-wide">Teilnehmer</div>
