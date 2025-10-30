@@ -93,7 +93,7 @@
 
             @if($currentIssue->status !== \App\Models\Issue::STATUS_VOTING)
                 <button wire:click.prevent="clearSelection"
-                    class="mt-4 w-full px-6 py-3 border border-warning bg-warning/15 text-warning font-semibold rounded-lg uppercase tracking-wide hover:bg-warning/25 hover:text-warning/90 transition-colors">
+                    class="mt-4 w-full px-6 py-3 border border-warning bg-warning/15 text-warning font-semibold rounded-lg uppercase tracking-wide hover:bg-warning/25 hover:text-warning/90 transition-colors cursor-pointer">
                     Schätzung abbrechen
                 </button>
             @endif
