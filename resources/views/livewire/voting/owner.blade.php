@@ -285,25 +285,42 @@
                                 </div>
                                 <div class="flex items-center gap-2 flex-shrink-0">
                                     @if($issue->status === Issue::STATUS_VOTING)
-                                        <span class="px-3 py-1 text-sm bg-warning/40 text-warning-content font-medium rounded">
-                                            Schätzung läuft...
-                                        </span>
+                                        <!-- Voting in Progress Badge -->
+                                        <div class="tooltip tooltip-left" data-tip="Schätzung läuft">
+                                            <div class="flex items-center gap-1.5 px-2 py-1 bg-warning/20 text-warning rounded">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </div>
+                                        </div>
                                     @else
-                                        <button wire:click="voteIssue({{ $issue->id }})"
-                                            class="btn btn-primary btn-sm cursor-pointer font-medium rounded transition-colors">
-                                            Schätzen
-                                        </button>
+                                        <!-- Start Voting Button -->
+                                        <div class="tooltip tooltip-left" data-tip="Schätzung starten">
+                                            <button wire:click="voteIssue({{ $issue->id }})"
+                                                class="btn btn-primary btn-sm btn-circle cursor-pointer">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     @endif
-                                    <button wire:click="deleteIssue({{ $issue->id }})"
-                                        wire:confirm="Are you sure you want to delete this issue?"
-                                        @disabled($issue->status === Issue::STATUS_VOTING)
-                                        @class([
-                                            'w-8 h-8 flex items-center justify-center rounded font-bold transition-colors',
-                                            'bg-error/20 hover:bg-error/30 text-error cursor-pointer' => $issue->status !== Issue::STATUS_VOTING,
-                                            'bg-base-300 text-base-content/30 cursor-not-allowed' => $issue->status === Issue::STATUS_VOTING,
-                                        ])>
-                                        ×
-                                    </button>
+                                    
+                                    <!-- Delete Button -->
+                                    <div class="tooltip tooltip-left" data-tip="{{ $issue->status === Issue::STATUS_VOTING ? 'Kann während Schätzung nicht gelöscht werden' : 'Issue löschen' }}">
+                                        <button wire:click="deleteIssue({{ $issue->id }})"
+                                            wire:confirm="Bist du sicher, dass du dieses Issue löschen möchtest?"
+                                            @disabled($issue->status === Issue::STATUS_VOTING)
+                                            @class([
+                                                'btn btn-sm btn-circle transition-colors',
+                                                'btn-error btn-outline hover:btn-error cursor-pointer' => $issue->status !== Issue::STATUS_VOTING,
+                                                'btn-disabled cursor-not-allowed' => $issue->status === Issue::STATUS_VOTING,
+                                            ])>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         @empty
@@ -333,11 +350,16 @@
                                         class="inline-flex items-center px-3 py-1 rounded-md text-sm font-semibold bg-success text-success-content">
                                         {{ $issue->storypoints ?? 'X' }} SP
                                     </span>
-                                    <button wire:click="deleteIssue({{ $issue->id }})"
-                                        wire:confirm="Are you sure you want to delete this issue?"
-                                        class="w-8 h-8 flex items-center justify-center bg-error/20 hover:bg-error/30 text-error rounded font-bold transition-colors">
-                                        ×
-                                    </button>
+                                    <!-- Delete Button -->
+                                    <div class="tooltip tooltip-left" data-tip="Issue löschen">
+                                        <button wire:click="deleteIssue({{ $issue->id }})"
+                                            wire:confirm="Bist du sicher, dass du dieses Issue löschen möchtest?"
+                                            class="btn btn-sm btn-circle btn-error btn-outline hover:btn-error cursor-pointer">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         @empty
