@@ -1,0 +1,69 @@
+name: Deploy to Production
+
+# Required GitHub Secrets:
+# - SSH_HOST: Server hostname or IP
+# - SSH_USERNAME: SSH username
+# - SSH_PRIVATE_KEY: Private SSH key for authentication
+# - REMOTE_PATH: Remote deployment path (e.g., /var/www/livewire-planning-poker)
+# - SSH_PORT: Optional, defaults to 22 if not set
+
+on:
+    push:
+        branches:
+            - main # oder welcher Branch auch immer
+            - async-voting # aktueller Branch
+
+jobs:
+    deploy:
+        name: Deploy Application
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: 🚀 Deploy via SSH
+              uses: appleboy/ssh-action@v1.0.0
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USERNAME }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  port: ${{ secrets.SSH_PORT || 22 }}
+                  script: |
+                      cd ${{ secrets.REMOTE_PATH }}
+
+                      echo "📥 Pulling latest code..."
+                      git pull origin ${{ github.ref_name }}
+
+                      echo "📦 Installing dependencies..."
+                      composer install --no-dev --optimize-autoloader --no-interaction
+                      npm ci --production=false
+
+                      echo "🔨 Building assets..."
+                      npm run build
+
+                      echo "🗄️ Running migrations..."
+                      php artisan migrate --force
+
+                      echo "🧹 Clearing caches..."
+                      php artisan cache:clear
+                      php artisan config:clear
+                      php artisan route:clear
+                      php artisan view:clear
+
+                      echo "⚡ Optimizing..."
+                      php artisan config:cache
+                      php artisan route:cache
+                      php artisan view:cache
+
+                      echo "🔄 Restarting Reverb..."
+                      pm2 restart reverb
+
+                      echo "✅ Deployment completed!"
+
+            - name: 📊 Deployment Status
+              if: always()
+              run: |
+                  if [ "${{ job.status }}" == "success" ]; then
+                    echo "✅ Deployment successful!"
+                  else
+                    echo "❌ Deployment failed!"
+                    exit 1
+                  fi
