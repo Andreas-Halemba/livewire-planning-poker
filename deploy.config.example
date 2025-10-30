@@ -1,0 +1,16 @@
+#!/bin/bash
+# Deployment Configuration
+# Copy this file to 'deploy.config' and fill in your server details.
+# The 'deploy.config' file is gitignored and won't be committed.
+
+# Server configuration
+# Format: SERVERS[alias]="user@hostname"
+declare -A SERVERS
+SERVERS[production]="user@your-server.com"
+SERVERS[staging]="user@staging-server.com"
+
+# Remote paths on server
+# Format: PATHS[alias]="/path/to/application"
+declare -A PATHS
+PATHS[production]="/var/www/livewire-planning-poker"
+PATHS[staging]="/var/www/livewire-planning-poker-staging"

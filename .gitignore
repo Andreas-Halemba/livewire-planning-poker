@@ -21,3 +21,4 @@ yarn-error.log
 _ide_helper*
 captainhook.config.json
 services/soketi/config.json
+deploy.config
