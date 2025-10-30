@@ -68,9 +68,9 @@ Das Skript macht automatisch:
 
 ---
 
-## Option 2: GitHub Actions (Automatisch)
+## Option 2: GitHub Actions (Manuell)
 
-**Für CI/CD.** Nutzt GitHub Secrets, keine lokale Config-Datei nötig.
+**Für CI/CD.** Nutzt GitHub Secrets, keine lokale Config-Datei nötig. Wird **manuell über GitHub UI gestartet**.
 
 ### Setup
 
@@ -99,27 +99,26 @@ ssh-copy-id -i ~/.ssh/github_actions.pub dein-user@deine-server-ip.com
 cat ~/.ssh/github_actions
 ```
 
-3. **Branch-Trigger anpassen (optional):**
-
-In `.github/workflows/deploy.yml` kannst du festlegen, bei welchen Branches automatisch deployed wird:
-
-```yaml
-on:
-    push:
-        branches:
-            - main # Deployment bei Push auf main
-            - production # Deployment bei Push auf production
-```
-
 ### Verwendung
 
-Nach dem Setup wird **automatisch deployed**, sobald du pushst:
+Die GitHub Action wird **manuell gestartet**:
+
+1. Gehe zu deinem GitHub Repository
+2. Klicke auf den Tab **"Actions"**
+3. Wähle den Workflow **"Deploy to Production"** aus
+4. Klicke auf **"Run workflow"**
+5. Wähle die Umgebung (production oder staging)
+6. Klicke auf **"Run workflow"** (grüner Button)
+
+Der Deployment-Status wird dann live angezeigt.
+
+**Hinweis:** Die Action deployed den aktuellen Stand des `main` Branches auf dem Server. Stelle sicher, dass du deine Änderungen vorher gepusht hast:
 
 ```bash
-git push origin async-voting
+git add .
+git commit -m "Your changes"
+git push origin main
 ```
-
-GitHub Actions führt dann automatisch das Deployment durch. Du kannst den Status im Tab "Actions" deines Repositories sehen.
 
 ---
 

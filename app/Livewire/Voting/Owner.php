@@ -165,6 +165,8 @@ class Owner extends Component
     {
         $this->resetIssuesStatus();
         $this->setIssueStatusToVoting($id);
+        // Don't re-render - let the broadcast event handle the UI update
+        $this->skipRender();
     }
 
     public function cancelIssue(int $id): void
@@ -173,6 +175,8 @@ class Owner extends Component
         $issue->status = Issue::STATUS_NEW;
         $issue->save();
         broadcast(new IssueCanceled($issue));
+        // Don't re-render - let the broadcast event handle the UI update
+        $this->skipRender();
     }
 
     public function addIssue(): void
@@ -205,6 +209,8 @@ class Owner extends Component
 
         $issue->forceDelete();
         broadcast(new IssueDeleted($this->session->invite_code));
+        // Don't re-render - let the broadcast event handle the UI update
+        $this->skipRender();
     }
 
     private function resetIssuesStatus(): void

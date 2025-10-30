@@ -1,17 +1,16 @@
 name: Deploy to Production
 
-# Required GitHub Secrets:
-# - SSH_HOST: Server hostname or IP
-# - SSH_USERNAME: SSH username
-# - SSH_PRIVATE_KEY: Private SSH key for authentication
-# - REMOTE_PATH: Remote deployment path (e.g., /var/www/livewire-planning-poker)
-# - SSH_PORT: Optional, defaults to 22 if not set
-
 on:
-    push:
-        branches:
-            - main # oder welcher Branch auch immer
-            - async-voting # aktueller Branch
+    workflow_dispatch: # Allows manual trigger from GitHub Actions UI
+        inputs:
+            environment:
+                description: 'Deployment environment'
+                required: true
+                default: 'production'
+                type: choice
+                options:
+                    - production
+                    - staging
 
 jobs:
     deploy:
@@ -19,51 +18,75 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: 🚀 Deploy via SSH
-              uses: appleboy/ssh-action@v1.0.0
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup SSH
+              uses: webfactory/ssh-agent@v0.9.0
               with:
-                  host: ${{ secrets.SSH_HOST }}
-                  username: ${{ secrets.SSH_USERNAME }}
-                  key: ${{ secrets.SSH_PRIVATE_KEY }}
-                  port: ${{ secrets.SSH_PORT || 22 }}
-                  script: |
-                      cd ${{ secrets.REMOTE_PATH }}
+                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-                      echo "📥 Pulling latest code..."
-                      git pull origin ${{ github.ref_name }}
-
-                      echo "📦 Installing dependencies..."
-                      composer install --no-dev --optimize-autoloader --no-interaction
-                      npm ci --production=false
-
-                      echo "🔨 Building assets..."
-                      npm run build
-
-                      echo "🗄️ Running migrations..."
-                      php artisan migrate --force
-
-                      echo "🧹 Clearing caches..."
-                      php artisan cache:clear
-                      php artisan config:clear
-                      php artisan route:clear
-                      php artisan view:clear
-
-                      echo "⚡ Optimizing..."
-                      php artisan config:cache
-                      php artisan route:cache
-                      php artisan view:cache
-
-                      echo "🔄 Restarting Reverb..."
-                      pm2 restart reverb
-
-                      echo "✅ Deployment completed!"
-
-            - name: 📊 Deployment Status
-              if: always()
+            - name: Add server to known hosts
               run: |
-                  if [ "${{ job.status }}" == "success" ]; then
-                    echo "✅ Deployment successful!"
-                  else
-                    echo "❌ Deployment failed!"
-                    exit 1
-                  fi
+                  mkdir -p ~/.ssh
+                  ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+            - name: Deploy to Server
+              env:
+                  SSH_HOST: ${{ secrets.SSH_HOST }}
+                  SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+                  REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
+                  SSH_PORT: ${{ secrets.SSH_PORT || 22 }}
+              run: |
+                  echo "🚀 Deploying to ${{ inputs.environment }}..."
+
+                  ssh -p $SSH_PORT $SSH_USERNAME@$SSH_HOST << 'ENDSSH'
+                    set -e
+                    
+                    echo "📂 Navigating to application directory..."
+                    cd ${{ secrets.REMOTE_PATH }}
+                    
+                    echo "📥 Pulling latest code..."
+                    git pull origin main
+                    
+                    echo "📦 Installing Composer dependencies..."
+                    composer install --no-dev --optimize-autoloader --no-interaction
+                    
+                    echo "📦 Installing NPM dependencies..."
+                    npm ci --production=false
+                    
+                    echo "🔨 Building assets..."
+                    npm run build
+                    
+                    echo "🗄️ Running database migrations..."
+                    php artisan migrate --force
+                    
+                    echo "🧹 Clearing caches..."
+                    php artisan cache:clear
+                    php artisan config:clear
+                    php artisan route:clear
+                    php artisan view:clear
+                    
+                    echo "⚡ Optimizing application..."
+                    php artisan config:cache
+                    php artisan route:cache
+                    php artisan view:cache
+                    
+                    echo "🔄 Restarting Reverb server..."
+                    pm2 restart reverb || echo "⚠️ Could not restart reverb (maybe not running)"
+                    
+                    echo "✅ Deployment completed successfully!"
+                  ENDSSH
+
+            - name: Deployment Summary
+              if: success()
+              run: |
+                  echo "✅ Deployment to ${{ inputs.environment }} completed successfully!"
+                  echo "🔗 Check your application and verify everything works."
+
+            - name: Deployment Failed
+              if: failure()
+              run: |
+                  echo "❌ Deployment to ${{ inputs.environment }} failed!"
+                  echo "Please check the logs above and fix any issues."
+                  exit 1
