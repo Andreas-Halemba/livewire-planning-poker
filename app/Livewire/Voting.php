@@ -14,10 +14,14 @@ class Voting extends Component
 
     public string $inviteCode;
 
+    public int $participantsCount = 0;
+
     public function mount(string $inviteCode): ?RedirectResponse
     {
         $this->inviteCode = $inviteCode;
-        $this->session = Session::with('issues')->whereInviteCode($this->inviteCode)->firstOrFail();
+        $this->session = Session::with('issues', 'users')->whereInviteCode($this->inviteCode)->firstOrFail();
+        // Initialize with database count as fallback until SessionParticipants component updates it
+        $this->participantsCount = $this->session->users->count();
         if (Auth::hasUser()) {
             $this->attachUserToSession();
         }
@@ -30,7 +34,13 @@ class Voting extends Component
         return [
             "echo-presence:session.{$this->session->invite_code},.IssueSelected" => '$refresh',
             "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => '$refresh',
+            'participants-count-updated' => 'updateParticipantsCount',
         ];
+    }
+
+    public function updateParticipantsCount(int $count): void
+    {
+        $this->participantsCount = $count;
     }
 
     public function render(): View

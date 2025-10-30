@@ -39,11 +39,6 @@ class SessionParticipants extends Component
         }
     }
 
-    public function getParticipantsCountProperty(): int
-    {
-        return $this->participants->count();
-    }
-
     public function render(): View
     {
         $this->updateIssueData();
@@ -51,6 +46,9 @@ class SessionParticipants extends Component
         $this->participants = $this->participants->sortBy(function (User $user) {
             return $user->id === $this->session->owner_id ? 0 : 1;
         })->values();
+
+        // Dispatch Livewire event with participants count for parent component
+        $this->dispatch('participants-count-updated', count: $this->participants->count());
 
         return view('livewire.session-participants');
     }
@@ -94,6 +92,7 @@ class SessionParticipants extends Component
             return;
         }
         $this->participants->push(User::whereId($user['id'])->firstOrFail());
+        $this->dispatch('participants-count-updated', count: $this->participants->count());
     }
 
     public function userLeaves(array|User $userData): void
@@ -103,6 +102,9 @@ class SessionParticipants extends Component
 
         // Remove user from participants list
         $this->participants = $this->participants->filter(fn(User $participant) => $participant->id !== $userId);
+
+        // Dispatch updated count
+        $this->dispatch('participants-count-updated', count: $this->participants->count());
 
         // If the owner leaves, cancel the current voting
         if ($userId && $userId === $this->session->owner_id) {
@@ -119,6 +121,7 @@ class SessionParticipants extends Component
     public function updateUsers(array $users): void
     {
         $this->participants = collect($users)->map(fn(array $user): User => User::whereId($user['id'])->firstOrFail());
+        $this->dispatch('participants-count-updated', count: $this->participants->count());
     }
 
     public function revealVotes(): void

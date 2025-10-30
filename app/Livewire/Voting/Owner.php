@@ -178,6 +178,15 @@ class Owner extends Component
 
     public function deleteIssue(Issue $issue): void
     {
+        // Prevent deletion if issue is currently being voted on
+        if ($issue->status === Issue::STATUS_VOTING) {
+            $this->dispatch('show-message', [
+                'type' => 'error',
+                'message' => 'Ein Issue kann nicht gelöscht werden, während eine Schätzung läuft.',
+            ]);
+            return;
+        }
+
         $issue->forceDelete();
         broadcast(new IssueDeleted($this->session->invite_code));
     }

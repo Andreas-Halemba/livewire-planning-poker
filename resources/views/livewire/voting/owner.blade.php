@@ -93,7 +93,7 @@
             </div>
 
             <!-- Reveal Votes Button -->
-            <div class=" mb-5">
+            <div class="mb-3">
                 @php
                     $hasVotes = $currentIssue->votes()->whereNotNull('value')->exists();
                 @endphp
@@ -122,6 +122,14 @@
                         Warte auf Schätzungen...
                     </button>
                 @endif
+            </div>
+
+            <!-- Cancel Voting Button -->
+            <div class="mb-5">
+                <button type="button" wire:click="cancelIssue({{ $currentIssue->id }})"
+                    class="w-full px-5 py-3.5 bg-error hover:bg-error/90 text-error-content font-semibold rounded-lg transition-colors">
+                    Schätzung abbrechen
+                </button>
             </div>
 
             <!-- Vote Results (shown after reveal) -->
@@ -280,10 +288,6 @@
                                         <span class="px-3 py-1 text-sm bg-warning/40 text-warning-content font-medium rounded">
                                             Schätzung läuft...
                                         </span>
-                                        <button type="button" wire:click="cancelIssue({{ $issue->id }})"
-                                            class="px-3 py-1 text-sm bg-error hover:bg-error/90 text-error-content font-medium rounded transition-colors">
-                                            Abbrechen
-                                        </button>
                                     @else
                                         <button wire:click="voteIssue({{ $issue->id }})"
                                             class=" cursor-pointer px-3 py-1.5 text-sm bg-primary hover:bg-primary/90 text-primary-content font-medium rounded transition-colors">
@@ -292,7 +296,12 @@
                                     @endif
                                     <button wire:click="deleteIssue({{ $issue->id }})"
                                         wire:confirm="Are you sure you want to delete this issue?"
-                                        class="w-8 h-8 flex items-center justify-center bg-error/20 hover:bg-error/30 text-error rounded font-bold transition-colors">
+                                        @disabled($issue->status === Issue::STATUS_VOTING)
+                                        @class([
+                                            'w-8 h-8 flex items-center justify-center rounded font-bold transition-colors',
+                                            'bg-error/20 hover:bg-error/30 text-error cursor-pointer' => $issue->status !== Issue::STATUS_VOTING,
+                                            'bg-base-300 text-base-content/30 cursor-not-allowed' => $issue->status === Issue::STATUS_VOTING,
+                                        ])>
                                         ×
                                     </button>
                                 </div>
