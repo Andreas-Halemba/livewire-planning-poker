@@ -127,7 +127,7 @@
             <!-- Cancel Voting Button -->
             <div class="mb-5">
                 <button type="button" wire:click="cancelIssue({{ $currentIssue->id }})"
-                    class="w-full px-5 py-3.5 bg-error hover:bg-error/90 text-error-content font-semibold rounded-lg transition-colors cursor-pointer">
+                    class="w-full px-5 py-3.5 btn btn-error cursor-pointer font-semibold rounded-lg transition-colors">
                     Schätzung abbrechen
                 </button>
             </div>
