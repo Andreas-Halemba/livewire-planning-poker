@@ -12,7 +12,7 @@
             </div>
         </div>
         <div class="text-sm font-semibold mt-3 mb-3 uppercase tracking-wide">Teilnehmer</div>
-        <livewire:session-participants :session="$session" :key="'session-participants-'.$session->id" />
+        <livewire:session-participants :session="$session" :key="'session-participants-' . $session->id" />
     </div>
 
     @can('vote_session', $session)
@@ -50,11 +50,11 @@
             @endif
 
             <!-- Upcoming Issues & History -->
-            <livewire:voting.voter :session="$session" :key="'voter-'.$session->id" />
+            <livewire:voting.voter :session="$session" :key="'voter-' . $session->id" />
         @endif
     @endcan
 
     @can('owns_session', $session)
-        <livewire:voting.owner :session="$session" :key="'owner-'.$session->id" />
+        <livewire:voting.owner :session="$session" :key="'owner-' . $session->id" />
     @endcan
 </div>
