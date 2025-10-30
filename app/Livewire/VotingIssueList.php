@@ -18,9 +18,15 @@ class VotingIssueList extends Component
     public function getListeners(): array
     {
         return [
-            "echo-presence:session.{$this->session->invite_code},.IssueAdded" => '$refresh',
-            "echo-presence:session.{$this->session->invite_code},.IssueDeleted" => '$refresh',
+            "echo-presence:session.{$this->session->invite_code},.IssueAdded" => 'handleIssueChange',
+            "echo-presence:session.{$this->session->invite_code},.IssueDeleted" => 'handleIssueChange',
         ];
+    }
+
+    public function handleIssueChange(): void
+    {
+        // Reload issues collection without full refresh
+        $this->issues = $this->session->issues()->get();
     }
 
     public function render(): View

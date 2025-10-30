@@ -6,13 +6,13 @@
                 Session: <span class="font-bold">{{ $session->name }}</span>
             </h1>
             <div class="text-sm text-base-content/70">
-                {{ $session->users->count() }} Teilnehmer •
+                {{ $participantsCount }} Teilnehmer •
                 {{ $session->issues->where('status', 'finished')->count() }} von {{ $session->issues->count() }} Issues
                 geschätzt
             </div>
         </div>
         <div class="text-sm font-semibold mt-3 mb-3 uppercase tracking-wide">Teilnehmer</div>
-        <livewire:session-participants :session="$session" />
+        <livewire:session-participants :session="$session" :key="'session-participants-'.$session->id" />
     </div>
 
     @can('vote_session', $session)
@@ -21,27 +21,15 @@
                 $currentIssue = $session->currentIssue();
             @endphp
 
+            <!-- Voting Cards Section - Shows for active voting or manually selected issue -->
+            <livewire:voting-cards :session="$session" key="voting-cards-{{ $session->id }}" />
+
+            <!-- Current Issue Card - Only show if there's an active voting issue -->
             @if($currentIssue)
-                <!-- Current Issue Card -->
                 <div class="bg-base-100 rounded-xl shadow-md p-6 sm:p-8 mb-6 border-2 border-primary"
                     x-data="{ descriptionOpen: false }">
                     <div class="text-xs font-semibold text-primary uppercase tracking-wide mb-3">Aktuell zu schätzen</div>
-                    @if($currentIssue->jira_url && $currentIssue->jira_key)
-                        <a href="{{ $currentIssue->getJiraBrowserUrl() }}" target="_blank"
-                            class="text-base font-bold text-primary hover:text-primary/80 hover:underline mb-2 block">
-                            {{ $currentIssue->jira_key }}
-                        </a>
-                    @else
-                        <div class="text-base font-bold text-base-content mb-2">{{ $currentIssue->jira_key ?? 'Issue' }}</div>
-                    @endif
-                    @if($currentIssue->jira_url && $currentIssue->jira_key)
-                        <a href="{{ $currentIssue->getJiraBrowserUrl() }}" target="_blank"
-                            class="text-xl font-semibold text-primary hover:text-primary/80 hover:underline mb-4 leading-relaxed block">
-                            {{ $currentIssue->title }}
-                        </a>
-                    @else
-                        <div class="text-xl font-semibold text-base-content mb-4 leading-relaxed">{{ $currentIssue->title }}</div>
-                    @endif
+                    <div class="text-xl font-bold mb-1 text-base-content">{!! $currentIssue->title_html !!}</div>
                     @if($currentIssue->description)
                         <div class="mb-4">
                             <button @click="descriptionOpen = !descriptionOpen"
@@ -59,17 +47,14 @@
                         </div>
                     @endif
                 </div>
-
-                <!-- Voting Cards Section -->
-                <livewire:voting-cards :session="$session" />
             @endif
 
             <!-- Upcoming Issues & History -->
-            <livewire:voting.voter :session="$session" />
+            <livewire:voting.voter :session="$session" :key="'voter-'.$session->id" />
         @endif
     @endcan
 
     @can('owns_session', $session)
-        <livewire:voting.owner :session="$session" />
+        <livewire:voting.owner :session="$session" :key="'owner-'.$session->id" />
     @endcan
 </div>

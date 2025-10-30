@@ -1,4 +1,61 @@
-<div>
+<div
+    x-data="{
+        sessionInviteCode: '{{ $session->invite_code }}',
+        ownerId: {{ $session->owner_id }},
+        currentUserId: {{ Auth::id() ?? 0 }},
+        sessionPath: '{{ parse_url(route('session.voting', ['inviteCode' => $session->invite_code]), PHP_URL_PATH) }}',
+        isLeavingSession: false,
+        init() {
+            // Fallback: Cancel voting when owner leaves the session (especially if PO is alone)
+            // This ensures voting is canceled even if no other participants are present
+            
+            // Listen for link clicks that leave the session page
+            document.addEventListener('click', (e) => {
+                const link = e.target.closest('a');
+                if (link && link.href) {
+                    try {
+                        const linkUrl = new URL(link.href, window.location.origin);
+                        const currentPath = window.location.pathname;
+                        // Only set flag if clicking a link that navigates away from session page
+                        if (linkUrl.pathname !== currentPath && currentPath === this.sessionPath) {
+                            this.isLeavingSession = true;
+                        }
+                    } catch (err) {
+                        // Invalid URL, ignore
+                    }
+                }
+            }, true);
+            
+            // Listen for beforeunload - only cancel if actually leaving session (not refresh)
+            window.addEventListener('beforeunload', (e) => {
+                // Only cancel if we detected navigation away from session page
+                if (this.ownerId === this.currentUserId && this.isLeavingSession) {
+                    // Use sendBeacon for reliable delivery even during page unload
+                    const url = '{{ route('api.sessions.cancel-voting-on-leave', ['inviteCode' => $session->invite_code]) }}';
+                    const csrfToken = document.querySelector('meta[name=csrf-token]')?.content || '';
+                    
+                    // navigator.sendBeacon is more reliable than fetch during page unload
+                    // We need to send CSRF token as form data since sendBeacon doesn't support custom headers
+                    if (navigator.sendBeacon) {
+                        const formData = new FormData();
+                        formData.append('_token', csrfToken);
+                        navigator.sendBeacon(url, formData);
+                    } else {
+                        // Fallback for older browsers
+                        fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            body: JSON.stringify({}),
+                            keepalive: true
+                        }).catch(() => {});
+                    }
+                }
+            });
+        }
+    }">
     @php
         $openIssues = $issues->where('status', '!=', Issue::STATUS_FINISHED);
         $estimatedIssues = $issues->where('status', Issue::STATUS_FINISHED);
@@ -36,13 +93,13 @@
             </div>
 
             <!-- Reveal Votes Button -->
-            <div class=" mb-5">
+            <div class="mb-3">
                 @php
                     $hasVotes = $currentIssue->votes()->whereNotNull('value')->exists();
                 @endphp
                 @if($hasVotes && !$votesRevealed)
                     <button wire:click="revealVotes"
-                        class="w-full px-5 py-3.5 bg-success cursor-pointer hover:bg-success/90 text-success-content font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+                        class="w-full px-5 py-3.5 btn btn-success cursor-pointer hover:bg-success/90 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -65,6 +122,17 @@
                         Warte auf Schätzungen...
                     </button>
                 @endif
+            </div>
+
+            <!-- Cancel Voting Button -->
+            <div class="mb-5">
+                <button type="button" wire:click="cancelIssue({{ $currentIssue->id }})"
+                    class="w-full px-5 py-3.5 btn btn-error cursor-pointer font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Schätzung abbrechen
+                </button>
             </div>
 
             <!-- Vote Results (shown after reveal) -->
@@ -116,7 +184,7 @@
                                 wire:model.live="customEstimate" placeholder="z.B. 3, 5, 8, 13..." min="0" />
                         </div>
                         <button wire:click="confirmEstimate({{ $currentIssue->id }})"
-                            class="px-6 py-2 w-1/2 bg-success cursor-pointer hover:bg-success/90 text-success-content font-semibold rounded-lg transition-colors whitespace-nowrap">
+                            class="px-6 py-2 w-1/2 btn btn-success cursor-pointer font-semibold rounded-lg transition-colors whitespace-nowrap">
                             Schätzung übernehmen
                         </button>
                     </div>
@@ -139,7 +207,7 @@
                     </svg>
                     Issues importieren
                 </h3>
-                <livewire:jira-import :session="$session" />
+                <livewire:jira-import :session="$session" :key="'jira-import-'.$session->id" />
             </div>
 
             <!-- Manual Add Section -->
@@ -169,7 +237,7 @@
                             <p class="mt-1 text-sm text-error">{{ $message }}</p>
                         @enderror
                     </div>
-                    <button type="submit" class="btn btn-accent btn-block">
+                    <button type="submit" class="btn btn-primary btn-block cursor-pointer">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -185,18 +253,18 @@
             <!-- Tabs -->
             <div class="bg-base-200 rounded-xl shadow-md border border-base-300 p-1 flex gap-1">
                 <button @class([
-                    'flex-1 flex items-center justify-center px-5 py-3 rounded-lg font-medium transition-colors',
-                    'bg-primary text-primary-content' => $activeTab !== 'estimated',
-                    'text-base-content/70 hover:bg-base-200' => $activeTab === 'estimated',
+                    'btn flex-1 flex items-center justify-center px-5 py-3 rounded-lg font-medium transition-colors cursor-pointer',
+                    'btn-primary' => $activeTab !== 'estimated',
+                    'btn-ghost text-base-content/70' => $activeTab === 'estimated',
                 ])    wire:click="$set('activeTab', 'open')">
                     Offene Issues
                     <span
                         class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-secondary text-secondary-content">{{ $openIssues->count() }}</span>
                 </button>
                 <button @class([
-                    'flex-1 flex items-center justify-center px-5 py-3 rounded-lg font-medium transition-colors',
-                    'bg-primary text-primary-content' => $activeTab === 'estimated',
-                    'text-base-content/70 hover:bg-base-200' => $activeTab !== 'estimated',
+                    'btn flex-1 flex items-center justify-center px-5 py-3 rounded-lg font-medium transition-colors cursor-pointer',
+                    'btn-primary' => $activeTab === 'estimated',
+                    'btn-ghost text-base-content/70' => $activeTab !== 'estimated',
                 ])    wire:click="$set('activeTab', 'estimated')">
                     Geschätzte Issues
                     <span
@@ -220,24 +288,42 @@
                                 </div>
                                 <div class="flex items-center gap-2 flex-shrink-0">
                                     @if($issue->status === Issue::STATUS_VOTING)
-                                        <span class="px-3 py-1 text-sm bg-warning/40 text-warning-content font-medium rounded">
-                                            Schätzung läuft...
-                                        </span>
-                                        <button type="button" wire:click="cancelIssue({{ $issue->id }})"
-                                            class="px-3 py-1 text-sm bg-error hover:bg-error/90 text-error-content font-medium rounded transition-colors">
-                                            Abbrechen
-                                        </button>
+                                        <!-- Voting in Progress Badge -->
+                                        <div class="tooltip tooltip-left" data-tip="Schätzung läuft">
+                                            <div class="w-8 h-8 flex items-center justify-center bg-warning/20 text-warning rounded-full">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </div>
+                                        </div>
                                     @else
-                                        <button wire:click="voteIssue({{ $issue->id }})"
-                                            class=" cursor-pointer px-3 py-1.5 text-sm bg-primary hover:bg-primary/90 text-primary-content font-medium rounded transition-colors">
-                                            Schätzen
-                                        </button>
+                                        <!-- Start Voting Button -->
+                                        <div class="tooltip tooltip-left" data-tip="Schätzung starten">
+                                            <button wire:click="voteIssue({{ $issue->id }})"
+                                                class="btn btn-primary btn-sm btn-circle cursor-pointer">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     @endif
-                                    <button wire:click="deleteIssue({{ $issue->id }})"
-                                        wire:confirm="Are you sure you want to delete this issue?"
-                                        class="w-8 h-8 flex items-center justify-center bg-error/20 hover:bg-error/30 text-error rounded font-bold transition-colors">
-                                        ×
-                                    </button>
+                                    
+                                    <!-- Delete Button -->
+                                    <div class="tooltip tooltip-left" data-tip="{{ $issue->status === Issue::STATUS_VOTING ? 'Kann während Schätzung nicht gelöscht werden' : 'Issue löschen' }}">
+                                        <button wire:click="deleteIssue({{ $issue->id }})"
+                                            wire:confirm="Bist du sicher, dass du dieses Issue löschen möchtest?"
+                                            @disabled($issue->status === Issue::STATUS_VOTING)
+                                            @class([
+                                                'btn btn-sm btn-circle transition-colors',
+                                                'btn-error btn-outline hover:btn-error cursor-pointer' => $issue->status !== Issue::STATUS_VOTING,
+                                                'btn-disabled cursor-not-allowed' => $issue->status === Issue::STATUS_VOTING,
+                                            ])>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         @empty
@@ -267,11 +353,16 @@
                                         class="inline-flex items-center px-3 py-1 rounded-md text-sm font-semibold bg-success text-success-content">
                                         {{ $issue->storypoints ?? 'X' }} SP
                                     </span>
-                                    <button wire:click="deleteIssue({{ $issue->id }})"
-                                        wire:confirm="Are you sure you want to delete this issue?"
-                                        class="w-8 h-8 flex items-center justify-center bg-error/20 hover:bg-error/30 text-error rounded font-bold transition-colors">
-                                        ×
-                                    </button>
+                                    <!-- Delete Button -->
+                                    <div class="tooltip tooltip-left" data-tip="Issue löschen">
+                                        <button wire:click="deleteIssue({{ $issue->id }})"
+                                            wire:confirm="Bist du sicher, dass du dieses Issue löschen möchtest?"
+                                            class="btn btn-sm btn-circle btn-error btn-outline hover:btn-error cursor-pointer">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         @empty

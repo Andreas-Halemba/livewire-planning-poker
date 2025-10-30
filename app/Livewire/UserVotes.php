@@ -24,9 +24,15 @@ class UserVotes extends Component
     public function getListeners(): array
     {
         return [
-            "echo-presence:session.{$this->session->invite_code},.IssueSelected" => '$refresh',
-            "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => '$refresh',
+            "echo-presence:session.{$this->session->invite_code},.IssueSelected" => 'handleIssueEvent',
+            "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => 'handleIssueEvent',
         ];
+    }
+
+    public function handleIssueEvent(): void
+    {
+        // Reload issue with fresh data
+        $this->issue->refresh();
     }
 
     /**

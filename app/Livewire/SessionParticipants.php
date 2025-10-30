@@ -34,6 +34,10 @@ class SessionParticipants extends Component
     {
         $this->participants = collect([]);
         $this->issue = null;
+        $this->votes = [];
+        $this->participantsVoted = [];
+        $this->votesRevealed = false;
+
         if (Auth::user()) {
             $this->participants->push(Auth::user());
         }
@@ -46,6 +50,9 @@ class SessionParticipants extends Component
         $this->participants = $this->participants->sortBy(function (User $user) {
             return $user->id === $this->session->owner_id ? 0 : 1;
         })->values();
+
+        // Dispatch Livewire event with participants count for parent component
+        $this->dispatch('participants-count-updated', count: $this->participants->count());
 
         return view('livewire.session-participants');
     }
@@ -69,6 +76,7 @@ class SessionParticipants extends Component
     {
         $this->issue = $issue;
         $this->updateIssueData();
+        $this->skipRender();
     }
 
     public function unsetCurrentIssue(): void
@@ -76,6 +84,7 @@ class SessionParticipants extends Component
         $this->issue = null;
         $this->reset('votes', 'votesRevealed');
         $this->updateIssueData();
+        $this->skipRender();
     }
 
 
@@ -85,21 +94,74 @@ class SessionParticipants extends Component
      */
     public function userJoins(array $user): void
     {
+        // Skip if no valid user ID
+        if (!isset($user['id']) || !$user['id']) {
+            return;
+        }
+
+        // Skip if user is current user or already in participants
         if ($user['id'] === Auth::id() || $this->participants->contains('id', $user['id'])) {
             return;
         }
-        $this->participants->push(User::whereId($user['id'])->firstOrFail());
+
+        try {
+            $foundUser = User::whereId($user['id'])->first();
+            if ($foundUser) {
+                $this->participants->push($foundUser);
+                $this->dispatch('participants-count-updated', count: $this->participants->count());
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("Failed to add user {$user['id']} to participants: " . $e->getMessage());
+        }
     }
 
-    public function userLeaves(User $user): void
+    public function userLeaves(array|User $userData): void
     {
-        $this->participants = $this->participants->filter(fn(User $participant) => $participant->id !== $user->id);
+        // Handle both array (from Presence Channel) and User object formats
+        $userId = is_array($userData) ? ($userData['id'] ?? null) : ($userData->id ?? null);
+
+        // Skip if no valid user ID
+        if (!$userId) {
+            return;
+        }
+
+        // Remove user from participants list
+        $this->participants = $this->participants->filter(fn(User $participant) => $participant->id !== $userId);
+
+        // Dispatch updated count
+        $this->dispatch('participants-count-updated', count: $this->participants->count());
+
+        // If the owner leaves, cancel the current voting
+        if ($userId === $this->session->owner_id) {
+            $currentIssue = $this->session->currentIssue();
+            if ($currentIssue && $currentIssue->status === Issue::STATUS_VOTING) {
+                $currentIssue->status = Issue::STATUS_NEW;
+                $currentIssue->save();
+                broadcast(new \App\Events\IssueCanceled($currentIssue));
+            }
+        }
     }
 
     /** @param array<int|string, mixed> $users */
     public function updateUsers(array $users): void
     {
-        $this->participants = collect($users)->map(fn(array $user): User => User::whereId($user['id'])->firstOrFail());
+        try {
+            $this->participants = collect($users)
+                ->filter(fn(array $user) => isset($user['id']))
+                ->map(function (array $user): ?User {
+                    try {
+                        return User::whereId($user['id'])->first();
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::warning("Failed to load user {$user['id']}: " . $e->getMessage());
+                        return null;
+                    }
+                })
+                ->filter();
+
+            $this->dispatch('participants-count-updated', count: $this->participants->count());
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to update users: " . $e->getMessage());
+        }
     }
 
     public function revealVotes(): void
@@ -120,6 +182,8 @@ class SessionParticipants extends Component
     public function newVote(User $user): void
     {
         $this->votes[$user->id] = 'X';
+        // Only skip render if we're not revealing votes
+        // This ensures the UI updates to show the vote indicator
     }
 
     public function sendRevealEvent(): void
