@@ -29,22 +29,7 @@
                 <div class="bg-base-100 rounded-xl shadow-md p-6 sm:p-8 mb-6 border-2 border-primary"
                     x-data="{ descriptionOpen: false }">
                     <div class="text-xs font-semibold text-primary uppercase tracking-wide mb-3">Aktuell zu schätzen</div>
-                    @if($currentIssue->jira_url && $currentIssue->jira_key)
-                        <a href="{{ $currentIssue->getJiraBrowserUrl() }}" target="_blank"
-                            class="text-base font-bold text-primary hover:text-primary/80 hover:underline mb-2 block">
-                            {{ $currentIssue->jira_key }}
-                        </a>
-                    @else
-                        <div class="text-base font-bold text-base-content mb-2">{{ $currentIssue->jira_key ?? 'Issue' }}</div>
-                    @endif
-                    @if($currentIssue->jira_url && $currentIssue->jira_key)
-                        <a href="{{ $currentIssue->getJiraBrowserUrl() }}" target="_blank"
-                            class="text-xl font-semibold text-primary hover:text-primary/80 hover:underline mb-4 leading-relaxed block">
-                            {{ $currentIssue->title }}
-                        </a>
-                    @else
-                        <div class="text-xl font-semibold text-base-content mb-4 leading-relaxed">{{ $currentIssue->title }}</div>
-                    @endif
+                    <div class="text-xl font-bold mb-1 text-base-content">{!! $currentIssue->title_html !!}</div>
                     @if($currentIssue->description)
                         <div class="mb-4">
                             <button @click="descriptionOpen = !descriptionOpen"
