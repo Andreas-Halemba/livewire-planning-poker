@@ -12,6 +12,11 @@ class Voter extends Component
 
     public function render(): View
     {
+        // Ensure issues are loaded for the view
+        if (!$this->session->relationLoaded('issues')) {
+            $this->session->load('issues');
+        }
+
         return view('livewire.voting.voter', [
             'session' => $this->session,
         ]);
