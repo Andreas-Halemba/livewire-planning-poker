@@ -10,6 +10,7 @@
     "require": {
         "php": "^8.2",
         "blade-ui-kit/blade-icons": "^1.5.1",
+        "codeat3/blade-clarity-icons": "^1.10",
         "guzzlehttp/guzzle": "^7.5.1",
         "laravel/framework": "^12.0",
         "laravel/pulse": "^1.4",
@@ -21,7 +22,8 @@
         "livewire/livewire": "^3.4",
         "pusher/pusher-php-server": "^7.2.2",
         "saloonphp/laravel-plugin": "^3.0",
-        "saloonphp/saloon": "^3.0"
+        "saloonphp/saloon": "^3.0",
+        "secondnetwork/blade-tabler-icons": "^3.35"
     },
     "require-dev": {
         "captainhook/captainhook": "^5.16.4",

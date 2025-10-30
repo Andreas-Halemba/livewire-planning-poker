@@ -14,7 +14,7 @@ use Livewire\Component;
 class VotingCards extends Component
 {
     /** @var array<int|string> */
-    public array $cards = [0, 1, 2, 3, 5, 8, 13, 21, 100, '?'];
+    public array $cards = [1, 2, 3, 5, 8, 13, 21, 100, '?'];
 
     public ?int $vote = null;
 
