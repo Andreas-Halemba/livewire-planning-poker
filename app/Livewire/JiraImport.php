@@ -165,7 +165,7 @@ class JiraImport extends Component
 
                 // Try to broadcast, but don't fail if it doesn't work
                 try {
-                    broadcast(new IssueAdded($issue));
+                    broadcast(new IssueAdded($issue))->toOthers();
                 } catch (\Exception $broadcastException) {
                     \Log::warning('Failed to broadcast issue addition', [
                         'issueId' => $issue->id,
