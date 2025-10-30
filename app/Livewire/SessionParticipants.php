@@ -137,7 +137,7 @@ class SessionParticipants extends Component
             if ($currentIssue && $currentIssue->status === Issue::STATUS_VOTING) {
                 $currentIssue->status = Issue::STATUS_NEW;
                 $currentIssue->save();
-                broadcast(new \App\Events\IssueCanceled($currentIssue));
+                broadcast(new \App\Events\IssueCanceled($currentIssue))->toOthers();
             }
         }
     }

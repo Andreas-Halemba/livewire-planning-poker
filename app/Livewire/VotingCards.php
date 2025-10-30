@@ -165,9 +165,9 @@ class VotingCards extends Component
         // Only broadcast HideVotes if there's an active voting session
         // (STATUS_VOTING). For async voting, we just notify about the new vote.
         if ($this->currentIssue->status === Issue::STATUS_VOTING) {
-            broadcast(new HideVotes($this->session));
+            broadcast(new HideVotes($this->session))->toOthers();
         }
-        broadcast(new AddVote($this->session, Auth::user()));
+        broadcast(new AddVote($this->session, Auth::user()))->toOthers();
     }
 
     public function removeVote(): void
@@ -193,12 +193,12 @@ class VotingCards extends Component
         // Only broadcast HideVotes if there's an active voting session
         // (STATUS_VOTING). For async voting, we just notify about the vote removal.
         if ($originalStatus === Issue::STATUS_VOTING || $issue->status === Issue::STATUS_VOTING) {
-            broadcast(new HideVotes($this->session));
+            broadcast(new HideVotes($this->session))->toOthers();
         }
 
         // Send AddVote event to update vote status
         // @phpstan-ignore-next-line use can not be null here
-        broadcast(new AddVote($this->session, auth()->user()));
+        broadcast(new AddVote($this->session, auth()->user()))->toOthers();
 
         $this->vote = null;
         $this->selectedCard = null;

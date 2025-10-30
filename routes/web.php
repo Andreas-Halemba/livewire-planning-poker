@@ -1,9 +1,12 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Livewire\SessionManagement;
+use App\Events\IssueCanceled;
+use App\Models\Issue;
+use App\Models\Session;
 use App\Livewire\Voting;
+use App\Livewire\SessionManagement;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,7 +35,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // API endpoint to cancel voting when owner leaves (fallback for when PO is alone)
     Route::post('/api/sessions/{inviteCode}/cancel-voting-on-leave', function (string $inviteCode) {
-        $session = \App\Models\Session::whereInviteCode($inviteCode)->firstOrFail();
+        $session = Session::whereInviteCode($inviteCode)->firstOrFail();
 
         // Only allow if user is the owner
         if (auth()->id() !== $session->owner_id) {
@@ -40,10 +43,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         }
 
         $currentIssue = $session->currentIssue();
-        if ($currentIssue && $currentIssue->status === \App\Models\Issue::STATUS_VOTING) {
-            $currentIssue->status = \App\Models\Issue::STATUS_NEW;
+        if ($currentIssue && $currentIssue->status === Issue::STATUS_VOTING) {
+            $currentIssue->status = Issue::STATUS_NEW;
             $currentIssue->save();
-            broadcast(new \App\Events\IssueCanceled($currentIssue));
+            broadcast(new IssueCanceled($currentIssue))->toOthers();
         }
 
         return response()->json(['success' => true]);

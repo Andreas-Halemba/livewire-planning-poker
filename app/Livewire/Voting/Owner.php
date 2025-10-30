@@ -67,7 +67,6 @@ class Owner extends Component
     public function handleRevealVotes(): void
     {
         $this->votesRevealed = true;
-        $this->skipRender();
     }
 
     public function handleHideVotes(): void
@@ -75,7 +74,6 @@ class Owner extends Component
         $this->votesRevealed = false;
         $this->selectedEstimate = null;
         $this->customEstimate = null;
-        $this->skipRender();
     }
 
     public function handleIssueSelected(): void
@@ -83,7 +81,6 @@ class Owner extends Component
         $this->votesRevealed = false;
         $this->selectedEstimate = null;
         $this->customEstimate = null;
-        $this->skipRender();
     }
 
     public function handleIssueCanceled(): void
@@ -91,7 +88,6 @@ class Owner extends Component
         $this->votesRevealed = false;
         $this->selectedEstimate = null;
         $this->customEstimate = null;
-        $this->skipRender();
     }
 
     public function render(): View
@@ -157,16 +153,17 @@ class Owner extends Component
             }
         }
 
-        broadcast(new IssueCanceled($issue));
-        $this->dispatch('refreshIssues');
+        broadcast(new IssueCanceled($issue))->toOthers();
+        // Update the issues collection to sync with database changes
+        $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
     }
 
     public function voteIssue(int $id): void
     {
         $this->resetIssuesStatus();
         $this->setIssueStatusToVoting($id);
-        // Don't re-render - let the broadcast event handle the UI update
-        $this->skipRender();
+        // Update the issues collection to sync with database changes
+        $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
     }
 
     public function cancelIssue(int $id): void
@@ -174,9 +171,9 @@ class Owner extends Component
         $issue = Issue::query()->whereId($id)->firstOrFail();
         $issue->status = Issue::STATUS_NEW;
         $issue->save();
-        broadcast(new IssueCanceled($issue));
-        // Don't re-render - let the broadcast event handle the UI update
-        $this->skipRender();
+        broadcast(new IssueCanceled($issue))->toOthers();
+        // Update the issues collection to sync with database changes
+        $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
     }
 
     public function addIssue(): void
@@ -192,7 +189,6 @@ class Owner extends Component
         $this->issueDescription = '';
 
         $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
-        $this->dispatch('refreshIssues');
         broadcast(new IssueAdded($issue))->toOthers();
     }
 
@@ -208,9 +204,9 @@ class Owner extends Component
         }
 
         $issue->forceDelete();
-        broadcast(new IssueDeleted($this->session->invite_code));
-        // Don't re-render - let the broadcast event handle the UI update
-        $this->skipRender();
+        // Update the issues collection to sync with database changes
+        $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
+        broadcast(new IssueDeleted($this->session->invite_code))->toOthers();
     }
 
     private function resetIssuesStatus(): void
@@ -226,7 +222,7 @@ class Owner extends Component
         $issue->status = Issue::STATUS_VOTING;
         $issue->save();
         $this->votesRevealed = false; // Reset votes revealed when starting new voting
-        broadcast(new IssueSelected($issue));
+        broadcast(new IssueSelected($issue))->toOthers();
     }
 
     public function revealVotes(): void
