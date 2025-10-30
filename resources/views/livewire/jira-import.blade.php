@@ -23,7 +23,7 @@
                     @enderror
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-sm mt-2 cursor-pointer" wire:loading.attr="disabled"
+                <button type="submit" class="btn btn-primary w-full mt-2 cursor-pointer" wire:loading.attr="disabled"
                     wire:target="loadTickets">
                     <span class="flex items-center gap-2" wire:loading.remove wire:target="loadTickets">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
