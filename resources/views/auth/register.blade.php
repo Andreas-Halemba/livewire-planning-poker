@@ -28,7 +28,7 @@
         </div>
 
         <div class="flex flex-col items-center justify-center gap-2 mt-2">
-            <button class="btn btn-primary">
+            <button class="btn btn-primary cursor-pointer">
                 {{ __('Register') }}
             </button>
             <a class="text-sm text-gray-600 underline rounded-md hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

@@ -9,7 +9,7 @@
             <div class="join w-full">
                 <input required id="inviteCode" wire:model.live="inviteCode" type="text" placeholder="Invite code"
                     class="join-item input flex-1 @error('inviteCode') border-error @enderror" />
-                <button type="submit" class="join-item btn btn-secondary">Join</button>
+                <button type="submit" class="join-item btn btn-secondary cursor-pointer">Join</button>
             </div>
         </form>
     </div>

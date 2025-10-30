@@ -1,5 +1,5 @@
 <div class="dropdown dropdown-end">
-    <label tabindex="0" class="m-1 btn">{{ Auth::user()->name }}</label>
+    <label tabindex="0" class="m-1 btn cursor-pointer">{{ Auth::user()->name }}</label>
     <ul tabindex="0" class="p-2 shadow dropdown-content menu bg-base-100 rounded-box w-52">
         <li>
             <a :href="route('profile.edit')">
