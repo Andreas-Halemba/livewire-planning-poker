@@ -22,3 +22,5 @@ _ide_helper*
 captainhook.config.json
 services/soketi/config.json
 deploy.config
+ecosystem.config.js
+ecosystem.config.js

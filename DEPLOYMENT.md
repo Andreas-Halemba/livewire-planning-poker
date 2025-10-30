@@ -134,6 +134,25 @@ Dein Server sollte folgendes installiert haben:
 - PM2 (für Reverb)
 - MySQL/PostgreSQL
 
+### Ersteinrichtung auf dem Server
+
+Nach dem ersten Clone des Repositories auf dem Server:
+
+```bash
+# PM2-Konfiguration erstellen
+cp ecosystem.config.example.js ecosystem.config.js
+
+# ecosystem.config.js anpassen:
+# - Port (z.B. 6000, 8080, etc.)
+# - Hostname (deine Domain oder Server-IP)
+# - APP_ENV auf 'production' setzen
+
+# PM2 starten
+pm2 start ecosystem.config.js
+pm2 save
+pm2 startup  # Autostart bei Server-Neustart
+```
+
 ---
 
 ## Manuelle Schritte (falls etwas schief geht)
