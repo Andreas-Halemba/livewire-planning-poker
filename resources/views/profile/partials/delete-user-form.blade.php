@@ -26,9 +26,9 @@
             </p>
 
             <div class="mt-6 flex flex-col gap-2">
-                <x-input-label for="password" value="{{ __('Password') }}" class="sr-only" />
+                <x-input-label for="delete_password" value="{{ __('Password') }}" class="sr-only" />
 
-                <x-text-input id="password" name="password" type="password" placeholder="{{ __('Password') }}" />
+                <x-text-input id="delete_password" name="password" type="password" placeholder="{{ __('Password') }}" />
 
                 <x-input-error :messages="$errors->userDeletion->get('password')" />
             </div>
