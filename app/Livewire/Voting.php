@@ -17,7 +17,7 @@ class Voting extends Component
     public function mount(string $inviteCode): ?RedirectResponse
     {
         $this->inviteCode = $inviteCode;
-        $this->session = Session::whereInviteCode($this->inviteCode)->firstOrFail();
+        $this->session = Session::with('issues')->whereInviteCode($this->inviteCode)->firstOrFail();
         if (Auth::hasUser()) {
             $this->attachUserToSession();
         }
@@ -35,6 +35,11 @@ class Voting extends Component
 
     public function render(): View
     {
+        // Ensure issues are loaded for the view
+        if (!$this->session->relationLoaded('issues')) {
+            $this->session->load('issues');
+        }
+
         return view('livewire.voting');
     }
 

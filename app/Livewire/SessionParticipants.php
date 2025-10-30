@@ -39,6 +39,11 @@ class SessionParticipants extends Component
         }
     }
 
+    public function getParticipantsCountProperty(): int
+    {
+        return $this->participants->count();
+    }
+
     public function render(): View
     {
         $this->updateIssueData();
