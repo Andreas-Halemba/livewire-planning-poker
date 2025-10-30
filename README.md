@@ -79,16 +79,26 @@ For the websocket server, this project uses **Laravel Reverb** - Laravel's offic
 
 ### Starting Reverb Locally
 
-To start the Reverb server locally:
+**Option 1: Direct command (simple)**
 
 ```bash
 php artisan reverb:start --host=127.0.0.1 --port=6000
 ```
 
-For better local development experience, you can run it in the background:
+**Option 2: With PM2 (recommended for development)**
+
+First, create your PM2 config:
 
 ```bash
-php artisan reverb:start --host=127.0.0.1 --port=6000 &
+cp ecosystem.config.example.js ecosystem.config.js
+# Edit ecosystem.config.js with your local settings (port, hostname)
+```
+
+Then start with PM2:
+
+```bash
+pm2 start ecosystem.config.js
+pm2 save  # Save the process list
 ```
 
 **Note:** The Reverb server must be running for real-time features like voting to work.
