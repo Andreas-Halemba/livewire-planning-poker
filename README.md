@@ -162,6 +162,12 @@ To test the Jira integration:
 
 After starting the Reverb server, open your browser console and check for WebSocket connection errors. The connection should be established to `ws://127.0.0.1:6000`.
 
+## Troubleshooting
+
+### Livewire Component Errors
+
+If you encounter "Could not find Livewire component in DOM tree" errors in production, see [LIVEWIRE-FIX.md](LIVEWIRE-FIX.md) for details about the implemented fixes and solutions.
+
 ## Code style and quality
 
 ### formats the code

@@ -30,10 +30,23 @@ class VotingCards extends Component
     public function getListeners(): array
     {
         return [
-            "echo-presence:session.{$this->session->invite_code},.IssueSelected" => '$refresh',
-            "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => '$refresh',
+            "echo-presence:session.{$this->session->invite_code},.IssueSelected" => 'handleIssueSelected',
+            "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => 'handleIssueCanceled',
             'select-issue' => 'handleSelectIssue',
         ];
+    }
+
+    public function handleIssueSelected(): void
+    {
+        // Clear manual selection when issue is selected for voting
+        $this->selectedIssueId = null;
+        $this->selectedCard = null;
+    }
+
+    public function handleIssueCanceled(): void
+    {
+        // Reset when voting is canceled
+        $this->selectedCard = null;
     }
 
     public function handleSelectIssue(int $issueId): void
