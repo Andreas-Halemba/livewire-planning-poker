@@ -80,12 +80,12 @@
             <div class="flex flex-col sm:flex-row gap-3">
                 @if($hasVoted)
                     <button wire:click.prevent="removeVote"
-                        class="flex-1 px-6 cursor-pointer py-3.5 bg-warning hover:bg-warning/90 text-warning-content font-semibold rounded-lg transition-colors w-full">
+                        class="flex-1 px-6 py-3.5 btn btn-warning cursor-pointer font-semibold rounded-lg transition-colors w-full">
                         Schätzung löschen
                     </button>
                 @elseif($selectedCard !== null)
                     <button wire:click.prevent="confirmVote"
-                        class="flex-1 px-6 py-3.5 bg-success hover:bg-success/90 text-success-content font-semibold rounded-lg transition-colors w-full">
+                        class="flex-1 px-6 py-3.5 btn btn-success cursor-pointer font-semibold rounded-lg transition-colors w-full">
                         Schätzung speichern
                     </button>
                 @endif
@@ -93,7 +93,7 @@
 
             @if($currentIssue->status !== \App\Models\Issue::STATUS_VOTING)
                 <button wire:click.prevent="clearSelection"
-                    class="mt-4 w-full px-6 py-3 border border-warning bg-warning/15 text-warning font-semibold rounded-lg uppercase tracking-wide hover:bg-warning/25 hover:text-warning/90 transition-colors">
+                    class="mt-4 w-full px-6 py-3 border border-warning bg-warning/15 text-warning font-semibold rounded-lg uppercase tracking-wide hover:bg-warning/25 hover:text-warning/90 transition-colors cursor-pointer">
                     Schätzung abbrechen
                 </button>
             @endif

@@ -17,7 +17,7 @@
         </div>
 
         <div class="flex items-center justify-center mt-4">
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary cursor-pointer">
                 {{ __('Email Password Reset Link') }}
             </button>
         </div>
