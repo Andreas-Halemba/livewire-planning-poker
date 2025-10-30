@@ -43,8 +43,8 @@ class Owner extends Component
     public function getListeners(): array
     {
         return [
-            "echo-presence:session.{$this->session->invite_code},.IssueAdded" => '$refresh',
-            "echo-presence:session.{$this->session->invite_code},.IssueDeleted" => '$refresh',
+            "echo-presence:session.{$this->session->invite_code},.IssueAdded" => 'handleIssueAdded',
+            "echo-presence:session.{$this->session->invite_code},.IssueDeleted" => 'handleIssueDeleted',
             "echo-presence:session.{$this->session->invite_code},.RevealVotes" => 'handleRevealVotes',
             "echo-presence:session.{$this->session->invite_code},.HideVotes" => 'handleHideVotes',
             "echo-presence:session.{$this->session->invite_code},.IssueSelected" => 'handleIssueSelected',
@@ -52,9 +52,22 @@ class Owner extends Component
         ];
     }
 
+    public function handleIssueAdded(): void
+    {
+        // Just reload the issues collection without full refresh
+        $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
+    }
+
+    public function handleIssueDeleted(): void
+    {
+        // Just reload the issues collection without full refresh
+        $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
+    }
+
     public function handleRevealVotes(): void
     {
         $this->votesRevealed = true;
+        $this->skipRender();
     }
 
     public function handleHideVotes(): void
@@ -62,6 +75,7 @@ class Owner extends Component
         $this->votesRevealed = false;
         $this->selectedEstimate = null;
         $this->customEstimate = null;
+        $this->skipRender();
     }
 
     public function handleIssueSelected(): void
@@ -69,6 +83,7 @@ class Owner extends Component
         $this->votesRevealed = false;
         $this->selectedEstimate = null;
         $this->customEstimate = null;
+        $this->skipRender();
     }
 
     public function handleIssueCanceled(): void
@@ -76,6 +91,7 @@ class Owner extends Component
         $this->votesRevealed = false;
         $this->selectedEstimate = null;
         $this->customEstimate = null;
+        $this->skipRender();
     }
 
     public function render(): View

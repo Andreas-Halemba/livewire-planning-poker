@@ -207,7 +207,7 @@
                     </svg>
                     Issues importieren
                 </h3>
-                <livewire:jira-import :session="$session" />
+                <livewire:jira-import :session="$session" :key="'jira-import-'.$session->id" />
             </div>
 
             <!-- Manual Add Section -->

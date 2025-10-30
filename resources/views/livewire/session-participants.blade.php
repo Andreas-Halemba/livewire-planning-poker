@@ -1,5 +1,5 @@
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-    @forelse ($participants as $user)
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2" wire:key="participants-grid-{{ $session->id }}">
+    @forelse ($participants ?? [] as $user)
         @php
             $isCurrentUser = $user->id === Auth::id();
             $hasVoted = $this->userDidVote((string) $user->id);
