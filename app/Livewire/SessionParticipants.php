@@ -168,6 +168,7 @@ class SessionParticipants extends Component
     {
         $currentIssue = $this->session->currentIssue();
         if ($currentIssue) {
+            // Use fresh query to get latest votes
             $this->votes = Vote::query()->whereBelongsTo($currentIssue)->get()->pluck('value', 'user_id')->toArray();
             $this->votesRevealed = true;
         }
@@ -202,6 +203,9 @@ class SessionParticipants extends Component
     {
         $currentIssue = $this->session->currentIssue();
         if ($currentIssue) {
+            // Reload votes relation to get fresh data (important when user votes themselves)
+            $currentIssue->load('votes');
+
             // If votes are revealed, show actual values (including null for "?")
             if ($this->votesRevealed) {
                 $this->votes = $currentIssue->votes->mapWithKeys(
