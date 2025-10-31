@@ -30,7 +30,29 @@ if [ ! -f "$CONFIG_FILE" ]; then
 fi
 
 # Source the configuration file
-source "$CONFIG_FILE"
+# Check if current shell supports associative arrays
+# If running in bash < 4.0, switch to zsh or Homebrew bash
+if [ -n "$ZSH_VERSION" ]; then
+    # Running in zsh - load config (zsh supports typeset -A)
+    source "$CONFIG_FILE"
+elif bash -c 'declare -A test 2>/dev/null' &>/dev/null 2>&1; then
+    # bash 4+ supports associative arrays - load config normally
+    source "$CONFIG_FILE"
+else
+    # bash < 4.0 doesn't support associative arrays
+    # Try Homebrew bash first (usually version 5+)
+    if command -v /usr/local/bin/bash &>/dev/null && /usr/local/bin/bash --version 2>/dev/null | grep -q "version [4-9]"; then
+        # Use Homebrew bash - reload script with Homebrew bash
+        exec /usr/local/bin/bash "$0" "$@"
+    elif command -v zsh &>/dev/null; then
+        # Fallback to zsh - reload script with zsh
+        exec zsh "$0" "$@"
+    else
+        echo -e "${RED}Error: Associative arrays not supported in this bash version.${NC}"
+        echo "Please install bash 4+ via Homebrew: ${YELLOW}brew install bash${NC}"
+        exit 1
+    fi
+fi
 
 # Validate that required arrays are set
 if [ -z "${SERVERS[production]}" ] && [ -z "${SERVERS[staging]}" ]; then
@@ -111,7 +133,7 @@ echo -e "${GREEN}  ✓ Deployment completed successfully!${NC}"
 echo -e "${GREEN}═══════════════════════════════════════════════════════${NC}"
 echo ""
 echo -e "Next steps:"
-echo -e "  1. Check application: ${YELLOW}https://your-domain.com${NC}"
+echo -e "  1. Check application: ${YELLOW}https://poker.halemba.rocks${NC}"
 echo -e "  2. Monitor logs: ${YELLOW}ssh $SERVER 'pm2 logs reverb'${NC}"
 echo -e "  3. Check Laravel logs: ${YELLOW}ssh $SERVER 'tail -f $REMOTE_PATH/storage/logs/laravel.log'${NC}"
 
