@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.3] - 2025-10-31
+
+### Fixed
+
+- Fixed Telescope authorization gate to properly handle array of allowed emails from environment variable
+- Fixed delete user form input ID conflicts for better form handling
+- Prevented JiraImport snapshot errors
+
+### Changed
+
+- Updated broadcast events to use `toOthers()` for improved performance
+- Enhanced vote retrieval and update logic in SessionParticipants component
+- Updated Telescope configuration and routing
+- Removed unused EstimationSession route from web.php
+- Updated .env.example with Reverb configuration documentation
+
 ## [2.1.0] - 2025-10-30
 
 ### Added
