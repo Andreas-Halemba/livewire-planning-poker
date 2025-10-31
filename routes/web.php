@@ -1,6 +1,7 @@
 <?php
 
 use App\Events\IssueCanceled;
+use App\Livewire\EstimationSession;
 use App\Models\Issue;
 use App\Models\Session;
 use App\Livewire\Voting;
@@ -32,6 +33,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', SessionManagement::class)->name('dashboard');
     // Route for the Voting component
     Route::get('/sessions/{inviteCode}/voting', Voting::class)->name('session.voting');
+    Route::get('/sessions/{session:invite_code}/estimate', EstimationSession::class)->name('session.estimate');
+
 
     // API endpoint to cancel voting when owner leaves (fallback for when PO is alone)
     Route::post('/api/sessions/{inviteCode}/cancel-voting-on-leave', function (string $inviteCode) {
