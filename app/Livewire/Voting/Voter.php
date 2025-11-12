@@ -4,10 +4,13 @@ namespace App\Livewire\Voting;
 
 use App\Models\Session;
 use Illuminate\Contracts\View\View;
+use Inspector\Laravel\InspectorLivewire;
 use Livewire\Component;
 
 class Voter extends Component
 {
+    use InspectorLivewire;
+
     public Session $session;
 
     public function render(): View

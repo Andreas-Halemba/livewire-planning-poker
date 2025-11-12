@@ -11,10 +11,13 @@ use App\Models\Issue;
 use App\Models\Session;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
+use Inspector\Laravel\InspectorLivewire;
 use Livewire\Component;
 
 class Owner extends Component
 {
+    use InspectorLivewire;
+
     public Session $session;
 
     /** @var Collection<int,Issue> */

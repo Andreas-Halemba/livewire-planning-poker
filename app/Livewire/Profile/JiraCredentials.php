@@ -3,10 +3,13 @@
 namespace App\Livewire\Profile;
 
 use App\Services\JiraService;
+use Inspector\Laravel\InspectorLivewire;
 use Livewire\Component;
 
 class JiraCredentials extends Component
 {
+    use InspectorLivewire;
+
     public string $jira_url = '';
     public string $jira_user = '';
     public string $jira_api_key = '';
