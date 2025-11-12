@@ -5,10 +5,13 @@ namespace App\Livewire;
 use App\Models\Session;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
+use Inspector\Laravel\InspectorLivewire;
 use Livewire\Component;
 
 class VotingIssueList extends Component
 {
+    use InspectorLivewire;
+
     /** @var Collection<int, \App\Models\Issue> */
     public Collection $issues;
 

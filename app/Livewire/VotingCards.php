@@ -9,10 +9,13 @@ use App\Models\Session;
 use App\Models\Vote;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Inspector\Laravel\InspectorLivewire;
 use Livewire\Component;
 
 class VotingCards extends Component
 {
+    use InspectorLivewire;
+
     /** @var array<int|string> */
     public array $cards = [1, 2, 3, 5, 8, 13, 21, 100, '?'];
 

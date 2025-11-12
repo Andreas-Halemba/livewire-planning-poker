@@ -6,10 +6,13 @@ use App\Models\Issue;
 use App\Models\Session;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
+use Inspector\Laravel\InspectorLivewire;
 use Livewire\Component;
 
 class UserVotes extends Component
 {
+    use InspectorLivewire;
+
     public Issue $issue;
 
     public Session $session;

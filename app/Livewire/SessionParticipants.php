@@ -11,10 +11,13 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Inspector\Laravel\InspectorLivewire;
 use Livewire\Component;
 
 class SessionParticipants extends Component
 {
+    use InspectorLivewire;
+
     public Session $session;
 
     /** @var Collection<int|string, \App\Models\User> */

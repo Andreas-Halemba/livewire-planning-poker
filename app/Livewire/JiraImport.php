@@ -7,8 +7,10 @@ use App\Models\Issue;
 use App\Models\Session;
 use App\Services\JiraService;
 use JiraRestApi\JiraException;
+use Livewire\Attributes\Isolate;
 use Livewire\Component;
 
+#[Isolate]
 class JiraImport extends Component
 {
     public Session $session;

@@ -6,10 +6,13 @@ use App\Models\Session;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Inspector\Laravel\InspectorLivewire;
 use Livewire\Component;
 
 class Voting extends Component
 {
+    use InspectorLivewire;
+
     public Session $session;
 
     public string $inviteCode;

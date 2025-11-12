@@ -5,10 +5,13 @@ namespace App\Livewire;
 use App\Models\Session;
 use App\Services\SessionService;
 use Illuminate\Contracts\View\View;
+use Inspector\Laravel\InspectorLivewire;
 use Livewire\Component;
 
 class JoinSession extends Component
 {
+    use InspectorLivewire;
+
     public string $inviteCode = '';
 
     /** @var array<string, string> */

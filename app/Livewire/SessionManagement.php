@@ -6,10 +6,13 @@ use App\Models\Session;
 use App\Services\SessionService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Inspector\Laravel\InspectorLivewire;
 use Livewire\Component;
 
 class SessionManagement extends Component
 {
+    use InspectorLivewire;
+
     public string $sessionName;
 
     public string $inviteCode;
