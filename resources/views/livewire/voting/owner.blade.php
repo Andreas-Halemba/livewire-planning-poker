@@ -56,8 +56,8 @@
         }
     }">
     @php
-        $openIssues = $issues->where('status', '!=', Issue::STATUS_FINISHED);
-        $estimatedIssues = $issues->where('status', Issue::STATUS_FINISHED);
+        $openIssues = $issues->where('status', '!=', \App\Models\Issue::STATUS_FINISHED);
+        $estimatedIssues = $issues->where('status', \App\Models\Issue::STATUS_FINISHED);
     @endphp
 
     <!-- Product Owner Panel -->
@@ -109,11 +109,11 @@
                         Schätzungen anzeigen
                     </button>
                 @elseif($votesRevealed)
-                    <button
+                    {{-- <button
                         class="w-full px-5 py-3.5 bg-base-300 text-base-content/60 font-semibold rounded-lg cursor-not-allowed flex items-center justify-center gap-2"
                         disabled>
                         Schätzungen angezeigt
-                    </button>
+                    </button> --}}
                 @else
                     <button
                         class="w-full px-5 py-3.5 bg-base-300 text-base-content/60 font-semibold rounded-lg cursor-not-allowed flex items-center justify-center gap-2"
@@ -122,6 +122,22 @@
                     </button>
                 @endif
             </div>
+
+            <!-- Restart Voting Button (shown when votes exist) -->
+            @if($hasVotes)
+                <div class="mb-3">
+                    <button type="button" wire:click="restartVoting"
+                        wire:confirm="Alle Schätzungen werden gelöscht und das Voting startet neu. Fortfahren?"
+                        class="w-full px-5 py-3.5 btn btn-warning cursor-pointer font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Neu abstimmen
+                    </button>
+                </div>
+            @endif
 
             <!-- Cancel Voting Button -->
             <div class="mb-5">
@@ -288,7 +304,7 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2 flex-shrink-0">
-                                    @if($issue->status === Issue::STATUS_VOTING)
+                                    @if($issue->status === \App\Models\Issue::STATUS_VOTING)
                                         <!-- Voting in Progress Badge -->
                                         <div class="tooltip tooltip-left" data-tip="Schätzung läuft">
                                             <div
@@ -318,13 +334,13 @@
 
                                     <!-- Delete Button -->
                                     <div class="tooltip tooltip-left"
-                                        data-tip="{{ $issue->status === Issue::STATUS_VOTING ? 'Kann während Schätzung nicht gelöscht werden' : 'Issue löschen' }}">
+                                        data-tip="{{ $issue->status === \App\Models\Issue::STATUS_VOTING ? 'Kann während Schätzung nicht gelöscht werden' : 'Issue löschen' }}">
                                         <button wire:click="deleteIssue({{ $issue->id }})"
                                             wire:confirm="Bist du sicher, dass du dieses Issue löschen möchtest?"
-                                            @disabled($issue->status === Issue::STATUS_VOTING) @class([
+                                            @disabled($issue->status === \App\Models\Issue::STATUS_VOTING) @class([
                                                 'btn btn-sm btn-circle transition-colors',
-                                                'btn-error btn-outline hover:btn-error cursor-pointer' => $issue->status !== Issue::STATUS_VOTING,
-                                                'btn-disabled cursor-not-allowed' => $issue->status === Issue::STATUS_VOTING,
+                                                'btn-error btn-outline hover:btn-error cursor-pointer' => $issue->status !== \App\Models\Issue::STATUS_VOTING,
+                                                'btn-disabled cursor-not-allowed' => $issue->status === \App\Models\Issue::STATUS_VOTING,
                                             ])>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
