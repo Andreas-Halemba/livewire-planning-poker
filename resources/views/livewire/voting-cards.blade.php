@@ -18,6 +18,11 @@
                         class="text-xl font-semibold text-accent hover:text-accent/80 hover:underline mb-4 leading-relaxed block">
                         {{ $currentIssue->title }}
                     </a>
+                @elseif(Str::startsWith($currentIssue->title, 'https://'))
+                    <a href="{{ $currentIssue->title }}" target="_blank"
+                        class="text-xl font-semibold hover:text-accent/80 hover:underline text-base-content mb-4 leading-relaxed">
+                        {{ $currentIssue->title }}
+                    </a>
                 @else
                     <div class="text-xl font-semibold text-base-content mb-4 leading-relaxed">{{ $currentIssue->title }}</div>
                 @endif
