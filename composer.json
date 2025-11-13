@@ -27,13 +27,14 @@
         "secondnetwork/blade-tabler-icons": "^3.35"
     },
     "require-dev": {
+        "barryvdh/laravel-debugbar": "^3.16",
         "captainhook/captainhook": "^5.16.4",
         "ergebnis/composer-normalize": "^2.31",
         "fakerphp/faker": "^v1.21.0",
+        "larastan/larastan": "^3.0",
         "laravel/breeze": "^2.0",
         "laravel/pint": "^1.10",
         "laravel/sail": "^v1.21.5",
-        "larastan/larastan": "^3.0",
         "mockery/mockery": "^1.5.1",
         "nunomaduro/collision": "^8.1",
         "pestphp/pest": "^3.0",
