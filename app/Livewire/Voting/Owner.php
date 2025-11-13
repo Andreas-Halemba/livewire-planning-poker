@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Voting;
 
+use App\Events\HideVotes;
 use App\Events\IssueAdded;
 use App\Events\IssueCanceled;
 use App\Events\IssueDeleted;
@@ -35,6 +36,8 @@ class Owner extends Component
 
     public bool $votesRevealed = false;
 
+    public int $activeParticipantsCount = 0;
+
     /** @var array<string, string> */
     protected array $rules = [
         'issues.*.storypoints' => 'integer|in:0,1,2,3,5,8,13,20,40,100',
@@ -52,6 +55,9 @@ class Owner extends Component
             "echo-presence:session.{$this->session->invite_code},.HideVotes" => 'handleHideVotes',
             "echo-presence:session.{$this->session->invite_code},.IssueSelected" => 'handleIssueSelected',
             "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => 'handleIssueCanceled',
+            "echo-presence:session.{$this->session->invite_code},.AddVote" => 'handleAddVote',
+            'refresh-voter-lists' => 'handleIssueAdded',
+            'participants-count-updated' => 'updateActiveParticipantsCount',
         ];
     }
 
@@ -93,9 +99,25 @@ class Owner extends Component
         $this->customEstimate = null;
     }
 
+    public function handleAddVote(): void
+    {
+        // Check if all participants have voted and auto-reveal if so
+        $this->checkAndAutoRevealVotes();
+    }
+
+    public function updateActiveParticipantsCount(int $count): void
+    {
+        $this->activeParticipantsCount = $count;
+        // Skip render as this is just updating a counter value
+        $this->skipRender();
+    }
+
     public function render(): View
     {
         $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
+
+        // Check if all participants have voted and auto-reveal if so
+        $this->checkAndAutoRevealVotes();
 
         // Get grouped votes for current voting issue (only if revealed)
         $groupedVotes = [];
@@ -238,6 +260,23 @@ class Owner extends Component
         }
     }
 
+    public function restartVoting(): void
+    {
+        $currentIssue = $this->session->currentIssue();
+        if ($currentIssue) {
+            // Delete all votes for the current issue
+            $currentIssue->votes()->delete();
+
+            // Reset votes revealed state
+            $this->votesRevealed = false;
+            $this->selectedEstimate = null;
+            $this->customEstimate = null;
+
+            // Broadcast HideVotes event to all participants to reset their UI
+            broadcast(new HideVotes($this->session))->toOthers();
+        }
+    }
+
     public function selectEstimate(string $value): void
     {
         $this->selectedEstimate = $value;
@@ -262,6 +301,46 @@ class Owner extends Component
         $this->selectedEstimate = null;
         $this->customEstimate = null;
         $this->votesRevealed = false;
+    }
+
+    private function checkAndAutoRevealVotes(): void
+    {
+        // Only auto-reveal if not already revealed
+        if ($this->votesRevealed) {
+            return;
+        }
+
+        $currentIssue = $this->session->currentIssue();
+        if (!$currentIssue) {
+            return;
+        }
+
+        // Use active participants count from SessionParticipants component
+        // This tracks who is actually online/present in the session (excluding owner)
+        $activeVotersCount = $this->activeParticipantsCount > 0 ? $this->activeParticipantsCount - 1 : 0; // Subtract 1 for owner
+
+
+
+        // If no active voters, don't auto-reveal
+        if ($activeVotersCount === 0) {
+            return;
+        }
+
+        // Count votes for current issue from non-owner participants only
+        $voteCount = $currentIssue->votes()
+            ->where('user_id', '!=', $this->session->owner_id)
+            ->count();
+
+        ray([
+            'activeVotersCount' => $activeVotersCount,
+            'voteCount' => $voteCount,
+            'currentIssue' => $currentIssue->toArray(),
+        ])->label('checkAndAutoRevealVotes');
+
+        // If all active voter participants have voted, auto-reveal
+        if ($voteCount >= $activeVotersCount) {
+            $this->revealVotes();
+        }
     }
 
     public function formatJiraDescription(?string $description): string
