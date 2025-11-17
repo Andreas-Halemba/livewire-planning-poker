@@ -100,7 +100,7 @@ run_remote "composer install --no-dev --optimize-autoloader --no-interaction"
 
 # 4. Install NPM dependencies
 echo -e "${GREEN}[4/9] Installing NPM dependencies...${NC}"
-run_remote "npm ci --production=false"
+run_remote "rm -rf node_modules && npm install"
 
 # 5. Build assets
 echo -e "${GREEN}[5/9] Building assets...${NC}"
