@@ -31,7 +31,7 @@
                 "conditions": []
             },
             {
-                "action": "npx prettier --check .",
+                "action": "./node_modules/.bin/prettier --check .",
                 "options": []
             }
         ]

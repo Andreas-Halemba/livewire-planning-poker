@@ -1,11 +1,11 @@
 <div class="w-full shadow-md bg-base-200 rounded-lg overflow-hidden">
     <div class="p-6">
-        <h2 class="text-xl font-semibold text-base-content mb-2">Your upcoming Sessions</h2>
-        <p class="text-base-content/70 mb-4">Here you can see all upcoming sessions you have created.</p>
+        <h2 class="text-xl font-semibold text-base-content mb-2">Archived Sessions</h2>
+        <p class="text-base-content/70 mb-4">Previously archived voting sessions appear here for reference.</p>
 
-        @if($sessions->isEmpty())
+        @if ($sessions->isEmpty())
             <div class="text-center py-8 text-base-content/60">
-                No upcoming sessions available.
+                No archived sessions yet.
             </div>
         @else
             <div class="overflow-x-auto">
@@ -13,31 +13,26 @@
                     <thead>
                         <tr>
                             <th class="text-base-content">Session Name</th>
-                            <th class="text-base-content">Created</th>
+                            <th class="text-base-content">Archived</th>
                             <th class="text-base-content text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($sessions as $session)
-                            <tr class="hover" x-data="{ copied: false }">
+                            <tr class="hover">
                                 <td class="font-medium text-base-content">{{ $session->name }}</td>
                                 <td class="text-base-content/70">
-                                    {{ Illuminate\Support\Carbon::create($session->created_at)->toFormattedDateString() }}
+                                    {{ optional($session->archived_at)->toFormattedDateString() }}
                                 </td>
                                 <td>
                                     <div class="flex gap-2 justify-end">
-                                        <a class="btn btn-primary btn-sm cursor-pointer"
-                                            href="{{ route('session.voting', ['inviteCode' => $session->invite_code]) }}">
-                                            Join
+                                        <a class="btn btn-outline btn-sm cursor-pointer"
+                                            href="{{ route('session.archived', ['inviteCode' => $session->invite_code]) }}">
+                                            View
                                         </a>
-                                        <button class="btn btn-outline btn-sm cursor-pointer"
-                                            @click="navigator.clipboard.writeText('{{ route('session.voting', ['inviteCode' => $session->invite_code]) }}').then(() => { copied = true; setTimeout(() => copied = false, 2000) })"
-                                            x-text="copied ? 'Copied!' : 'Copy Link'">
-                                            Copy Link
-                                        </button>
-                                        <button class="btn btn-warning btn-sm cursor-pointer"
-                                            wire:click.prevent="archiveSession('{{ $session->id }}')">
-                                            Archive
+                                        <button class="btn btn-success btn-sm cursor-pointer"
+                                            wire:click.prevent="unarchiveSession('{{ $session->id }}')">
+                                            Reactivate
                                         </button>
                                         <button class="btn btn-error btn-sm cursor-pointer"
                                             wire:click.prevent="deleteSession('{{ $session->id }}')">

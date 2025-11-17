@@ -1,3 +1,7 @@
+@php
+    $isArchived = $session->archived_at !== null;
+@endphp
+
 <div x-data="{
         sessionInviteCode: '{{ $session->invite_code }}',
         ownerId: {{ $session->owner_id }},
@@ -214,55 +218,69 @@
     <div class="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 mb-6 overflow-hidden">
         <!-- Left Sidebar: Actions -->
         <div class="flex flex-col order-2 gap-4 lg:order-1">
-            <!-- Import Section -->
-            <div class="bg-base-200 rounded-xl shadow-md border border-base-300 p-6">
-                <h3 class="text-base font-semibold text-base-content mb-4 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content/60" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                    </svg>
-                    Issues importieren
-                </h3>
-                <livewire:jira-import :session="$session" :key="'jira-import-' . $session->id" />
-            </div>
-
-            <!-- Manual Add Section -->
-            <div class="bg-base-200 rounded-xl shadow-md border border-base-300 p-6">
-                <h3 class="text-base font-semibold text-base-content mb-4 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content/60" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    Manuell hinzufügen
-                </h3>
-                <form wire:submit="addIssue()">
-                    <div class="mb-3">
-                        <input type="text"
-                            class="w-full px-3 py-2 border border-base-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-base-100 text-base-content"
-                            wire:model.live="issueTitle" placeholder="Issue-Titel" required />
-                        @error('issueTitle')
-                            <p class="mt-1 text-sm text-error">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div class="mb-4">
-                        <textarea
-                            class="w-full px-3 py-2 border border-base-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary min-h-20 bg-base-100 text-base-content"
-                            wire:model.live="issueDescription" placeholder="Beschreibung (optional)"></textarea>
-                        @error('issueDescription')
-                            <p class="mt-1 text-sm text-error">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-block cursor-pointer">
+            @if($isArchived)
+                <div class="bg-base-200 rounded-xl border border-warning text-base-content/80 p-6">
+                    <h3 class="text-base font-semibold mb-2 flex items-center gap-2 text-warning">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M12 9v2m0 4h.01M12 5C7.589 5 4 8.589 4 13s3.589 8 8 8 8-3.589 8-8-3.589-8-8-8z" />
                         </svg>
-                        Issue hinzufügen
-                    </button>
-                </form>
-            </div>
+                        Archivierte Session
+                    </h3>
+                    <p class="text-sm">Diese Session ist archiviert. Import und manuelles Hinzufügen sind deaktiviert.</p>
+                </div>
+            @else
+                <!-- Import Section -->
+                <div class="bg-base-200 rounded-xl shadow-md border border-base-300 p-6">
+                    <h3 class="text-base font-semibold text-base-content mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content/60" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                        </svg>
+                        Issues importieren
+                    </h3>
+                    <livewire:jira-import :session="$session" :key="'jira-import-' . $session->id" />
+                </div>
+
+                <!-- Manual Add Section -->
+                <div class="bg-base-200 rounded-xl shadow-md border border-base-300 p-6">
+                    <h3 class="text-base font-semibold text-base-content mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content/60" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Manuell hinzufügen
+                    </h3>
+                    <form wire:submit="addIssue()">
+                        <div class="mb-3">
+                            <input type="text"
+                                class="w-full px-3 py-2 border border-base-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-base-100 text-base-content"
+                                wire:model.live="issueTitle" placeholder="Issue-Titel" required />
+                            @error('issueTitle')
+                                <p class="mt-1 text-sm text-error">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="mb-4">
+                            <textarea
+                                class="w-full px-3 py-2 border border-base-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary min-h-20 bg-base-100 text-base-content"
+                                wire:model.live="issueDescription" placeholder="Beschreibung (optional)"></textarea>
+                            @error('issueDescription')
+                                <p class="mt-1 text-sm text-error">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Issue hinzufügen
+                        </button>
+                    </form>
+                </div>
+            @endif
         </div>
 
         <!-- Right: Issue Management -->

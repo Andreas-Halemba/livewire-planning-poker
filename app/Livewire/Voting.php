@@ -6,8 +6,10 @@ use App\Models\Session;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
 use Inspector\Laravel\InspectorLivewire;
 use Livewire\Component;
+use Livewire\Features\SupportRedirects\Redirector as LivewireRedirector;
 
 class Voting extends Component
 {
@@ -19,10 +21,14 @@ class Voting extends Component
 
     public int $participantsCount = 0;
 
-    public function mount(string $inviteCode): ?RedirectResponse
+    public function mount(string $inviteCode): RedirectResponse|LivewireRedirector|null
     {
         $this->inviteCode = $inviteCode;
         $this->session = Session::with('issues', 'users')->whereInviteCode($this->inviteCode)->firstOrFail();
+
+        if ($this->session->archived_at !== null) {
+            return Redirect::route('session.archived', $inviteCode);
+        }
         // Initialize with database count as fallback until SessionParticipants component updates it
         $this->participantsCount = $this->session->users->count();
         if (Auth::hasUser()) {

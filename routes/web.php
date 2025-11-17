@@ -3,6 +3,7 @@
 use App\Events\IssueCanceled;
 use App\Models\Issue;
 use App\Models\Session;
+use App\Livewire\ArchivedSessionView;
 use App\Livewire\Voting;
 use App\Livewire\SessionManagement;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', SessionManagement::class)->name('dashboard');
     // Route for the Voting component
     Route::get('/sessions/{inviteCode}/voting', Voting::class)->name('session.voting');
+    Route::get('/sessions/{inviteCode}/archived', ArchivedSessionView::class)->name('session.archived');
 
     // API endpoint to cancel voting when owner leaves (fallback for when PO is alone)
     Route::post('/api/sessions/{inviteCode}/cancel-voting-on-leave', function (string $inviteCode) {
