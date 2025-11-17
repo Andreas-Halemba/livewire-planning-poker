@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\SessionFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -46,6 +47,14 @@ class Session extends Model
         'name',
         'owner_id',
         'invite_code',
+        'archived_at',
+    ];
+
+    /**
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'archived_at' => 'datetime',
     ];
 
     public function owner(): BelongsTo
@@ -61,6 +70,22 @@ class Session extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)->withTimestamps();
+    }
+
+    /**
+     * @param Builder<Session> $query
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->whereNull('archived_at');
+    }
+
+    /**
+     * @param Builder<Session> $query
+     */
+    public function scopeArchived(Builder $query): Builder
+    {
+        return $query->whereNotNull('archived_at');
     }
 
     public function currentIssue(): ?Issue

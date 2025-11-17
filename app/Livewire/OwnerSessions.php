@@ -18,14 +18,29 @@ class OwnerSessions extends Component
 
     public function render(): View
     {
-        $this->sessions = Session::query()->whereOwnerId(Auth::id())->get();
+        $this->sessions = Session::query()
+            ->whereOwnerId(Auth::id())
+            ->active()
+            ->get();
 
         return view('livewire.owner-sessions');
     }
 
     public function deleteSession(string $sessionId): void
     {
-        $session = Session::findOrFail($sessionId);
+        $session = Session::whereOwnerId(Auth::id())->findOrFail($sessionId);
         $session->delete();
+    }
+
+    public function archiveSession(string $sessionId): void
+    {
+        $session = Session::whereOwnerId(Auth::id())->findOrFail($sessionId);
+
+        if ($session->archived_at !== null) {
+            return;
+        }
+
+        $session->archived_at = now();
+        $session->save();
     }
 }

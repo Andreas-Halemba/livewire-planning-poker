@@ -7,11 +7,14 @@
                 <livewire:user-sessions />
             </div>
         @endif
-        @if (auth()->user()->ownedSessions->count() > 0)
-            <div class="col-span-full">
-                <livewire:owner-sessions />
-            </div>
-        @endif
+
+        <div class="col-span-full">
+            <livewire:owner-sessions />
+        </div>
+
+        <div class="col-span-full">
+            <livewire:archived-sessions />
+        </div>
     </div>
 
 </div>

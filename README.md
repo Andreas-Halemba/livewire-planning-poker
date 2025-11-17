@@ -67,6 +67,15 @@ or run
 php artisan serve
 ```
 
+## Session Archiving
+
+- Run `php artisan migrate` after pulling the latest changes to add the `archived_at` column on `sessions`.
+- Product Owners can archive a voting session via the `Archive` button inside the **Your own Sessions** card.
+- Archived sessions disappear from the active list and are surfaced inside the new **Archived Sessions** block on the dashboard, where you can still open or delete them later.
+- The `View` action opens a read-only overview showing all issues (title, story points, Jira link + description accordion). Direct hits on `/sessions/{code}/voting` for archived sessions redirect there automatically.
+- Nur Owner sehen auf der read-only Seite einen Button „Session reaktivieren“, der das Archiv zurücksetzt und sofort wieder auf die aktive Voting-Ansicht führt.
+- Ebenfalls im Dashboard-Archivblock steht Ownern ein „Reactivate“-Button zur Verfügung, um Sessions ohne Umweg wieder zu öffnen.
+
 ## Services
 
 If you want to use the mail verification feature make sure to start a mailpit
