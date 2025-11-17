@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\ManagesSessions;
 use App\Models\Session;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -12,6 +13,7 @@ use Livewire\Component;
 class ArchivedSessions extends Component
 {
     use InspectorLivewire;
+    use ManagesSessions;
 
     /** @var Collection<int, Session> */
     public Collection $sessions;
@@ -37,26 +39,20 @@ class ArchivedSessions extends Component
 
     public function deleteSession(string $sessionId): void
     {
-        if (! Auth::id()) {
-            return;
-        }
-
-        $session = Session::whereOwnerId(Auth::id())->findOrFail($sessionId);
-        $session->delete();
+        $this->ownedSessionOrFail($sessionId)->delete();
+        $this->dispatchSessionsUpdated();
     }
 
     public function unarchiveSession(string $sessionId): void
     {
-        $ownerId = Auth::id();
-        if (! $ownerId) {
+        $session = $this->ownedSessionOrFail($sessionId);
+
+        if ($session->archived_at === null) {
             return;
         }
 
-        $session = Session::whereOwnerId($ownerId)
-            ->archived()
-            ->findOrFail($sessionId);
-
         $session->archived_at = null;
         $session->save();
+        $this->dispatchSessionsUpdated();
     }
 }

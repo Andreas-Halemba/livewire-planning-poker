@@ -19,7 +19,7 @@ class ArchivedSessionView extends Component
 
     public bool $isOwner = false;
 
-    public function mount(string $inviteCode): ?RedirectResponse
+    public function mount(string $inviteCode): RedirectResponse|LivewireRedirector|null
     {
         $this->session = Session::with(['issues' => function ($query) {
             $query->orderByDesc('storypoints')->orderBy('title');
@@ -53,6 +53,7 @@ class ArchivedSessionView extends Component
 
         $this->session->archived_at = null;
         $this->session->save();
+        $this->dispatch('sessions-updated');
 
         return Redirect::route('session.voting', $this->session->invite_code);
     }
