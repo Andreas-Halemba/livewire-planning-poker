@@ -82,5 +82,7 @@ class Voting extends Component
             return;
         }
         $this->session->users()->attach(Auth::user());
+        // Reload users relation to update the collection for policy checks
+        $this->session->load('users');
     }
 }

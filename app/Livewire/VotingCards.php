@@ -29,12 +29,16 @@ class VotingCards extends Component
 
     public ?int $selectedIssueId = null;
 
+    public bool $votesRevealed = false;
+
     /** @return array<string, string> */
     public function getListeners(): array
     {
         return [
             "echo-presence:session.{$this->session->invite_code},.IssueSelected" => 'handleIssueSelected',
             "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => 'handleIssueCanceled',
+            "echo-presence:session.{$this->session->invite_code},.RevealVotes" => 'handleRevealVotes',
+            "echo-presence:session.{$this->session->invite_code},.HideVotes" => 'handleHideVotes',
             'select-issue' => 'handleSelectIssue',
         ];
     }
@@ -44,12 +48,27 @@ class VotingCards extends Component
         // Clear manual selection when issue is selected for voting
         $this->selectedIssueId = null;
         $this->selectedCard = null;
+        $this->votesRevealed = false;
     }
 
     public function handleIssueCanceled(): void
     {
         // Reset when voting is canceled
         $this->selectedCard = null;
+        $this->votesRevealed = false;
+    }
+
+    public function handleRevealVotes(): void
+    {
+        $this->votesRevealed = true;
+    }
+
+    public function handleHideVotes(): void
+    {
+        $this->votesRevealed = false;
+        // Reset selected card and vote when hiding votes (e.g., on restart)
+        $this->selectedCard = null;
+        $this->vote = null;
     }
 
     public function handleSelectIssue(int $issueId): void
@@ -131,7 +150,30 @@ class VotingCards extends Component
             $this->selectedCard = null;
         }
 
-        return view('livewire.voting-cards');
+        // Get grouped votes for current voting issue (only if revealed)
+        $groupedVotes = [];
+        if ($this->currentIssue && $this->votesRevealed) {
+            $votes = $this->currentIssue->votes()->with('user')->get();
+            foreach ($votes as $vote) {
+                if ($vote->value !== null) {
+                    $value = (string) $vote->value;
+                    if (!isset($groupedVotes[$value])) {
+                        $groupedVotes[$value] = [
+                            'count' => 0,
+                            'participants' => [],
+                        ];
+                    }
+                    $groupedVotes[$value]['count']++;
+                    $groupedVotes[$value]['participants'][] = $vote->user->name;
+                }
+            }
+            // Sort by value
+            ksort($groupedVotes, SORT_NUMERIC);
+        }
+
+        return view('livewire.voting-cards', [
+            'groupedVotes' => $groupedVotes,
+        ]);
     }
 
     public function selectCard(int|string $card): void
@@ -165,12 +207,20 @@ class VotingCards extends Component
 
         $this->vote = $this->selectedCard === '?' ? null : (int) $this->selectedCard;
 
-        // Only broadcast HideVotes if there's an active voting session
-        // (STATUS_VOTING). For async voting, we just notify about the new vote.
-        if ($this->currentIssue->status === Issue::STATUS_VOTING) {
+        // For async voting (not STATUS_VOTING), just save the vote without finishing
+        if ($this->currentIssue->status !== Issue::STATUS_VOTING) {
+            // For async voting: only update locally, don't broadcast to others
+            // Each user works independently, issue stays open for others to vote
+            $this->dispatch('refresh-voter-lists');
+
+            // Clear selection after saving
+            $this->selectedIssueId = null;
+            $this->selectedCard = null;
+        } else {
+            // For synchronous voting (active session): broadcast to all users
             broadcast(new HideVotes($this->session))->toOthers();
+            broadcast(new AddVote($this->session, Auth::user()))->toOthers();
         }
-        broadcast(new AddVote($this->session, Auth::user()))->toOthers();
     }
 
     public function removeVote(): void
@@ -202,6 +252,9 @@ class VotingCards extends Component
         // Send AddVote event to update vote status
         // @phpstan-ignore-next-line use can not be null here
         broadcast(new AddVote($this->session, auth()->user()))->toOthers();
+
+        // Refresh voter lists to move issue back to "Noch zu schätzen" for async voting
+        $this->dispatch('refresh-voter-lists');
 
         $this->vote = null;
         $this->selectedCard = null;
