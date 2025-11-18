@@ -331,12 +331,6 @@ class Owner extends Component
             ->where('user_id', '!=', $this->session->owner_id)
             ->count();
 
-        ray([
-            'activeVotersCount' => $activeVotersCount,
-            'voteCount' => $voteCount,
-            'currentIssue' => $currentIssue->toArray(),
-        ])->label('checkAndAutoRevealVotes');
-
         // If all active voter participants have voted, auto-reveal
         if ($voteCount >= $activeVotersCount) {
             $this->revealVotes();
