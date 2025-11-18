@@ -66,8 +66,6 @@ class JiraService
         $issueKey = $jiraIssue->key ?? '';
         $browserUrl = $this->convertApiUrlToBrowserUrl($jiraIssue->self ?? '', $issueKey);
 
-        ray($jiraIssue->fields);
-
         return [
             'title' => $jiraIssue->fields->summary ?? 'No title',
             'description' => $jiraIssue->renderedFields['description'] ?? null,
