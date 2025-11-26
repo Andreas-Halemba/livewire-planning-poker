@@ -17,6 +17,18 @@ use Inspector\Laravel\InspectorLivewire;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
+/**
+ * Product Owner Panel - verwaltet Issues und Voting-Steuerung.
+ * 
+ * Props vom Parent (Voting.php):
+ * - session: Die aktuelle Session
+ * - votesRevealed: Ob Votes angezeigt werden (vom Parent verwaltet, aber Owner kann triggern)
+ * - groupedVotes: Gruppierte Votes für die Ergebnis-Anzeige (vom Parent berechnet)
+ * 
+ * HINWEIS: Owner ist ein Sonderfall - er kann revealVotes() selbst triggern,
+ * bekommt aber den Event nicht via Echo zurück (wegen ->toOthers()).
+ * Daher setzt er den lokalen State selbst UND broadcastet.
+ */
 class Owner extends Component
 {
     use InspectorLivewire;
@@ -33,7 +45,11 @@ class Owner extends Component
 
     public ?int $customEstimate = null;
 
+    /** @var bool Wird vom Parent als Prop übergeben, aber Owner kann auch selbst setzen */
     public bool $votesRevealed = false;
+
+    /** @var array<string, array{count: int, participants: array<string>}> Vom Parent berechnet */
+    public array $groupedVotes = [];
 
     public int $activeParticipantsCount = 0;
 
@@ -48,21 +64,19 @@ class Owner extends Component
     public function getListeners(): array
     {
         return [
+            // Issue Events
             "echo-presence:session.{$this->session->invite_code},.IssueAdded" => 'handleIssueAdded',
             "echo-presence:session.{$this->session->invite_code},.IssueDeleted" => 'handleIssueDeleted',
-            "echo-presence:session.{$this->session->invite_code},.RevealVotes" => 'handleRevealVotes',
-            "echo-presence:session.{$this->session->invite_code},.HideVotes" => 'handleHideVotes',
-            "echo-presence:session.{$this->session->invite_code},.IssueSelected" => 'handleIssueSelected',
-            "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => 'handleIssueCanceled',
             "echo-presence:session.{$this->session->invite_code},.AddVote" => 'handleAddVote',
+            // Livewire Events
             'refresh-voter-lists' => 'handleIssueAdded',
             'participants-count-updated' => 'updateActiveParticipantsCount',
         ];
     }
 
     #[Computed]
-    /**
-     * @return Collection<int, \App\Models\Issue>
+    /** 
+     * @return Collection<int, \App\Models\Issue> 
      */
     public function issues(): Collection
     {
@@ -85,36 +99,14 @@ class Owner extends Component
         $this->refreshIssues();
     }
 
-    public function handleRevealVotes(): void
-    {
-        $this->votesRevealed = true;
-    }
-
-    public function handleHideVotes(): void
-    {
-        $this->reset(['votesRevealed', 'selectedEstimate', 'customEstimate']);
-    }
-
-    public function handleIssueSelected(): void
-    {
-        $this->reset(['votesRevealed', 'selectedEstimate', 'customEstimate']);
-    }
-
-    public function handleIssueCanceled(): void
-    {
-        $this->reset(['votesRevealed', 'selectedEstimate', 'customEstimate']);
-    }
-
     public function handleAddVote(): void
     {
-        // Check if all participants have voted and auto-reveal if so
-        // $this->checkAndAutoRevealVotes();
+        // Vote wurde hinzugefügt - prüfe auto-reveal
     }
 
     public function updateActiveParticipantsCount(int $count): void
     {
         $this->activeParticipantsCount = $count;
-        // Skip render as this is just updating a counter value
         $this->skipRender();
     }
 
@@ -123,30 +115,10 @@ class Owner extends Component
         // Check if all participants have voted and auto-reveal if so
         $this->checkAndAutoRevealVotes();
 
-        // Get grouped votes for current voting issue (only if revealed)
-        $groupedVotes = [];
         $currentIssue = $this->session->currentIssue();
-        if ($currentIssue && $this->votesRevealed) {
-            $votes = $currentIssue->votes()->with('user')->get();
-            foreach ($votes as $vote) {
-                if ($vote->value !== null) {
-                    $value = (string) $vote->value;
-                    if (!isset($groupedVotes[$value])) {
-                        $groupedVotes[$value] = [
-                            'count' => 0,
-                            'participants' => [],
-                        ];
-                    }
-                    $groupedVotes[$value]['count']++;
-                    $groupedVotes[$value]['participants'][] = $vote->user->name;
-                }
-            }
-            // Sort by value
-            ksort($groupedVotes, SORT_NUMERIC);
-        }
 
+        // groupedVotes kommt vom Parent als Prop
         return view('livewire.voting.owner', [
-            'groupedVotes' => $groupedVotes,
             'currentIssue' => $currentIssue,
         ]);
     }
@@ -250,7 +222,10 @@ class Owner extends Component
         $issue = Issue::query()->whereId($id)->firstOrFail();
         $issue->status = IssueStatus::VOTING;
         $issue->save();
-        $this->votesRevealed = false; // Reset votes revealed when starting new voting
+        // Reset local state when starting new voting
+        $this->votesRevealed = false;
+        $this->selectedEstimate = null;
+        $this->customEstimate = null;
         broadcast(new IssueSelected($this->session->invite_code))->toOthers();
     }
 
@@ -258,9 +233,10 @@ class Owner extends Component
     {
         $currentIssue = $this->session->currentIssue();
         if ($currentIssue) {
+            // Setze lokalen State (Owner bekommt kein Echo-Event wegen ->toOthers())
             $this->votesRevealed = true;
+            // Broadcaste an alle anderen
             broadcast(new RevealVotes($this->session->invite_code))->toOthers();
-            $this->dispatch('votes-revealed');
         }
     }
 
@@ -271,7 +247,7 @@ class Owner extends Component
             // Delete all votes for the current issue
             $currentIssue->votes()->delete();
 
-            // Reset votes revealed state
+            // Reset local state
             $this->votesRevealed = false;
             $this->selectedEstimate = null;
             $this->customEstimate = null;

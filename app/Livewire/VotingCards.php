@@ -13,6 +13,14 @@ use Illuminate\Support\Facades\Auth;
 use Inspector\Laravel\InspectorLivewire;
 use Livewire\Component;
 
+/**
+ * Zeigt die Voting-Karten für Entwickler an.
+ * 
+ * Props vom Parent (Voting.php):
+ * - session: Die aktuelle Session
+ * - votesRevealed: Ob Votes angezeigt werden (vom Parent verwaltet)
+ * - groupedVotes: Gruppierte Votes für die Ergebnis-Anzeige (vom Parent berechnet)
+ */
 class VotingCards extends Component
 {
     use InspectorLivewire;
@@ -30,16 +38,21 @@ class VotingCards extends Component
 
     public ?int $selectedIssueId = null;
 
+    /** @var bool Vom Parent verwaltet - zeigt an ob Votes sichtbar sind */
     public bool $votesRevealed = false;
+
+    /** @var array<string, array{count: int, participants: array<string>}> Vom Parent berechnet */
+    public array $groupedVotes = [];
 
     /** @return array<string, string> */
     public function getListeners(): array
     {
         return [
+            // Issue Events für Karten-Reset
             "echo-presence:session.{$this->session->invite_code},.IssueSelected" => 'handleIssueSelected',
             "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => 'handleIssueCanceled',
-            "echo-presence:session.{$this->session->invite_code},.RevealVotes" => 'handleRevealVotes',
             "echo-presence:session.{$this->session->invite_code},.HideVotes" => 'handleHideVotes',
+            // Async voting - manuelle Issue-Auswahl
             'select-issue' => 'handleSelectIssue',
         ];
     }
@@ -49,24 +62,16 @@ class VotingCards extends Component
         // Clear manual selection when issue is selected for voting
         $this->selectedIssueId = null;
         $this->selectedCard = null;
-        $this->votesRevealed = false;
     }
 
     public function handleIssueCanceled(): void
     {
         // Reset when voting is canceled
         $this->selectedCard = null;
-        $this->votesRevealed = false;
-    }
-
-    public function handleRevealVotes(): void
-    {
-        $this->votesRevealed = true;
     }
 
     public function handleHideVotes(): void
     {
-        $this->votesRevealed = false;
         // Reset selected card and vote when hiding votes (e.g., on restart)
         $this->selectedCard = null;
         $this->vote = null;
@@ -122,7 +127,6 @@ class VotingCards extends Component
         }
 
         // Clear selection if selected issue no longer exists
-        // Note: Don't clear if issue is FINISHED but user has a vote (to allow vote removal)
         if ($this->selectedIssueId && !$this->currentIssue) {
             $this->selectedIssueId = null;
         } elseif ($this->selectedIssueId && $this->currentIssue && $this->currentIssue->status === IssueStatus::FINISHED) {
@@ -151,30 +155,8 @@ class VotingCards extends Component
             $this->selectedCard = null;
         }
 
-        // Get grouped votes for current voting issue (only if revealed)
-        $groupedVotes = [];
-        if ($this->currentIssue && $this->votesRevealed) {
-            $votes = $this->currentIssue->votes()->with('user')->get();
-            foreach ($votes as $vote) {
-                if ($vote->value !== null) {
-                    $value = (string) $vote->value;
-                    if (!isset($groupedVotes[$value])) {
-                        $groupedVotes[$value] = [
-                            'count' => 0,
-                            'participants' => [],
-                        ];
-                    }
-                    $groupedVotes[$value]['count']++;
-                    $groupedVotes[$value]['participants'][] = $vote->user->name;
-                }
-            }
-            // Sort by value
-            ksort($groupedVotes, SORT_NUMERIC);
-        }
-
-        return view('livewire.voting-cards', [
-            'groupedVotes' => $groupedVotes,
-        ]);
+        // groupedVotes kommt jetzt vom Parent als Prop
+        return view('livewire.voting-cards');
     }
 
     public function selectCard(int|string $card): void

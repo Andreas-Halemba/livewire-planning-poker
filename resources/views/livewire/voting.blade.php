@@ -13,17 +13,22 @@
             </div>
         </div>
         <div class="text-sm font-semibold mt-3 mb-3 uppercase tracking-wide">Teilnehmer</div>
-        <livewire:session-participants :session="$session" :key="'session-participants-' . $session->id" />
+        <livewire:session-participants 
+            :session="$session" 
+            :votes-revealed="$votesRevealed"
+            :key="'session-participants-' . $session->id" 
+        />
     </div>
 
     @can('vote_session', $session)
         @if(Auth::id() !== $session->owner_id)
-            @php
-                $currentIssue = $session->currentIssue();
-            @endphp
-
             <!-- Voting Cards Section - Shows for active voting or manually selected issue -->
-            <livewire:voting-cards :session="$session" key="voting-cards-{{ $session->id }}" />
+            <livewire:voting-cards 
+                :session="$session" 
+                :votes-revealed="$votesRevealed"
+                :grouped-votes="$groupedVotes"
+                key="voting-cards-{{ $session->id }}" 
+            />
 
             <!-- Upcoming Issues & History -->
             <livewire:voting.voter :session="$session" :key="'voter-' . $session->id" />
@@ -31,6 +36,11 @@
     @endcan
 
     @can('owns_session', $session)
-        <livewire:voting.owner :session="$session" :key="'owner-' . $session->id" />
+        <livewire:voting.owner 
+            :session="$session" 
+            :votes-revealed="$votesRevealed"
+            :grouped-votes="$groupedVotes"
+            :key="'owner-' . $session->id" 
+        />
     @endcan
 </div>

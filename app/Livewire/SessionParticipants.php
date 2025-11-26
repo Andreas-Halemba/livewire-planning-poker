@@ -4,8 +4,6 @@ namespace App\Livewire;
 
 use App\Enums\IssueStatus;
 use App\Events\IssueCanceled;
-use App\Events\RevealVotes;
-use App\Models\Issue;
 use App\Models\Session;
 use App\Models\User;
 use App\Models\Vote;
@@ -16,24 +14,27 @@ use Illuminate\Support\Facades\Auth;
 use Inspector\Laravel\InspectorLivewire;
 use Livewire\Component;
 
+/**
+ * Zeigt die Teilnehmer einer Session und deren Voting-Status an.
+ * 
+ * Props vom Parent (Voting.php):
+ * - session: Die aktuelle Session
+ * - votesRevealed: Ob Votes angezeigt werden (vom Parent verwaltet)
+ */
 class SessionParticipants extends Component
 {
     use InspectorLivewire;
 
     public Session $session;
 
+    /** @var bool Vom Parent verwaltet - zeigt an ob Votes sichtbar sind */
+    public bool $votesRevealed = false;
+
     /** @var Collection<int|string, \App\Models\User> */
     public Collection $participants;
 
-    public ?Issue $issue = null;
-
     /** @var array<int|string, mixed> */
     public array $votes = [];
-
-    /** @var array<string, bool> */
-    public array $participantsVoted = [];
-
-    public bool $votesRevealed = false;
 
     public function mount(): void
     {
@@ -43,9 +44,25 @@ class SessionParticipants extends Component
         }
     }
 
+    /** @return array<string, string> */
+    public function getListeners(): array
+    {
+        return [
+            // Presence Channel Events für Teilnehmer-Verwaltung
+            "echo-presence:session.{$this->session->invite_code},here" => 'updateUsers',
+            "echo-presence:session.{$this->session->invite_code},joining" => 'userJoins',
+            "echo-presence:session.{$this->session->invite_code},leaving" => 'userLeaves',
+            // Vote Events für Vote-Status Anzeige
+            "echo-presence:session.{$this->session->invite_code},.AddVote" => 'handleNewVote',
+            "echo-presence:session.{$this->session->invite_code},.IssueSelected" => 'handleIssueChange',
+            "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => 'handleIssueChange',
+        ];
+    }
+
     public function render(): View
     {
-        $this->updateIssueData();
+        $this->updateVotesDisplay();
+        
         // Sort participants: owner first, then others
         $this->participants = $this->participants->sortBy(function (User $user) {
             return $user->id === $this->session->owner_id ? 0 : 1;
@@ -57,33 +74,16 @@ class SessionParticipants extends Component
         return view('livewire.session-participants');
     }
 
-    /** @return array<string, string> */
-    public function getListeners(): array
+    public function handleIssueChange(): void
     {
-        return [
-            "echo-presence:session.{$this->session->invite_code},.AddVote" => 'newVote',
-            "echo-presence:session.{$this->session->invite_code},.RevealVotes" => 'revealVotes',
-            "echo-presence:session.{$this->session->invite_code},.HideVotes" => 'hideVotes',
-            "echo-presence:session.{$this->session->invite_code},here" => 'updateUsers',
-            "echo-presence:session.{$this->session->invite_code},joining" => 'userJoins',
-            "echo-presence:session.{$this->session->invite_code},leaving" => 'userLeaves',
-            "echo-presence:session.{$this->session->invite_code},.IssueSelected" => 'updateCurrentIssue',
-            "echo-presence:session.{$this->session->invite_code},.IssueCanceled" => 'unsetCurrentIssue',
-        ];
+        $this->votes = [];
+        $this->updateVotesDisplay();
     }
 
-    public function updateCurrentIssue(): void
+    public function handleNewVote(User $user): void
     {
-        $this->updateIssueData();
+        $this->votes[$user->id] = 'X';
     }
-
-    public function unsetCurrentIssue(): void
-    {
-        $this->issue = null;
-        $this->reset('votes', 'votesRevealed');
-        $this->updateIssueData();
-    }
-
 
     /**
      * User joins the session.
@@ -91,12 +91,10 @@ class SessionParticipants extends Component
      */
     public function userJoins(array $user): void
     {
-        // Skip if no valid user ID
         if (!isset($user['id']) || !$user['id']) {
             return;
         }
 
-        // Skip if user is current user or already in participants
         if ($user['id'] === Auth::id() || $this->participants->contains('id', $user['id'])) {
             return;
         }
@@ -114,18 +112,13 @@ class SessionParticipants extends Component
 
     public function userLeaves(array|User $userData): void
     {
-        // Handle both array (from Presence Channel) and User object formats
         $userId = is_array($userData) ? ($userData['id'] ?? null) : ($userData->id ?? null);
 
-        // Skip if no valid user ID
         if (!$userId) {
             return;
         }
 
-        // Remove user from participants list
         $this->participants = $this->participants->filter(fn(User $participant) => $participant->id !== $userId);
-
-        // Dispatch updated count
         $this->dispatch('participants-count-updated', count: $this->participants->count());
 
         // If the owner leaves, cancel the current voting
@@ -161,72 +154,31 @@ class SessionParticipants extends Component
         }
     }
 
-    public function revealVotes(): void
-    {
-        $currentIssue = $this->session->currentIssue();
-        if ($currentIssue) {
-            // Use fresh query to get latest votes
-            $this->votes = Vote::query()->whereBelongsTo($currentIssue)->get()->pluck('value', 'user_id')->toArray();
-            $this->votesRevealed = true;
-        }
-    }
-
-    public function hideVotes(): void
-    {
-        $this->votes = [];
-        $this->votesRevealed = false;
-    }
-
-    public function newVote(User $user): void
-    {
-        $this->votes[$user->id] = 'X';
-    }
-
-    public function sendRevealEvent(): void
-    {
-        $this->revealVotes();
-        broadcast(new RevealVotes($this->session->invite_code))->toOthers();
-    }
-
     public function userDidVote(string $id): bool
     {
-        // User has voted if there's an entry in votes array (value can be null for "?" vote)
         return Arr::has($this->votes, $id);
     }
 
-    private function updateIssueData(): void
+    private function updateVotesDisplay(): void
     {
         $currentIssue = $this->session->currentIssue();
-        if ($currentIssue) {
-            // Reload votes relation to get fresh data (important when user votes themselves)
-            $currentIssue->load('votes');
-
-            // If votes are revealed, show actual values (including null for "?")
-            if ($this->votesRevealed) {
-                $this->votes = $currentIssue->votes->mapWithKeys(
-                    fn(Vote $vote) => [$vote->user_id => $vote->value],
-                )->toArray();
-            } else {
-                // Otherwise, just mark that users have voted (without showing values)
-                // Include ALL votes, even those with null value (for "?" vote)
-                $this->votes = $currentIssue->votes->mapWithKeys(
-                    fn(Vote $vote) => [$vote->user_id => 'X'], // 'X' indicates vote exists (value hidden)
-                )->toArray();
-            }
-
-            // Current user can always see their own vote value
-            $currentUserVote = $currentIssue->votes()->whereUserId(Auth::id())->first();
-            if ($currentUserVote) {
-                if ($this->votesRevealed) {
-                    $this->votes[Auth::id()] = $currentUserVote->value;
-                } else {
-                    // Still show 'X' for current user if votes not revealed
-                    $this->votes[Auth::id()] = 'X';
-                }
-            }
-        } else {
-            // No current issue - clear votes
+        if (!$currentIssue) {
             $this->votes = [];
+            return;
+        }
+
+        $currentIssue->load('votes');
+
+        if ($this->votesRevealed) {
+            // Show actual vote values
+            $this->votes = $currentIssue->votes->mapWithKeys(
+                fn(Vote $vote) => [$vote->user_id => $vote->value],
+            )->toArray();
+        } else {
+            // Show 'X' to indicate vote exists (value hidden)
+            $this->votes = $currentIssue->votes->mapWithKeys(
+                fn(Vote $vote) => [$vote->user_id => 'X'],
+            )->toArray();
         }
     }
 }
