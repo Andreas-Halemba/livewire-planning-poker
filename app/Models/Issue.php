@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\IssueStatus;
 use Database\Factories\IssueFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -48,12 +49,6 @@ class Issue extends Model
     /** @use HasFactory<IssueFactory> */
     use HasFactory;
 
-    public const STATUS_NEW = 'open';
-
-    public const STATUS_VOTING = 'voting';
-
-    public const STATUS_FINISHED = 'finished';
-
     protected $fillable = [
         'title',
         'description',
@@ -62,6 +57,10 @@ class Issue extends Model
         'storypoints',
         'jira_key',
         'jira_url',
+    ];
+
+    protected $casts = [
+        'status' => IssueStatus::class,
     ];
 
     public function session(): BelongsTo
@@ -195,12 +194,12 @@ class Issue extends Model
     // function that returns true if the status is voiting
     public function isVoting(): bool
     {
-        return $this->status === self::STATUS_VOTING;
+        return $this->status === IssueStatus::VOTING;
     }
 
     // function that returns true if the status is finished
     public function isFinished(): bool
     {
-        return $this->status === self::STATUS_FINISHED;
+        return $this->status === IssueStatus::FINISHED;
     }
 }

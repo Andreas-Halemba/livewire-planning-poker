@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\IssueStatus;
 use App\Events\AddVote;
 use App\Events\HideVotes;
 use App\Models\Issue;
@@ -83,7 +84,7 @@ class VotingCards extends Component
             ->first();
 
         // Allow selection if issue is not finished, or if user has already voted (to allow vote removal)
-        if ($issue && ($issue->status !== Issue::STATUS_FINISHED || Vote::whereUserId(auth()->id())->whereIssueId($issue->id)->exists())) {
+        if ($issue && ($issue->status !== IssueStatus::FINISHED || Vote::whereUserId(auth()->id())->whereIssueId($issue->id)->exists())) {
             $this->selectedIssueId = $issue->id;
             $this->dispatch('issue-selected', issueId: $issue->id);
         }
@@ -99,7 +100,7 @@ class VotingCards extends Component
     public function render(): View
     {
         // First check for active voting issue (STATUS_VOTING)
-        $this->currentIssue = Issue::whereStatus(Issue::STATUS_VOTING)
+        $this->currentIssue = Issue::whereStatus(IssueStatus::VOTING)
             ->whereSessionId($this->session->id)
             ->first(['id', 'title', 'status', 'description', 'jira_key', 'jira_url']);
 
@@ -115,7 +116,7 @@ class VotingCards extends Component
                 ->first(['id', 'title', 'status', 'description', 'jira_key', 'jira_url']);
 
             // Allow FINISHED issues only if user has already voted (to allow vote removal)
-            if ($selectedIssue && ($selectedIssue->status !== Issue::STATUS_FINISHED || Vote::whereUserId(auth()->id())->whereIssueId($selectedIssue->id)->exists())) {
+            if ($selectedIssue && ($selectedIssue->status !== IssueStatus::FINISHED || Vote::whereUserId(auth()->id())->whereIssueId($selectedIssue->id)->exists())) {
                 $this->currentIssue = $selectedIssue;
             }
         }
@@ -124,7 +125,7 @@ class VotingCards extends Component
         // Note: Don't clear if issue is FINISHED but user has a vote (to allow vote removal)
         if ($this->selectedIssueId && !$this->currentIssue) {
             $this->selectedIssueId = null;
-        } elseif ($this->selectedIssueId && $this->currentIssue && $this->currentIssue->status === Issue::STATUS_FINISHED) {
+        } elseif ($this->selectedIssueId && $this->currentIssue && $this->currentIssue->status === IssueStatus::FINISHED) {
             // Only clear if user doesn't have a vote on this finished issue
             if (!Vote::whereUserId(auth()->id())->whereIssueId($this->currentIssue->id)->exists()) {
                 $this->selectedIssueId = null;
@@ -208,7 +209,7 @@ class VotingCards extends Component
         $this->vote = $this->selectedCard === '?' ? null : (int) $this->selectedCard;
 
         // For async voting (not STATUS_VOTING), just save the vote without finishing
-        if ($this->currentIssue->status !== Issue::STATUS_VOTING) {
+        if ($this->currentIssue->status !== IssueStatus::VOTING) {
             // For async voting: only update locally, don't broadcast to others
             // Each user works independently, issue stays open for others to vote
             $this->dispatch('refresh-voter-lists');
@@ -218,8 +219,8 @@ class VotingCards extends Component
             $this->selectedCard = null;
         } else {
             // For synchronous voting (active session): broadcast to all users
-            broadcast(new HideVotes($this->session))->toOthers();
-            broadcast(new AddVote($this->session, Auth::user()))->toOthers();
+            broadcast(new HideVotes($this->session->invite_code))->toOthers();
+            broadcast(new AddVote($this->session->invite_code, Auth::user()))->toOthers();
         }
     }
 
@@ -238,20 +239,20 @@ class VotingCards extends Component
 
         // Only reset issue status to VOTING if it was previously in a voting state
         // (e.g., STATUS_FINISHED). For async voting (STATUS_NEW), keep the status unchanged.
-        if ($originalStatus === Issue::STATUS_FINISHED) {
-            $issue->status = Issue::STATUS_VOTING;
+        if ($originalStatus === IssueStatus::FINISHED) {
+            $issue->status = IssueStatus::VOTING;
             $issue->save();
         }
 
         // Only broadcast HideVotes if there's an active voting session
         // (STATUS_VOTING). For async voting, we just notify about the vote removal.
-        if ($originalStatus === Issue::STATUS_VOTING || $issue->status === Issue::STATUS_VOTING) {
-            broadcast(new HideVotes($this->session))->toOthers();
+        if ($originalStatus === IssueStatus::VOTING || $issue->status === IssueStatus::VOTING) {
+            broadcast(new HideVotes($this->session->invite_code))->toOthers();
         }
 
         // Send AddVote event to update vote status
         // @phpstan-ignore-next-line use can not be null here
-        broadcast(new AddVote($this->session, auth()->user()))->toOthers();
+        broadcast(new AddVote($this->session->invite_code, auth()->user()))->toOthers();
 
         // Refresh voter lists to move issue back to "Noch zu schätzen" for async voting
         $this->dispatch('refresh-voter-lists');

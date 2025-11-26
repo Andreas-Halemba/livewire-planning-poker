@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\IssueStatus;
 use App\Livewire\VotingCards;
 use App\Models\Issue;
 use App\Models\Session;
@@ -12,7 +13,7 @@ test('user can select a numeric card when no vote exists', function () {
     $session = Session::factory()->create(['owner_id' => $user->id]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
-        'status' => Issue::STATUS_VOTING,
+        'status' => IssueStatus::VOTING,
     ]);
 
     Livewire::actingAs($user)
@@ -28,7 +29,7 @@ test('user can select question mark card when no vote exists', function () {
     $session = Session::factory()->create(['owner_id' => $user->id]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
-        'status' => Issue::STATUS_VOTING,
+        'status' => IssueStatus::VOTING,
     ]);
 
     Livewire::actingAs($user)
@@ -44,7 +45,7 @@ test('user can select different numeric cards', function () {
     $session = Session::factory()->create(['owner_id' => $user->id]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
-        'status' => Issue::STATUS_VOTING,
+        'status' => IssueStatus::VOTING,
     ]);
 
     $component = Livewire::actingAs($user)
@@ -64,7 +65,7 @@ test('user cannot select card after voting', function () {
     $session = Session::factory()->create(['owner_id' => $user->id]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
-        'status' => Issue::STATUS_VOTING,
+        'status' => IssueStatus::VOTING,
     ]);
 
     // Create an existing vote
@@ -85,7 +86,7 @@ test('user can change selected card before confirming vote', function () {
     $session = Session::factory()->create(['owner_id' => $user->id]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
-        'status' => Issue::STATUS_VOTING,
+        'status' => IssueStatus::VOTING,
     ]);
 
     $component = Livewire::actingAs($user)
@@ -106,7 +107,7 @@ test('selectCard handles string numeric input correctly', function () {
     $session = Session::factory()->create(['owner_id' => $user->id]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
-        'status' => Issue::STATUS_VOTING,
+        'status' => IssueStatus::VOTING,
     ]);
 
     Livewire::actingAs($user)
@@ -141,7 +142,7 @@ test('user can select an issue for async voting', function () {
     $session = Session::factory()->create(['owner_id' => $user->id]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
-        'status' => Issue::STATUS_NEW, // Not STATUS_VOTING
+        'status' => IssueStatus::NEW, // Not STATUS_VOTING
     ]);
 
     $component = Livewire::actingAs($user)
@@ -159,7 +160,7 @@ test('user can vote on manually selected issue (async voting)', function () {
     $session = Session::factory()->create(['owner_id' => $user->id]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
-        'status' => Issue::STATUS_NEW, // Not STATUS_VOTING
+        'status' => IssueStatus::NEW, // Not STATUS_VOTING
     ]);
 
     $component = Livewire::actingAs($user)
@@ -179,7 +180,7 @@ test('async vote persists even when issue is not STATUS_VOTING', function () {
     $session = Session::factory()->create(['owner_id' => $user->id]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
-        'status' => Issue::STATUS_NEW,
+        'status' => IssueStatus::NEW,
     ]);
 
     // User votes async
@@ -196,7 +197,7 @@ test('async vote persists even when issue is not STATUS_VOTING', function () {
 
     // Verify issue status hasn't changed
     $issue->refresh();
-    expect($issue->status)->toBe(Issue::STATUS_NEW);
+    expect($issue->status)->toBe(IssueStatus::NEW);
 });
 
 test('manual selection is cleared when PO starts voting', function () {
@@ -204,7 +205,7 @@ test('manual selection is cleared when PO starts voting', function () {
     $session = Session::factory()->create(['owner_id' => $user->id]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
-        'status' => Issue::STATUS_NEW,
+        'status' => IssueStatus::NEW,
     ]);
 
     $component = Livewire::actingAs($user)
@@ -213,7 +214,7 @@ test('manual selection is cleared when PO starts voting', function () {
         ->assertSet('selectedIssueId', $issue->id);
 
     // PO starts voting on this issue
-    $issue->status = Issue::STATUS_VOTING;
+    $issue->status = IssueStatus::VOTING;
     $issue->save();
 
     // Render should clear manual selection
@@ -230,7 +231,7 @@ test('user can clear manual issue selection', function () {
     $session = Session::factory()->create(['owner_id' => $user->id]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
-        'status' => Issue::STATUS_NEW,
+        'status' => IssueStatus::NEW,
     ]);
 
     $component = Livewire::actingAs($user)
@@ -248,7 +249,7 @@ test('async votes are visible when PO reveals votes after starting voting', func
     $session = Session::factory()->create(['owner_id' => $po->id]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
-        'status' => Issue::STATUS_NEW,
+        'status' => IssueStatus::NEW,
     ]);
 
     // Developer votes async before PO starts voting
@@ -262,7 +263,7 @@ test('async votes are visible when PO reveals votes after starting voting', func
     expect(Vote::whereUserId($developer->id)->whereIssueId($issue->id)->exists())->toBeTrue();
 
     // PO starts voting
-    $issue->status = Issue::STATUS_VOTING;
+    $issue->status = IssueStatus::VOTING;
     $issue->save();
 
     // PO reveals votes - votes should be visible
@@ -277,7 +278,7 @@ test('removing vote from async voting issue does not change status from NEW to V
     $session = Session::factory()->create(['owner_id' => $user->id]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
-        'status' => Issue::STATUS_NEW, // Async voting scenario
+        'status' => IssueStatus::NEW, // Async voting scenario
     ]);
 
     // User votes async
@@ -301,7 +302,7 @@ test('removing vote from async voting issue does not change status from NEW to V
 
     // Verify issue status remains NEW (not changed to VOTING)
     $issue->refresh();
-    expect($issue->status)->toBe(Issue::STATUS_NEW);
+    expect($issue->status)->toBe(IssueStatus::NEW);
 });
 
 test('removing vote from finished issue resets status to VOTING', function () {
@@ -309,7 +310,7 @@ test('removing vote from finished issue resets status to VOTING', function () {
     $session = Session::factory()->create(['owner_id' => $user->id]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
-        'status' => Issue::STATUS_FINISHED, // Issue was already estimated
+        'status' => IssueStatus::FINISHED, // Issue was already estimated
     ]);
 
     // Create an existing vote
@@ -330,5 +331,5 @@ test('removing vote from finished issue resets status to VOTING', function () {
 
     // Verify issue status is reset to VOTING (to allow re-voting)
     $issue->refresh();
-    expect($issue->status)->toBe(Issue::STATUS_VOTING);
+    expect($issue->status)->toBe(IssueStatus::VOTING);
 });

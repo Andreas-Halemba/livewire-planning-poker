@@ -2,7 +2,6 @@
 
 namespace App\Events;
 
-use App\Models\Session;
 use App\Models\User;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -19,11 +18,11 @@ class AddVote implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
-    public function __construct(private Session $session, public User $user) {}
+    public function __construct(private string $sessionCode, public User $user) {}
 
     public function broadcastOn(): PresenceChannel
     {
-        return new PresenceChannel('session.' . $this->session->invite_code);
+        return new PresenceChannel('session.' . $this->sessionCode);
     }
 
     public function broadcastAs(): string
