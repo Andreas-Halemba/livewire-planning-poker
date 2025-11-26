@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Voting;
 
+use App\Enums\IssueStatus;
 use App\Events\HideVotes;
 use App\Events\IssueAdded;
 use App\Events\IssueCanceled;
@@ -13,6 +14,7 @@ use App\Models\Session;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Inspector\Laravel\InspectorLivewire;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class Owner extends Component
@@ -20,9 +22,6 @@ class Owner extends Component
     use InspectorLivewire;
 
     public Session $session;
-
-    /** @var Collection<int,Issue> */
-    public Collection $issues;
 
     public string $issueTitle = '';
 
@@ -61,16 +60,29 @@ class Owner extends Component
         ];
     }
 
+    #[Computed]
+    /**
+     * @return Collection<int, \App\Models\Issue>
+     */
+    public function issues(): Collection
+    {
+        return $this->session->issues()->get();
+    }
+
     public function handleIssueAdded(): void
     {
-        // Just reload the issues collection without full refresh
-        $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
+        $this->refreshIssues();
+    }
+
+    private function refreshIssues(): void
+    {
+        $this->session->refresh();
+        unset($this->issues);
     }
 
     public function handleIssueDeleted(): void
     {
-        // Just reload the issues collection without full refresh
-        $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
+        $this->refreshIssues();
     }
 
     public function handleRevealVotes(): void
@@ -80,29 +92,23 @@ class Owner extends Component
 
     public function handleHideVotes(): void
     {
-        $this->votesRevealed = false;
-        $this->selectedEstimate = null;
-        $this->customEstimate = null;
+        $this->reset(['votesRevealed', 'selectedEstimate', 'customEstimate']);
     }
 
     public function handleIssueSelected(): void
     {
-        $this->votesRevealed = false;
-        $this->selectedEstimate = null;
-        $this->customEstimate = null;
+        $this->reset(['votesRevealed', 'selectedEstimate', 'customEstimate']);
     }
 
     public function handleIssueCanceled(): void
     {
-        $this->votesRevealed = false;
-        $this->selectedEstimate = null;
-        $this->customEstimate = null;
+        $this->reset(['votesRevealed', 'selectedEstimate', 'customEstimate']);
     }
 
     public function handleAddVote(): void
     {
         // Check if all participants have voted and auto-reveal if so
-        $this->checkAndAutoRevealVotes();
+        // $this->checkAndAutoRevealVotes();
     }
 
     public function updateActiveParticipantsCount(int $count): void
@@ -114,8 +120,6 @@ class Owner extends Component
 
     public function render(): View
     {
-        $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
-
         // Check if all participants have voted and auto-reveal if so
         $this->checkAndAutoRevealVotes();
 
@@ -158,7 +162,7 @@ class Owner extends Component
             $issue->storypoints = $this->issues->firstOrFail('id', $id)->storypoints;
         }
 
-        $issue->status = Issue::STATUS_FINISHED;
+        $issue->status = IssueStatus::FINISHED;
         $issue->save();
 
         // Update story points in Jira if issue has Jira key and owner has Jira credentials
@@ -178,9 +182,9 @@ class Owner extends Component
             }
         }
 
-        broadcast(new IssueCanceled($issue))->toOthers();
+        broadcast(new IssueCanceled($this->session->invite_code))->toOthers();
         // Update the issues collection to sync with database changes
-        $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
+        $this->issues = $this->session->issues()->get();
     }
 
     public function voteIssue(int $id): void
@@ -194,9 +198,9 @@ class Owner extends Component
     public function cancelIssue(int $id): void
     {
         $issue = Issue::query()->whereId($id)->firstOrFail();
-        $issue->status = Issue::STATUS_NEW;
+        $issue->status = IssueStatus::NEW;
         $issue->save();
-        broadcast(new IssueCanceled($issue))->toOthers();
+        broadcast(new IssueCanceled($this->session->invite_code))->toOthers();
         // Update the issues collection to sync with database changes
         $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
     }
@@ -207,20 +211,20 @@ class Owner extends Component
             'title' => $this->issueTitle,
             'description' => $this->issueDescription,
             'session_id' => $this->session->id,
-            'status' => Issue::STATUS_NEW,
+            'status' => IssueStatus::NEW,
         ]);
 
         $this->issueTitle = '';
         $this->issueDescription = '';
 
         $this->issues = Issue::query()->whereBelongsTo($this->session)->get();
-        broadcast(new IssueAdded($issue))->toOthers();
+        broadcast(new IssueAdded($this->session->invite_code))->toOthers();
     }
 
     public function deleteIssue(Issue $issue): void
     {
         // Prevent deletion if issue is currently being voted on
-        if ($issue->status === Issue::STATUS_VOTING) {
+        if ($issue->status === IssueStatus::VOTING) {
             $this->dispatch('show-message', [
                 'type' => 'error',
                 'message' => 'Ein Issue kann nicht gelöscht werden, während eine Schätzung läuft.',
@@ -236,18 +240,18 @@ class Owner extends Component
 
     private function resetIssuesStatus(): void
     {
-        Issue::whereStatus(Issue::STATUS_VOTING)
+        Issue::whereStatus(IssueStatus::VOTING)
             ->whereSessionId($this->session->id)
-            ->update(['status' => Issue::STATUS_NEW]);
+            ->update(['status' => IssueStatus::NEW]);
     }
 
     private function setIssueStatusToVoting(int $id): void
     {
         $issue = Issue::query()->whereId($id)->firstOrFail();
-        $issue->status = Issue::STATUS_VOTING;
+        $issue->status = IssueStatus::VOTING;
         $issue->save();
         $this->votesRevealed = false; // Reset votes revealed when starting new voting
-        broadcast(new IssueSelected($issue))->toOthers();
+        broadcast(new IssueSelected($this->session->invite_code))->toOthers();
     }
 
     public function revealVotes(): void
@@ -255,7 +259,7 @@ class Owner extends Component
         $currentIssue = $this->session->currentIssue();
         if ($currentIssue) {
             $this->votesRevealed = true;
-            broadcast(new RevealVotes($this->session))->toOthers();
+            broadcast(new RevealVotes($this->session->invite_code))->toOthers();
             $this->dispatch('votes-revealed');
         }
     }
@@ -273,7 +277,7 @@ class Owner extends Component
             $this->customEstimate = null;
 
             // Broadcast HideVotes event to all participants to reset their UI
-            broadcast(new HideVotes($this->session))->toOthers();
+            broadcast(new HideVotes($this->session->invite_code))->toOthers();
         }
     }
 
@@ -303,6 +307,11 @@ class Owner extends Component
         $this->votesRevealed = false;
     }
 
+    /**
+     * @todo check which users are in the session and have voted. Add the async votes after all present users have voted.
+     *
+     * @return void
+     */
     private function checkAndAutoRevealVotes(): void
     {
         // Only auto-reveal if not already revealed
@@ -335,46 +344,5 @@ class Owner extends Component
         if ($voteCount >= $activeVotersCount) {
             $this->revealVotes();
         }
-    }
-
-    public function formatJiraDescription(?string $description): string
-    {
-        if (empty($description)) {
-            return '';
-        }
-
-        // Convert Confluence/Jira markup to HTML
-        $html = (string) $description;
-
-        // Convert headings h3. to h3
-        $html = (string) preg_replace('/h3\.\s*(.+)/', '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>', $html);
-
-        // Convert bullet points * to <li>
-        $html = (string) preg_replace('/^\*\s*(.+)$/m', '<li class="ml-4">$1</li>', $html);
-        $html = (string) preg_replace('/(<li.*<\/li>)/s', '<ul class="list-disc ml-4 space-y-1">$1</ul>', $html);
-
-        // Convert bold **text** to <strong>
-        $html = (string) preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $html);
-
-        // Convert italic _text_ to <em>
-        $html = (string) preg_replace('/_(.+?)_/', '<em>$1</em>', $html);
-
-        // Convert code `text` to <code>
-        $html = (string) preg_replace('/`(.+?)`/', '<code class="bg-gray-100 px-1 rounded text-sm">$1</code>', $html);
-
-        // Convert panels {panel} to divs
-        $html = (string) preg_replace('/\{panel:bgColor=#deebff\}/', '<div class="bg-blue-50 border-l-4 border-blue-400 p-3 my-2">', $html);
-        $html = (string) preg_replace('/\{panel\}/', '</div>', $html);
-
-        // Convert images !image.png! to placeholder
-        $html = (string) preg_replace('/!([^|]+\.png)\|width=(\d+),alt="([^"]+)"!/', '<div class="bg-gray-100 border rounded p-2 my-2 text-center text-sm text-gray-600">📷 Image: $3 ($1)</div>', $html);
-
-        // Convert account references [~accountid:...] to @username
-        $html = (string) preg_replace('/\[~accountid:[^\]]+\]/', '@user', $html);
-
-        // Convert line breaks
-        $html = nl2br($html);
-
-        return $html;
     }
 }

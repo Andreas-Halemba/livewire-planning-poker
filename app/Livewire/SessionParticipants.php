@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use App\Enums\IssueStatus;
+use App\Events\IssueCanceled;
 use App\Events\RevealVotes;
 use App\Models\Issue;
 use App\Models\Session;
@@ -23,7 +25,7 @@ class SessionParticipants extends Component
     /** @var Collection<int|string, \App\Models\User> */
     public Collection $participants;
 
-    public ?Issue $issue;
+    public ?Issue $issue = null;
 
     /** @var array<int|string, mixed> */
     public array $votes = [];
@@ -36,11 +38,6 @@ class SessionParticipants extends Component
     public function mount(): void
     {
         $this->participants = collect([]);
-        $this->issue = null;
-        $this->votes = [];
-        $this->participantsVoted = [];
-        $this->votesRevealed = false;
-
         if (Auth::user()) {
             $this->participants->push(Auth::user());
         }
@@ -64,9 +61,9 @@ class SessionParticipants extends Component
     public function getListeners(): array
     {
         return [
+            "echo-presence:session.{$this->session->invite_code},.AddVote" => 'newVote',
             "echo-presence:session.{$this->session->invite_code},.RevealVotes" => 'revealVotes',
             "echo-presence:session.{$this->session->invite_code},.HideVotes" => 'hideVotes',
-            "echo-presence:session.{$this->session->invite_code},.AddVote" => 'newVote',
             "echo-presence:session.{$this->session->invite_code},here" => 'updateUsers',
             "echo-presence:session.{$this->session->invite_code},joining" => 'userJoins',
             "echo-presence:session.{$this->session->invite_code},leaving" => 'userLeaves',
@@ -75,11 +72,9 @@ class SessionParticipants extends Component
         ];
     }
 
-    public function updateCurrentIssue(Issue $issue): void
+    public function updateCurrentIssue(): void
     {
-        $this->issue = $issue;
         $this->updateIssueData();
-        $this->skipRender();
     }
 
     public function unsetCurrentIssue(): void
@@ -87,7 +82,6 @@ class SessionParticipants extends Component
         $this->issue = null;
         $this->reset('votes', 'votesRevealed');
         $this->updateIssueData();
-        $this->skipRender();
     }
 
 
@@ -137,10 +131,10 @@ class SessionParticipants extends Component
         // If the owner leaves, cancel the current voting
         if ($userId === $this->session->owner_id) {
             $currentIssue = $this->session->currentIssue();
-            if ($currentIssue && $currentIssue->status === Issue::STATUS_VOTING) {
-                $currentIssue->status = Issue::STATUS_NEW;
+            if ($currentIssue && $currentIssue->status === IssueStatus::VOTING) {
+                $currentIssue->status = IssueStatus::NEW;
                 $currentIssue->save();
-                broadcast(new \App\Events\IssueCanceled($currentIssue))->toOthers();
+                broadcast(new IssueCanceled($this->session->invite_code));
             }
         }
     }
@@ -186,14 +180,12 @@ class SessionParticipants extends Component
     public function newVote(User $user): void
     {
         $this->votes[$user->id] = 'X';
-        // Only skip render if we're not revealing votes
-        // This ensures the UI updates to show the vote indicator
     }
 
     public function sendRevealEvent(): void
     {
         $this->revealVotes();
-        broadcast(new RevealVotes($this->session))->toOthers();
+        broadcast(new RevealVotes($this->session->invite_code))->toOthers();
     }
 
     public function userDidVote(string $id): bool

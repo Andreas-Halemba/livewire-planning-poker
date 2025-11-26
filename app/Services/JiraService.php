@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 use JiraRestApi\Issue\IssueService;
 use JiraRestApi\JiraException;
-use Illuminate\Support\Facades\Log;
 
 class JiraService
 {
@@ -45,9 +45,8 @@ class JiraService
         }
 
         $jql = "project = \"{$projectKey}\" AND status = \"{$status}\" ORDER BY created DESC";
-
         try {
-            $response = $this->issueService->search($jql, '', 100, [], 'renderedFields');
+            $response = $this->issueService->search(jql: $jql, maxResults: 100, expand: 'renderedFields');
             return $response->getIssues();
         } catch (JiraException $e) {
             Log::error('Jira API error: ' . $e->getMessage());

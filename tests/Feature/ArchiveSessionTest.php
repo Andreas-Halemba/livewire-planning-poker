@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\IssueStatus;
 use App\Livewire\ArchivedSessionView;
 use App\Livewire\ArchivedSessions;
 use App\Livewire\OwnerSessions;
@@ -58,7 +59,7 @@ test('archived session view shows issue overview', function () {
         'description' => '<p>Beschreibung</p>',
         'jira_key' => 'SAN-123',
         'jira_url' => 'https://example.com/browse/SAN-123',
-        'status' => Issue::STATUS_FINISHED,
+        'status' => IssueStatus::FINISHED,
     ]);
 
     Livewire::actingAs($user)

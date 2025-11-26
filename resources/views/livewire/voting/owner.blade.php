@@ -60,8 +60,8 @@
         }
     }">
     @php
-        $openIssues = $issues->where('status', '!=', \App\Models\Issue::STATUS_FINISHED);
-        $estimatedIssues = $issues->where('status', \App\Models\Issue::STATUS_FINISHED);
+        $openIssues = $this->issues->where('status', '!=', \App\Enums\IssueStatus::FINISHED);
+        $estimatedIssues = $this->issues->where('status', \App\Enums\IssueStatus::FINISHED);
     @endphp
 
     <!-- Product Owner Panel -->
@@ -100,7 +100,7 @@
                 @php
                     $hasVotes = $currentIssue->votes()->whereNotNull('value')->exists();
                 @endphp
-                @if($hasVotes && !$votesRevealed)
+                @if($hasVotes && ! $votesRevealed)
                     <button wire:click="revealVotes"
                         class="w-full px-5 py-3.5 btn btn-success cursor-pointer hover:bg-success/90 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
@@ -157,7 +157,7 @@
             </div>
 
             <!-- Vote Results (shown after reveal) -->
-            @if($votesRevealed && !empty($groupedVotes))
+            @if($votesRevealed && ! empty($groupedVotes))
                 <div class="mb-5">
                     <div class="text-sm font-semibold text-base-content/70 mb-3">Schätzungen der Team-Mitglieder</div>
 
@@ -168,25 +168,24 @@
                             @endphp
                             <div @class([
                                 'border-2 rounded-lg p-4 text-center cursor-pointer transition-all',
-                                'bg-base-200 border-base-300 hover:border-primary hover:bg-primary/10' => !$isSelected,
+                                'bg-base-200 border-base-300 hover:border-primary hover:bg-primary/10' => ! $isSelected,
                                 'bg-success border-success shadow-md hover:bg-success/90' => $isSelected,
-                            ]) wire:click="selectEstimate('{{ $value }}')"
-                                wire:key="estimate-{{ $value }}">
+                            ]) wire:click="selectEstimate('{{ $value }}')" wire:key="estimate-{{ $value }}">
                                 <div @class([
                                     'text-3xl font-bold mb-1',
-                                    'text-base-content' => !$isSelected,
+                                    'text-base-content' => ! $isSelected,
                                     'text-success-content' => $isSelected,
                                 ])>{{ $value }}</div>
                                 <div @class([
                                     'text-xs',
-                                    'text-base-content/70' => !$isSelected,
+                                    'text-base-content/70' => ! $isSelected,
                                     'text-success-content/90' => $isSelected,
                                 ])>
                                     {{ $data['count'] }} {{ $data['count'] === 1 ? 'Stimme' : 'Stimmen' }}
                                 </div>
                                 <div @class([
                                     'text-xs mt-1',
-                                    'text-base-content/60' => !$isSelected,
+                                    'text-base-content/60' => ! $isSelected,
                                     'text-success-content/80' => $isSelected,
                                 ])>
                                     {{ implode(', ', $data['participants']) }}
@@ -241,7 +240,7 @@
                         </svg>
                         Issues importieren
                     </h3>
-                    <livewire:jira-import :session="$session" :key="'jira-import-' . $session->id" />
+                    <livewire:jira-import :session="$session" :key="'jira-import-'.$session->id" />
                 </div>
 
                 <!-- Manual Add Section -->
@@ -322,7 +321,7 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2 flex-shrink-0">
-                                    @if($issue->status === \App\Models\Issue::STATUS_VOTING)
+                                    @if($issue->status === \App\Enums\IssueStatus::VOTING)
                                         <!-- Voting in Progress Badge -->
                                         <div class="tooltip tooltip-left" data-tip="Schätzung läuft">
                                             <div
@@ -352,13 +351,13 @@
 
                                     <!-- Delete Button -->
                                     <div class="tooltip tooltip-left"
-                                        data-tip="{{ $issue->status === \App\Models\Issue::STATUS_VOTING ? 'Kann während Schätzung nicht gelöscht werden' : 'Issue löschen' }}">
+                                        data-tip="{{ $issue->status === \App\Enums\IssueStatus::VOTING ? 'Kann während Schätzung nicht gelöscht werden' : 'Issue löschen' }}">
                                         <button wire:click="deleteIssue({{ $issue->id }})"
                                             wire:confirm="Bist du sicher, dass du dieses Issue löschen möchtest?"
-                                            @disabled($issue->status === \App\Models\Issue::STATUS_VOTING) @class([
+                                            @disabled($issue->status === \App\Enums\IssueStatus::VOTING) @class([
                                                 'btn btn-sm btn-circle transition-colors',
-                                                'btn-error btn-outline hover:btn-error cursor-pointer' => $issue->status !== \App\Models\Issue::STATUS_VOTING,
-                                                'btn-disabled cursor-not-allowed' => $issue->status === \App\Models\Issue::STATUS_VOTING,
+                                                'btn-error btn-outline hover:btn-error cursor-pointer' => $issue->status !== \App\Enums\IssueStatus::VOTING,
+                                                'btn-disabled cursor-not-allowed' => $issue->status === \App\Enums\IssueStatus::VOTING,
                                             ])>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">

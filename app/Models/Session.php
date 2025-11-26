@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\IssueStatus;
 use Database\Factories\SessionFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -91,6 +92,6 @@ class Session extends Model
     public function currentIssue(): ?Issue
     {
         /** @var Issue|null */
-        return $this->issues()->where('status', Issue::STATUS_VOTING)->first();
+        return $this->issues()->where('status', IssueStatus::VOTING)->first();
     }
 }

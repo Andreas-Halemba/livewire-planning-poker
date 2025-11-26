@@ -2,15 +2,14 @@
 
 namespace App\Livewire;
 
+use App\Enums\IssueStatus;
 use App\Events\IssueAdded;
 use App\Models\Issue;
 use App\Models\Session;
 use App\Services\JiraService;
 use JiraRestApi\JiraException;
-use Livewire\Attributes\Isolate;
 use Livewire\Component;
 
-#[Isolate]
 class JiraImport extends Component
 {
     public Session $session;
@@ -160,14 +159,14 @@ class JiraImport extends Component
                     'jira_key' => $ticket['key'],
                     'jira_url' => $ticket['url'] ?? '',
                     'session_id' => $this->session->id,
-                    'status' => Issue::STATUS_NEW,
+                    'status' => IssueStatus::NEW,
                 ];
 
                 $issue = Issue::create($issueData);
 
                 // Try to broadcast, but don't fail if it doesn't work
                 try {
-                    broadcast(new IssueAdded($issue))->toOthers();
+                    broadcast(new IssueAdded($this->session->invite_code));
                 } catch (\Exception $broadcastException) {
                     \Log::warning('Failed to broadcast issue addition', [
                         'issueId' => $issue->id,
@@ -228,7 +227,9 @@ class JiraImport extends Component
     public function getStatusOptionsProperty(): array
     {
         return [
+            'Specified' => 'Specified',
             'In Estimation' => 'In Estimation',
+            'To Do' => 'To Do',
         ];
     }
 }

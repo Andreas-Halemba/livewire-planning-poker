@@ -13,7 +13,7 @@
                 @if ($issue->description)
                     <div class="w-full py-3" x-show="open">
                         <div class="prose prose-sm max-w-none">
-                            {!! $this->formatJiraDescription($issue->description) !!}
+                            {!! $issue->description !!}
                         </div>
                     </div>
                 @endif

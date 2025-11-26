@@ -1,13 +1,13 @@
 <?php
 
+use App\Enums\IssueStatus;
 use App\Events\IssueCanceled;
-use App\Models\Issue;
-use App\Models\Session;
-use App\Livewire\ArchivedSessionView;
-use App\Livewire\Voting;
-use App\Livewire\SessionManagement;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+use App\Livewire\ArchivedSessionView;
+use App\Livewire\SessionManagement;
+use App\Livewire\Voting;
+use App\Models\Session;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,10 +45,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         }
 
         $currentIssue = $session->currentIssue();
-        if ($currentIssue && $currentIssue->status === Issue::STATUS_VOTING) {
-            $currentIssue->status = Issue::STATUS_NEW;
+        if ($currentIssue && $currentIssue->status === IssueStatus::VOTING) {
+            $currentIssue->status = IssueStatus::NEW;
             $currentIssue->save();
-            broadcast(new IssueCanceled($currentIssue))->toOthers();
+            broadcast(new IssueCanceled($session->invite_code))->toOthers();
         }
 
         return response()->json(['success' => true]);

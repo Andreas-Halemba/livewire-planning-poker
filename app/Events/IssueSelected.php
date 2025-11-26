@@ -2,7 +2,6 @@
 
 namespace App\Events;
 
-use App\Models\Issue;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -15,11 +14,11 @@ class IssueSelected implements ShouldBroadcast
     use InteractsWithSockets;
     use SerializesModels;
 
-    public function __construct(public Issue $issue) {}
+    public function __construct(private string $sessionCode) {}
 
     public function broadcastOn(): PresenceChannel
     {
-        return new PresenceChannel('session.' . $this->issue->session->invite_code);
+        return new PresenceChannel('session.' . $this->sessionCode);
     }
 
     public function broadcastAs(): string
