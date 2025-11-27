@@ -1,3 +1,7 @@
+@assets
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+@endassets
+
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 
     {{-- Session Header --}}
@@ -294,10 +298,33 @@
                         <p class="text-sm">Keine offenen Issues</p>
                     </div>
                 @else
-                    <ul class="divide-y divide-base-300">
+                    <ul class="divide-y divide-base-300"
+                        @if($isOwner)
+                            x-data
+                            x-init="
+                                Sortable.create($el, {
+                                    animation: 150,
+                                    handle: '.drag-handle',
+                                    ghostClass: 'opacity-50',
+                                    onEnd: function(evt) {
+                                        const items = [...evt.to.children].map(el => parseInt(el.dataset.issueId));
+                                        $wire.updateIssueOrder(items);
+                                    }
+                                });
+                            "
+                        @endif
+                    >
                         @foreach($openIssues as $issue)
-                            <li class="p-4 hover:bg-base-300/50 transition-colors">
+                            <li class="p-4 hover:bg-base-300/50 transition-colors" data-issue-id="{{ $issue->id }}">
                                 <div class="flex items-center gap-3">
+                                    {{-- Drag Handle (nur für Owner) --}}
+                                    @if($isOwner)
+                                        <div class="drag-handle cursor-grab active:cursor-grabbing text-base-content/40 hover:text-base-content">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                                            </svg>
+                                        </div>
+                                    @endif
                                     <div class="flex-1 min-w-0">
                                         @if($issue->jira_url || $issue->jira_key)
                                             <a href="{{ $issue->jira_url ?? '#' }}"

@@ -78,6 +78,8 @@ class SessionPage extends Component
             "echo-presence:session.{$this->session->invite_code},.AddVote" => 'handleAddVote',
             "echo-presence:session.{$this->session->invite_code},.RevealVotes" => 'handleRevealVotes',
             "echo-presence:session.{$this->session->invite_code},.HideVotes" => 'handleHideVotes',
+            // Issue Events
+            "echo-presence:session.{$this->session->invite_code},.IssueOrderChanged" => 'handleIssueOrderChanged',
         ];
     }
 
@@ -147,6 +149,12 @@ class SessionPage extends Component
     {
         $this->votesRevealed = false;
         $this->loadVotedUsers();
+    }
+
+    public function handleIssueOrderChanged(): void
+    {
+        // Session Issues neu laden, um neue Reihenfolge zu erhalten
+        $this->session->load('issues');
     }
 
     // ===== Owner Actions =====
@@ -367,18 +375,42 @@ class SessionPage extends Component
         $this->myVote = $this->votesByUser[Auth::id()] ?? null;
     }
 
+    /**
+     * Aktualisiert die Reihenfolge der Issues (nur Owner).
+     *
+     * @param array<int> $orderedIds Array von Issue-IDs in neuer Reihenfolge
+     */
+    public function updateIssueOrder(array $orderedIds): void
+    {
+        if (Auth::id() !== $this->session->owner_id) {
+            return;
+        }
+
+        foreach ($orderedIds as $position => $issueId) {
+            Issue::query()
+                ->where('id', $issueId)
+                ->where('session_id', $this->session->id)
+                ->update(['position' => $position]);
+        }
+
+        // Event an andere Teilnehmer broadcasten
+        broadcast(new \App\Events\IssueOrderChanged($this->session->invite_code))->toOthers();
+    }
+
     public function render(): View
     {
         // Issues neu laden für aktuelle Daten
         $this->session->load('issues');
 
-        // Issues gruppieren
+        // Issues gruppieren und nach Position sortieren
         $openIssues = $this->session->issues
             ->where('status', '!=', 'finished')
-            ->where('status', '!=', 'voting');
+            ->where('status', '!=', 'voting')
+            ->sortBy('position');
 
         $finishedIssues = $this->session->issues
-            ->where('status', 'finished');
+            ->where('status', 'finished')
+            ->sortBy('position');
 
         return view('livewire.v2.session-page', [
             'isOwner' => Auth::id() === $this->session->owner_id,
