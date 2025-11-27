@@ -57,6 +57,7 @@ class Issue extends Model
         'storypoints',
         'jira_key',
         'jira_url',
+        'position',
     ];
 
     protected $casts = [
