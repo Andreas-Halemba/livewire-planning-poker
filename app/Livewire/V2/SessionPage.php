@@ -9,8 +9,10 @@ use App\Events\IssueSelected;
 use App\Models\Issue;
 use App\Models\Session;
 use App\Models\Vote;
+use App\Services\JiraService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
 /**
@@ -45,6 +47,27 @@ class SessionPage extends Component
     /** @var int|null Eigene Auswahl des aktuellen Users */
     public ?int $myVote = null;
 
+    // ===== Drawer State =====
+    public bool $drawerOpen = false;
+    public string $drawerTab = 'manual';
+    public string $newIssueTitle = '';
+    public string $newIssueDescription = '';
+    public string $newIssueJiraKey = '';
+    public string $newIssueJiraUrl = '';
+
+    // ===== Jira Import State =====
+    /** @var array<int, array{id: string, name: string, jql: string}> */
+    public array $jiraFilters = [];
+    public bool $jiraFiltersLoaded = false;
+    public bool $jiraLoading = false;
+    public string $jiraInput = '';
+    public string $jiraError = '';
+    public string $jiraSuccess = '';
+    /** @var array<int, array{key: string, title: string, description: ?string, url: string, alreadyImported: bool}> */
+    public array $jiraTickets = [];
+    /** @var array<string> */
+    public array $selectedJiraTickets = [];
+
     public function mount(string $inviteCode): void
     {
         $this->session = Session::with(['issues', 'users', 'owner'])
@@ -58,6 +81,34 @@ class SessionPage extends Component
 
         // Initiales Laden des aktuellen Issues
         $this->loadCurrentIssue();
+
+        // Jira-Filter aus Session laden (falls vorhanden)
+        $this->loadJiraFiltersFromSession();
+    }
+
+    /**
+     * Hook: Wird aufgerufen wenn drawerTab geändert wird.
+     */
+    public function updatedDrawerTab(string $value): void
+    {
+        // Auto-Load Jira-Filter wenn Jira-Tab geöffnet wird
+        if ($value === 'jira' && !$this->jiraFiltersLoaded && $this->hasJiraCredentials()) {
+            $this->loadJiraFilters();
+        }
+    }
+
+    /**
+     * Lädt Jira-Filter aus der Laravel Session (Cache).
+     */
+    private function loadJiraFiltersFromSession(): void
+    {
+        $sessionKey = 'jira_filters_' . Auth::id();
+        $cached = session($sessionKey);
+
+        if ($cached !== null) {
+            $this->jiraFilters = $cached;
+            $this->jiraFiltersLoaded = true;
+        }
     }
 
     /**
@@ -80,6 +131,8 @@ class SessionPage extends Component
             "echo-presence:session.{$this->session->invite_code},.HideVotes" => 'handleHideVotes',
             // Issue Events
             "echo-presence:session.{$this->session->invite_code},.IssueOrderChanged" => 'handleIssueOrderChanged',
+            "echo-presence:session.{$this->session->invite_code},.IssueAdded" => 'handleIssueAdded',
+            "echo-presence:session.{$this->session->invite_code},.IssueDeleted" => 'handleIssueDeleted',
         ];
     }
 
@@ -154,6 +207,18 @@ class SessionPage extends Component
     public function handleIssueOrderChanged(): void
     {
         // Session Issues neu laden, um neue Reihenfolge zu erhalten
+        $this->session->load('issues');
+    }
+
+    public function handleIssueAdded(): void
+    {
+        // Session Issues neu laden, um neues Issue zu sehen
+        $this->session->load('issues');
+    }
+
+    public function handleIssueDeleted(): void
+    {
+        // Session Issues neu laden
         $this->session->load('issues');
     }
 
@@ -260,6 +325,335 @@ class SessionPage extends Component
 
         // Event an andere Teilnehmer broadcasten (Voting beendet)
         broadcast(new \App\Events\IssueCanceled($this->session->invite_code))->toOthers();
+    }
+
+    /**
+     * Fügt ein neues Issue hinzu (nur Owner).
+     */
+    public function addIssue(): void
+    {
+        if (Auth::id() !== $this->session->owner_id) {
+            return;
+        }
+
+        $this->validate([
+            'newIssueTitle' => 'required|string|max:255',
+            'newIssueDescription' => 'nullable|string|max:2000',
+            'newIssueJiraKey' => 'nullable|string|max:50',
+            'newIssueJiraUrl' => 'nullable|url|max:500',
+        ]);
+
+        // Höchste Position ermitteln
+        $maxPosition = Issue::query()
+            ->where('session_id', $this->session->id)
+            ->max('position') ?? -1;
+
+        // Issue erstellen
+        Issue::create([
+            'title' => $this->newIssueTitle,
+            'description' => $this->newIssueDescription ?: null,
+            'session_id' => $this->session->id,
+            'status' => IssueStatus::NEW,
+            'position' => $maxPosition + 1,
+            'jira_key' => $this->newIssueJiraKey ?: null,
+            'jira_url' => $this->newIssueJiraUrl ?: null,
+        ]);
+
+        // Form zurücksetzen
+        $this->newIssueTitle = '';
+        $this->newIssueDescription = '';
+        $this->newIssueJiraKey = '';
+        $this->newIssueJiraUrl = '';
+        $this->drawerOpen = false;
+
+        // Event an andere Teilnehmer broadcasten
+        broadcast(new \App\Events\IssueAdded($this->session->invite_code))->toOthers();
+    }
+
+    /**
+     * Löscht ein Issue aus der Session (nur Owner).
+     */
+    public function deleteIssue(int $issueId): void
+    {
+        if (Auth::id() !== $this->session->owner_id) {
+            return;
+        }
+
+        $issue = Issue::find($issueId);
+        if (!$issue || $issue->session_id !== $this->session->id) {
+            return;
+        }
+
+        // Nicht löschen wenn gerade im Voting
+        if ($issue->status === IssueStatus::VOTING) {
+            return;
+        }
+
+        $issue->delete();
+
+        // Event an andere Teilnehmer broadcasten
+        broadcast(new \App\Events\IssueDeleted($this->session->invite_code))->toOthers();
+    }
+
+    // ===== Jira Import Methods =====
+
+    /**
+     * Prüft ob der User Jira-Credentials hat.
+     */
+    public function hasJiraCredentials(): bool
+    {
+        $user = Auth::user();
+
+        return $user && $user->jira_url && $user->jira_user && $user->jira_api_key;
+    }
+
+    /**
+     * Lädt die Favoriten-Filter des Users aus Jira.
+     *
+     * @param bool $forceRefresh Wenn true, wird der Session-Cache ignoriert
+     */
+    public function loadJiraFilters(bool $forceRefresh = false): void
+    {
+        if (!$this->hasJiraCredentials()) {
+            return;
+        }
+
+        // Bereits geladen und kein Force-Refresh → nichts tun
+        if ($this->jiraFiltersLoaded && !$forceRefresh) {
+            return;
+        }
+
+        $this->jiraLoading = true;
+        $this->jiraError = '';
+
+        try {
+            $jiraService = new JiraService(Auth::user());
+            $this->jiraFilters = $jiraService->getFavoriteFilters();
+            $this->jiraFiltersLoaded = true;
+
+            // In Session cachen für Page-Refreshes
+            $sessionKey = 'jira_filters_' . Auth::id();
+            session([$sessionKey => $this->jiraFilters]);
+        } catch (\Exception $e) {
+            Log::error('Failed to load Jira filters: ' . $e->getMessage());
+            $this->jiraError = 'Filter konnten nicht geladen werden.';
+        }
+
+        $this->jiraLoading = false;
+    }
+
+    /**
+     * Erzwingt ein Neuladen der Jira-Filter.
+     */
+    public function refreshJiraFilters(): void
+    {
+        $this->jiraFiltersLoaded = false;
+        $this->loadJiraFilters(true);
+    }
+
+    /**
+     * Lädt Tickets aus einem Jira-Filter.
+     */
+    public function loadFromFilter(string $filterId): void
+    {
+        if (!$this->hasJiraCredentials()) {
+            return;
+        }
+
+        $this->jiraLoading = true;
+        $this->jiraError = '';
+        $this->jiraTickets = [];
+        $this->selectedJiraTickets = [];
+
+        try {
+            $jiraService = new JiraService(Auth::user());
+            $jql = $jiraService->getFilterJql($filterId);
+
+            if (!$jql) {
+                $this->jiraError = 'Filter-JQL konnte nicht geladen werden.';
+                $this->jiraLoading = false;
+
+                return;
+            }
+
+            $this->loadTicketsFromJql($jql, $jiraService);
+        } catch (\Exception $e) {
+            Log::error('Failed to load from Jira filter: ' . $e->getMessage());
+            $this->jiraError = 'Tickets konnten nicht geladen werden.';
+        }
+
+        $this->jiraLoading = false;
+    }
+
+    /**
+     * Lädt Tickets basierend auf User-Input (URL, Keys, JQL).
+     */
+    public function loadFromInput(): void
+    {
+        if (!$this->hasJiraCredentials() || empty(trim($this->jiraInput))) {
+            return;
+        }
+
+        $this->jiraLoading = true;
+        $this->jiraError = '';
+        $this->jiraTickets = [];
+        $this->selectedJiraTickets = [];
+
+        try {
+            $jiraService = new JiraService(Auth::user());
+            $parsed = $jiraService->parseJiraInput($this->jiraInput);
+
+            switch ($parsed['type']) {
+                case 'filter':
+                    $jql = $jiraService->getFilterJql($parsed['value']);
+                    if ($jql) {
+                        $this->loadTicketsFromJql($jql, $jiraService);
+                    } else {
+                        $this->jiraError = 'Filter nicht gefunden.';
+                    }
+                    break;
+
+                case 'jql':
+                    $this->loadTicketsFromJql($parsed['value'], $jiraService);
+                    break;
+
+                case 'keys':
+                    $issues = $jiraService->getIssuesByKeys($parsed['value']);
+                    $this->mapIssuesToTickets($issues, $jiraService);
+                    break;
+
+                default:
+                    $this->jiraError = 'Eingabe nicht erkannt. Bitte Jira-URL, Filter-URL oder Issue-Keys eingeben.';
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to load from Jira input: ' . $e->getMessage());
+            $this->jiraError = 'Tickets konnten nicht geladen werden: ' . $e->getMessage();
+        }
+
+        $this->jiraLoading = false;
+    }
+
+    /**
+     * Lädt Tickets per JQL und mapped sie.
+     */
+    private function loadTicketsFromJql(string $jql, JiraService $jiraService): void
+    {
+        $issues = $jiraService->searchByJql($jql);
+        $this->mapIssuesToTickets($issues, $jiraService);
+    }
+
+    /**
+     * Mapped Jira-Issues zu Ticket-Array für die Auswahl.
+     *
+     * @param array<object> $issues
+     */
+    private function mapIssuesToTickets(array $issues, JiraService $jiraService): void
+    {
+        $this->jiraTickets = [];
+
+        foreach ($issues as $issue) {
+            $mapped = $jiraService->mapJiraIssueToArray($issue);
+
+            // Prüfen ob bereits in dieser Session importiert
+            $alreadyImported = Issue::query()
+                ->where('jira_key', $mapped['jira_key'])
+                ->where('session_id', $this->session->id)
+                ->exists();
+
+            $this->jiraTickets[] = [
+                'key' => $mapped['jira_key'],
+                'title' => $mapped['title'],
+                'description' => $mapped['description'],
+                'url' => $mapped['jira_url'],
+                'alreadyImported' => $alreadyImported,
+            ];
+        }
+
+        if (empty($this->jiraTickets)) {
+            $this->jiraError = 'Keine Tickets gefunden.';
+        }
+    }
+
+    /**
+     * Alle nicht-importierten Tickets auswählen.
+     */
+    public function selectAllJiraTickets(): void
+    {
+        $this->selectedJiraTickets = collect($this->jiraTickets)
+            ->filter(fn($t) => !$t['alreadyImported'])
+            ->pluck('key')
+            ->all();
+    }
+
+    /**
+     * Auswahl aufheben.
+     */
+    public function deselectAllJiraTickets(): void
+    {
+        $this->selectedJiraTickets = [];
+    }
+
+    /**
+     * Importiert die ausgewählten Jira-Tickets.
+     */
+    public function importSelectedJiraTickets(): void
+    {
+        if (Auth::id() !== $this->session->owner_id || empty($this->selectedJiraTickets)) {
+            return;
+        }
+
+        $this->jiraLoading = true;
+        $this->jiraError = '';
+        $this->jiraSuccess = '';
+
+        $importedCount = 0;
+        $maxPosition = Issue::query()
+            ->where('session_id', $this->session->id)
+            ->max('position') ?? -1;
+
+        foreach ($this->jiraTickets as &$ticket) {
+            if (!in_array($ticket['key'], $this->selectedJiraTickets)) {
+                continue;
+            }
+
+            if ($ticket['alreadyImported']) {
+                continue;
+            }
+
+            $maxPosition++;
+
+            Issue::create([
+                'title' => $ticket['title'],
+                'description' => $ticket['description'],
+                'session_id' => $this->session->id,
+                'status' => IssueStatus::NEW,
+                'position' => $maxPosition,
+                'jira_key' => $ticket['key'],
+                'jira_url' => $ticket['url'],
+            ]);
+
+            $ticket['alreadyImported'] = true;
+            $importedCount++;
+        }
+
+        $this->selectedJiraTickets = [];
+        $this->jiraSuccess = "{$importedCount} Ticket(s) importiert.";
+        $this->jiraLoading = false;
+
+        // Event broadcasten
+        broadcast(new \App\Events\IssueAdded($this->session->invite_code))->toOthers();
+    }
+
+    /**
+     * Setzt den Jira-Import-State zurück.
+     */
+    public function resetJiraImport(): void
+    {
+        $this->jiraTickets = [];
+        $this->selectedJiraTickets = [];
+        $this->jiraError = '';
+        $this->jiraSuccess = '';
+        $this->jiraInput = '';
     }
 
     /**

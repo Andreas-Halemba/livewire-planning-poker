@@ -248,6 +248,166 @@ class JiraService
     }
 
     /**
+     * Get user's favorite Jira filters
+     *
+     * @return array<int, array{id: string, name: string, jql: string}>
+     */
+    public function getFavoriteFilters(): array
+    {
+        $url = $this->user->jira_url . '/rest/api/2/filter/favourite';
+
+        $response = $this->makeApiRequest($url);
+
+        if ($response === null) {
+            return [];
+        }
+
+        $filters = [];
+        foreach ($response as $filter) {
+            $filters[] = [
+                'id' => (string) ($filter['id'] ?? ''),
+                'name' => $filter['name'] ?? 'Unnamed Filter',
+                'jql' => $filter['jql'] ?? '',
+            ];
+        }
+
+        return $filters;
+    }
+
+    /**
+     * Search issues by JQL query
+     *
+     * @param string $jql
+     * @param int $maxResults
+     * @return array<int, object>
+     * @throws JiraException
+     */
+    public function searchByJql(string $jql, int $maxResults = 100): array
+    {
+        if (!$this->issueService) {
+            throw new \RuntimeException('Jira service not initialized.');
+        }
+
+        try {
+            $response = $this->issueService->search(
+                jql: $jql,
+                maxResults: $maxResults,
+                expand: 'renderedFields',
+            );
+            return $response->getIssues();
+        } catch (JiraException $e) {
+            Log::error('Jira JQL search error: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Get multiple issues by their keys
+     *
+     * @param array<string> $keys
+     * @return array<int, object>
+     */
+    public function getIssuesByKeys(array $keys): array
+    {
+        if (empty($keys)) {
+            return [];
+        }
+
+        // Build JQL: key in (KEY-1, KEY-2, ...)
+        $escapedKeys = array_map(fn($k) => '"' . trim($k) . '"', $keys);
+        $jql = 'key in (' . implode(', ', $escapedKeys) . ')';
+
+        try {
+            return $this->searchByJql($jql, count($keys));
+        } catch (JiraException $e) {
+            Log::error('Failed to get issues by keys: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Parse user input to extract JQL, filter ID, or issue keys
+     *
+     * @param string $input URL, filter ID, or comma-separated issue keys
+     * @return array{type: string, value: string|array<string>}
+     */
+    public function parseJiraInput(string $input): array
+    {
+        $input = trim($input);
+
+        // Check for filter URL: .../issues/?filter=12345 or .../filters/12345
+        if (preg_match('/filter[=\/](\d+)/', $input, $matches)) {
+            return ['type' => 'filter', 'value' => $matches[1]];
+        }
+
+        // Check for JQL in URL: .../issues/?jql=...
+        if (preg_match('/jql=([^&]+)/', $input, $matches)) {
+            return ['type' => 'jql', 'value' => urldecode($matches[1])];
+        }
+
+        // Check for issue keys pattern (PROJECT-123)
+        if (preg_match_all('/([A-Z][A-Z0-9]+-\d+)/', strtoupper($input), $matches)) {
+            return ['type' => 'keys', 'value' => array_unique($matches[1])];
+        }
+
+        // Fallback: treat as JQL if it looks like one
+        if (str_contains($input, '=') || str_contains($input, ' AND ') || str_contains($input, ' OR ')) {
+            return ['type' => 'jql', 'value' => $input];
+        }
+
+        return ['type' => 'unknown', 'value' => $input];
+    }
+
+    /**
+     * Get JQL from a filter ID
+     *
+     * @param string $filterId
+     * @return string|null
+     */
+    public function getFilterJql(string $filterId): ?string
+    {
+        $url = $this->user->jira_url . '/rest/api/2/filter/' . $filterId;
+
+        $response = $this->makeApiRequest($url);
+
+        return $response['jql'] ?? null;
+    }
+
+    /**
+     * Make a generic API request to Jira
+     *
+     * @param string $url
+     * @return array<mixed>|null
+     */
+    private function makeApiRequest(string $url): ?array
+    {
+        try {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+            ]);
+            curl_setopt($ch, CURLOPT_USERPWD, $this->user->jira_user . ':' . $this->user->jira_api_key);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode === 200) {
+                return json_decode($response, true);
+            }
+
+            Log::warning("Jira API request failed: HTTP {$httpCode} for {$url}");
+            return null;
+        } catch (\Exception $e) {
+            Log::error('Jira API request error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Test Jira connection by fetching current user info
      *
      * @return array{success: bool, username?: string}
