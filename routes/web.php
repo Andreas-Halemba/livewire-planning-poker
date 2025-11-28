@@ -2,6 +2,7 @@
 
 use App\Enums\IssueStatus;
 use App\Events\IssueCanceled;
+use App\Http\Controllers\JiraAttachmentController;
 use App\Http\Controllers\ProfileController;
 use App\Livewire\ArchivedSessionView;
 use App\Livewire\SessionManagement;
@@ -61,6 +62,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Jira attachment proxy for images in ticket descriptions
+    Route::get('/jira/attachment/{attachmentId}', [JiraAttachmentController::class, 'proxy'])
+        ->name('jira.attachment.proxy');
 });
 
 require __DIR__ . '/auth.php';
