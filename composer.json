@@ -8,7 +8,7 @@
         "laravel"
     ],
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "blade-ui-kit/blade-icons": "^1.5.1",
         "codeat3/blade-clarity-icons": "^1.10",
         "guzzlehttp/guzzle": "^7.5.1",
@@ -37,9 +37,8 @@
         "laravel/sail": "^v1.21.5",
         "mockery/mockery": "^1.5.1",
         "nunomaduro/collision": "^8.1",
-        "pestphp/pest": "^3.0",
-        "pestphp/pest-plugin-laravel": "^3.0",
-        "phpunit/phpunit": "^11.0",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0",
         "spatie/laravel-ignition": "^2.1.2",
         "spatie/laravel-ray": "^1.32.4"
     },
