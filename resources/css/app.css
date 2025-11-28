@@ -12,3 +12,12 @@
 
 /* Custom styles for components that DaisyUI doesn't fully cover */
 /* Note: Most styling is handled via DaisyUI classes directly in Blade templates */
+
+.jira-description .panelContent {
+    @apply !bg-transparent;
+}
+
+.jira-description .panel {
+    @apply !bg-accent/20 !text-base-content border-2 border-accent;
+    @apply mb-2 p-4;
+}
