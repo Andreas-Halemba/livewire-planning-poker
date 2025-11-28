@@ -39,7 +39,7 @@
             <div class="text-sm font-semibold mt-4 mb-3 uppercase tracking-wide">Teilnehmer</div>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                 @foreach($session->users as $user)
-                    <x-v2.participant-card :user="$user" :session="$session" :current-issue="$currentIssue"
+                    <x-v2.participant-card wire:key="participant-{{ $user->id }}" :user="$user" :session="$session" :current-issue="$currentIssue"
                         :online-user-ids="$onlineUserIds" :voted-user-ids="$votedUserIds" :votes-by-user="$votesByUser"
                         :votes-revealed="$votesRevealed" />
                 @endforeach

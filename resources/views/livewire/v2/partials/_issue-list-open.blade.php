@@ -45,7 +45,7 @@
                 @endif
             >
                 @foreach($openIssues as $issue)
-                    <li class="p-4 hover:bg-base-300/50 transition-colors" data-issue-id="{{ $issue->id }}">
+                    <li wire:key="open-issue-{{ $issue->id }}" class="p-4 hover:bg-base-300/50 transition-colors" data-issue-id="{{ $issue->id }}">
                         <div class="flex items-center gap-3">
                             {{-- Drag Handle (nur für Owner) --}}
                             @if($isOwner)

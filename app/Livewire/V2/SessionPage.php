@@ -44,11 +44,14 @@ class SessionPage extends Component
     }
 
     /**
-     * Hook: Wird aufgerufen wenn drawerTab geändert wird.
+     * Wechselt den Tab im Drawer.
+     * Explizite Methode für besseres wire:target Handling.
      */
-    public function updatedDrawerTab(string $value): void
+    public function switchTab(string $tab): void
     {
-        if ($value === 'jira') {
+        $this->drawerTab = $tab;
+
+        if ($tab === 'jira') {
             $this->onJiraTabOpened();
         }
     }

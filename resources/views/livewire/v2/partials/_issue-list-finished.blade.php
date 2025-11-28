@@ -22,7 +22,7 @@
         @else
             <ul class="divide-y divide-base-300">
                 @foreach($finishedIssues as $issue)
-                    <li class="p-4 hover:bg-base-300/50 transition-colors">
+                    <li wire:key="finished-issue-{{ $issue->id }}" class="p-4 hover:bg-base-300/50 transition-colors">
                         <div class="flex items-start gap-3">
                             <div class="flex-1 min-w-0">
                                 @if($issue->jira_url || $issue->jira_key)
