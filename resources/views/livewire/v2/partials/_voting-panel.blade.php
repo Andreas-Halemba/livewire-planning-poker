@@ -153,7 +153,8 @@
                         </div>
                         <div class="flex flex-wrap gap-3">
                             @foreach($cards as $index => $card)
-                                <button wire:click="submitVote({{ $card }})"
+                                <button wire:key="voting-card-{{ $card }}"
+                                    wire:click="submitVote({{ $card }})"
                                     class="btn btn-lg min-w-14 text-lg font-bold relative {{ $myVote == $card ? 'btn-warning' : 'btn-ghost bg-base-content/10 hover:bg-base-content/20' }}">
                                     {{ $card }}
                                     <kbd class="kbd absolute -top-3 -right-3">{{ $index + 1 }}</kbd>

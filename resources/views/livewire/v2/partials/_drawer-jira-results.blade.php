@@ -31,7 +31,7 @@
     <div class="max-h-80 overflow-y-auto">
         <div class="space-y-2 p-1">
         @foreach($jiraTickets as $index => $ticket)
-            <label class="flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors
+            <label wire:key="jira-ticket-{{ $ticket['key'] }}" class="flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors
                 {{ $ticket['alreadyImported'] ? 'bg-base-200 opacity-60' : 'bg-base-300 hover:bg-base-100' }}
                 {{ in_array($ticket['key'], $selectedJiraTickets) ? 'ring-2 ring-primary' : 'ring-1 ring-transparent' }}">
                 <input type="checkbox"

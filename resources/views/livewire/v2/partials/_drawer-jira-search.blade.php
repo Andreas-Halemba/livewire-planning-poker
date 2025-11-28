@@ -34,7 +34,8 @@
         @else
             <div class="space-y-2">
                 @foreach($jiraFilters as $filter)
-                    <button wire:click="loadFromFilter('{{ $filter['id'] }}')"
+                    <button wire:key="filter-{{ $filter['id'] }}"
+                            wire:click="loadFromFilter('{{ $filter['id'] }}')"
                             wire:loading.attr="disabled"
                             class="btn btn-sm btn-ghost justify-start w-full text-left gap-2 hover:bg-base-100">
                         <svg class="w-4 h-4 text-info shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,7 +65,7 @@
             URL oder Issue-Keys
         </span>
     </label>
-    <textarea wire:model.live="jiraInput"
+    <textarea wire:model.live.debounce.500ms="jiraInput"
               placeholder="Füge hier ein:&#10;• Jira URL mit JQL (z.B. .../issues?jql=...)&#10;• Filter-URL (z.B. .../issues/?filter=12345)&#10;• Issue-Keys (SAN-123, SAN-456, SAN-789)"
               class="textarea textarea-bordered w-full h-28 text-sm font-mono"
     ></textarea>
