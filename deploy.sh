@@ -90,9 +90,9 @@ run_remote() {
 echo -e "${GREEN}[1/9] Pushing local changes to Git...${NC}"
 git push origin $(git branch --show-current)
 
-# 2. Pull changes on server
+# 2. Pull changes on server (reset hard to match remote exactly)
 echo -e "${GREEN}[2/9] Pulling latest code on server...${NC}"
-run_remote "git pull origin $(git branch --show-current)"
+run_remote "git fetch origin && git reset --hard origin/$(git branch --show-current)"
 
 # 3. Install Composer dependencies
 echo -e "${GREEN}[3/9] Installing Composer dependencies...${NC}"
