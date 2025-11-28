@@ -133,30 +133,32 @@ class Issue extends Model
 
         $html = $this->description;
 
-        // Extract base URL from jira_url to convert relative attachment URLs
+        // Replace Jira attachment URLs with proxy URLs
+        // Pattern: /rest/api/3/attachment/content/641569 or https://jira.example.com/rest/api/3/attachment/content/641569
+        $html = preg_replace_callback(
+            '#(?:https?://[^/]+)?/rest/api/\d+/attachment/content/(\d+)#',
+            function ($matches) {
+                $attachmentId = $matches[1];
+                $proxyUrl = route('jira.attachment.proxy', ['attachmentId' => $attachmentId]) . '?issue_id=' . $this->id;
+                return $proxyUrl;
+            },
+            $html,
+        );
+
+        // Also handle attachment URLs in img src attributes
+        $html = preg_replace_callback(
+            '#src=["\']((?:https?://[^/]+)?/rest/api/\d+/attachment/content/(\d+))([^"\']*)["\']#',
+            function ($matches) {
+                $attachmentId = $matches[2];
+                $proxyUrl = route('jira.attachment.proxy', ['attachmentId' => $attachmentId]) . '?issue_id=' . $this->id;
+                return 'src="' . $proxyUrl . '"';
+            },
+            $html,
+        );
+
+        // Convert relative links to absolute URLs (for non-image attachments)
         $baseUrl = $this->getJiraBaseUrl();
-
         if ($baseUrl) {
-            // Convert relative attachment URLs to absolute URLs
-            // Pattern: /rest/api/3/attachment/content/639676
-            $html = preg_replace_callback(
-                '#(/rest/api/\d+/attachment/content/\d+)#',
-                function ($matches) use ($baseUrl) {
-                    return rtrim($baseUrl, '/') . $matches[1];
-                },
-                $html,
-            );
-
-            // Also handle attachment URLs in img src attributes
-            $html = preg_replace_callback(
-                '#src=["\'](/rest/api/\d+/attachment/content/\d+)(.*?)["\']#',
-                function ($matches) use ($baseUrl) {
-                    return 'src="' . rtrim($baseUrl, '/') . $matches[1] . $matches[2] . '"';
-                },
-                $html,
-            );
-
-            // Convert relative links to absolute URLs
             $html = preg_replace_callback(
                 '#href=["\'](/secure/attachment/[^"\']+)["\']#',
                 function ($matches) use ($baseUrl) {

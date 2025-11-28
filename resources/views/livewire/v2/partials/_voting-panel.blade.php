@@ -92,7 +92,7 @@
                     <div class="text-base-content text-sm prose prose-sm max-w-none jira-description"
                          :class="expanded ? '' : 'max-h-16 overflow-hidden'"
                          x-ref="content">
-                        {!! $currentIssue->description !!}
+                        {!! $currentIssue->formatted_description !!}
                     </div>
                     <div x-show="!expanded"
                          class="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-base-300 to-transparent pointer-events-none">
