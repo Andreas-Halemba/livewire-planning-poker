@@ -24,9 +24,9 @@
                 @endif
             </span>
 
-            {{-- Owner Controls --}}
-            @if($isOwner)
-                <div class="flex gap-2">
+            <div class="flex gap-2">
+                {{-- Owner Controls --}}
+                @if($isOwner)
                     @if($votesRevealed)
                         <button wire:click="hideVotes" class="btn btn-sm btn-warning gap-1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,14 +49,16 @@
                             Aufdecken
                         </button>
                     @endif
-                    <button wire:click="cancelVoting" class="btn btn-sm btn-error gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        Abbrechen
-                    </button>
-                </div>
-            @endif
+                @endif
+
+                {{-- Cancel Button (für alle Teilnehmer) --}}
+                <button wire:click="cancelVoting" class="btn btn-sm btn-error gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Abbrechen
+                </button>
+            </div>
 
             {{-- Voter Controls --}}
             @if(! $isOwner && $myVote !== null && ! $votesRevealed)
@@ -87,7 +89,7 @@
         @if($currentIssue->description)
             <div x-data="{ expanded: false }" class="mt-2">
                 <div class="relative">
-                    <div class="text-base-content text-sm prose prose-sm max-w-none"
+                    <div class="text-base-content text-sm prose prose-sm max-w-none jira-description"
                          :class="expanded ? '' : 'max-h-16 overflow-hidden'"
                          x-ref="content">
                         {!! $currentIssue->description !!}
@@ -156,17 +158,19 @@
                     @keydown.6.window="vote(5)"
                     @keydown.7.window="vote(6)"
                     @keydown.8.window="vote(7)">
-                        <div class="flex items-center gap-2 text-xs text-base-content mb-2">
+                        <div  class="items-center gap-2 text-xs text-base-content mb-4 inline-flex">
                             <span>Deine Schätzung:</span>
-                            <span class="badge badge-ghost badge-xs">⌨️ Tasten 1-8</span>
+                            <span data-tip="⌨️ Tasten 1-8" class="tooltip tooltip-right bg-base-100 text-base-content rounded-full w-4 h-4 flex items-center justify-center text-medium text-sm cursor-pointer">?</span>
                         </div>
                         <div class="flex flex-wrap gap-3">
                             @foreach($cards as $index => $card)
                                 <button wire:key="voting-card-{{ $card }}"
                                     wire:click="submitVote({{ $card }})"
-                                    class="btn btn-lg min-w-14 text-lg font-bold relative {{ $myVote == $card ? 'btn-warning' : 'btn-ghost bg-base-content/10 hover:bg-base-content/20' }}">
+                                    class="btn tooltip btn-lg min-w-14 text-lg font-bold relative {{ $myVote == $card ? 'btn-warning' : 'btn-ghost bg-base-content/10 hover:bg-base-content/20' }}">
                                     {{ $card }}
-                                    <div class="kbd kbd-xs absolute -top-3 -right-3">{{ $index + 1 }}</div>
+                                    <div class="tooltip-content bg-transparent text-base-content">
+                                        <div class="kbd">Hotkey: {{ $index + 1 }}</div>
+                                      </div>
                                 </button>
                             @endforeach
                         </div>

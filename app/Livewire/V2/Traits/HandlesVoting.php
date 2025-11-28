@@ -157,11 +157,11 @@ trait HandlesVoting
     }
 
     /**
-     * Bricht das aktuelle Voting ab (nur Owner).
+     * Bricht das aktuelle Voting ab (alle Teilnehmer können das Voting abbrechen).
      */
     public function cancelVoting(): void
     {
-        if (Auth::id() !== $this->session->owner_id || !$this->currentIssue) {
+        if (!$this->currentIssue) {
             return;
         }
 
