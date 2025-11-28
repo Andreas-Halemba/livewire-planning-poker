@@ -30,7 +30,7 @@
                 autofocus />
             <x-input-error :messages="$errors->get('email')" />
 
-            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !$user->hasVerifiedEmail())
+            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
                 <div>
                     <p class="mt-2 text-sm text-gray-800">
                         {{ __('Your email address is unverified.') }}
@@ -52,9 +52,10 @@
         <div class="flex flex-col gap-2">
             <x-input-label for="theme" :value="__('Theme')" />
             <select id="theme" data-choose-theme class="w-full select">
+                <option value="light">Light</option>
+                <option value="cupcake">Cupcake</option>
                 <option value="fantasy">Fantasy</option>
                 <option value="dracula">Dark</option>
-                <option value="light">Light</option>
             </select>
         </div>
 
