@@ -13,6 +13,7 @@
         "codeat3/blade-clarity-icons": "^1.10",
         "guzzlehttp/guzzle": "^7.5.1",
         "inspector-apm/inspector-laravel": "^4.15",
+        "inspector-apm/inspector-php": "3.16.1",
         "laravel/framework": "^12.0",
         "laravel/pulse": "^1.4",
         "laravel/reverb": "^1.6",

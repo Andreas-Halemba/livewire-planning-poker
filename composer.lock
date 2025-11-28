@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7d4beb10bd5a10dbf0ecd9c101bcd21a",
+    "content-hash": "348a19567757904f85e1b07aa620f00a",
     "packages": [
         {
             "name": "blade-ui-kit/blade-icons",
@@ -1510,16 +1510,16 @@
         },
         {
             "name": "inspector-apm/inspector-php",
-            "version": "3.16.2",
+            "version": "3.16.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/inspector-apm/inspector-php.git",
-                "reference": "4a7d9ec3e18d53f866213ba5c1bb7faae5b5747e"
+                "reference": "40c9e72f8f973bb5ca038135f1a0b78b91bc66af"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/inspector-apm/inspector-php/zipball/4a7d9ec3e18d53f866213ba5c1bb7faae5b5747e",
-                "reference": "4a7d9ec3e18d53f866213ba5c1bb7faae5b5747e",
+                "url": "https://api.github.com/repos/inspector-apm/inspector-php/zipball/40c9e72f8f973bb5ca038135f1a0b78b91bc66af",
+                "reference": "40c9e72f8f973bb5ca038135f1a0b78b91bc66af",
                 "shasum": ""
             },
             "require": {
@@ -1528,19 +1528,13 @@
             "require-dev": {
                 "ext-curl": "*",
                 "friendsofphp/php-cs-fixer": "^3.75",
-                "neuron-core/neuron-ai": "^2.8",
+                "inspector-apm/neuron-ai": "^1.2.22",
                 "phpstan/phpstan": "^2.1",
                 "phpunit/phpunit": "^9.0",
-                "rector/rector": "^2.2",
+                "rector/rector": "^2.0",
                 "tomasvotruba/type-coverage": "^2.0"
             },
             "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "3.16.x-dev",
-                    "dev-develop": "3.16.x-dev"
-                }
-            },
             "autoload": {
                 "psr-4": {
                     "Inspector\\": "src/"
@@ -1566,9 +1560,9 @@
             ],
             "support": {
                 "issues": "https://github.com/inspector-apm/inspector-php/issues",
-                "source": "https://github.com/inspector-apm/inspector-php/tree/3.16.2"
+                "source": "https://github.com/inspector-apm/inspector-php/tree/3.16.1"
             },
-            "time": "2025-11-27T22:04:10+00:00"
+            "time": "2025-07-09T17:22:19+00:00"
         },
         {
             "name": "laravel/framework",

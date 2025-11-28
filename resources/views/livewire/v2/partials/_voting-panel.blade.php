@@ -1,5 +1,13 @@
 {{-- Voting Panel - Aktuelles Issue --}}
-<div class="card bg-base-300 text-base-content shadow-lg mb-6 border-2 border-primary">
+<div id="voting-panel"
+     x-data="{ issueId: {{ $currentIssue->id }} }"
+     x-init="
+         // Scroll beim ersten Erscheinen
+         setTimeout(() => {
+             $el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+         }, 150);
+     "
+     class="card bg-base-300 text-base-content shadow-lg mb-6 border-2 border-primary scroll-mt-6">
     <div class="card-body p-5">
         {{-- Header: Status + Controls --}}
         <div class="flex items-center justify-between gap-2 mb-3">
@@ -65,6 +73,7 @@
         @if($currentIssue->jira_url || $currentIssue->jira_key)
             <a href="{{ $currentIssue->jira_url ?? '#' }}"
                target="_blank"
+               rel="nofollow"
                class="inline-flex items-center gap-1 text-xs text-info hover:underline mb-1">
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M11.571 11.513H0a5.218 5.218 0 0 0 5.232 5.215h2.13v2.057A5.215 5.215 0 0 0 12.575 24V12.518a1.005 1.005 0 0 0-1.005-1.005zm5.723-5.756H5.736a5.215 5.215 0 0 0 5.215 5.214h2.129v2.058a5.218 5.218 0 0 0 5.215 5.214V6.758a1.001 1.001 0 0 0-1.001-1.001zM23.013 0H11.455a5.215 5.215 0 0 0 5.215 5.215h2.129v2.057A5.215 5.215 0 0 0 24 12.483V1.005A1.005 1.005 0 0 0 23.013 0z"/>
@@ -157,7 +166,7 @@
                                     wire:click="submitVote({{ $card }})"
                                     class="btn btn-lg min-w-14 text-lg font-bold relative {{ $myVote == $card ? 'btn-warning' : 'btn-ghost bg-base-content/10 hover:bg-base-content/20' }}">
                                     {{ $card }}
-                                    <kbd class="kbd absolute -top-3 -right-3">{{ $index + 1 }}</kbd>
+                                    <div class="kbd kbd-xs absolute -top-3 -right-3">{{ $index + 1 }}</div>
                                 </button>
                             @endforeach
                         </div>
