@@ -12,12 +12,35 @@
 
 /* Custom styles for components that DaisyUI doesn't fully cover */
 /* Note: Most styling is handled via DaisyUI classes directly in Blade templates */
-
-.jira-description .panelContent {
-    @apply !bg-transparent;
-}
-
-.jira-description .panel {
-    @apply !bg-accent/20 !text-base-content border-2 border-accent;
-    @apply mb-2 p-4;
+.jira-description {
+    img {
+        @apply m-0;
+    }
+    .panelContent {
+        @apply !bg-transparent;
+    }
+    .panel {
+        @apply !bg-accent/20 !text-base-content border-2 border-accent;
+        @apply mb-2 p-4;
+    }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply inline-flex items-center;
+    }
+    .jira-issue-macro {
+        @apply inline-flex items-center;
+        a {
+            @apply flex items-center;
+            img {
+                @apply m-0;
+            }
+        }
+        .aui-lozenge {
+            @apply badge badge-info ml-1;
+        }
+    }
 }
