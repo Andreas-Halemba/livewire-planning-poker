@@ -4,7 +4,7 @@
         "dev": "vite",
         "build": "vite build",
         "format": "php ./vendor/bin/pint && prettier --write . && sync-dotenv",
-        "soketi": "soketi start --config services/soketi/config.json"
+        "reverb": "php artisan reverb:start --host 0.0.0.0 --port 32001 --hostname livewire-planning-poker.test"
     },
     "devDependencies": {
         "@soketi/soketi": "^1.5.0",
