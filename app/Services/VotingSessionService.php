@@ -43,9 +43,9 @@ class VotingSessionService
             ->get();
 
         return [
-            'open' => $issues->filter(fn (Issue $i) => $i->status === IssueStatus::NEW),
-            'voting' => $issues->first(fn (Issue $i) => $i->status === IssueStatus::VOTING),
-            'finished' => $issues->filter(fn (Issue $i) => $i->status === IssueStatus::FINISHED),
+            'open' => $issues->filter(fn(Issue $i) => $i->status === IssueStatus::NEW),
+            'voting' => $issues->first(fn(Issue $i) => $i->status === IssueStatus::VOTING),
+            'finished' => $issues->filter(fn(Issue $i) => $i->status === IssueStatus::FINISHED),
         ];
     }
 
@@ -156,7 +156,7 @@ class VotingSessionService
     {
         $votedIssueIds = Vote::query()
             ->where('user_id', $user->id)
-            ->whereHas('issue', fn ($q) => $q->where('session_id', $session->id))
+            ->whereHas('issue', fn($q) => $q->where('session_id', $session->id))
             ->pluck('issue_id');
 
         return Issue::query()
@@ -178,8 +178,8 @@ class VotingSessionService
             ->where('session_id', $session->id)
             ->where('status', '!=', IssueStatus::FINISHED)
             ->where('status', '!=', IssueStatus::VOTING)
-            ->whereHas('votes', fn ($q) => $q->where('user_id', $user->id))
-            ->with(['votes' => fn ($q) => $q->where('user_id', $user->id)])
+            ->whereHas('votes', fn($q) => $q->where('user_id', $user->id))
+            ->with(['votes' => fn($q) => $q->where('user_id', $user->id)])
             ->get();
     }
 
@@ -196,10 +196,9 @@ class VotingSessionService
 
         return [
             'total' => $issues->count(),
-            'open' => $issues->filter(fn (Issue $i) => $i->status !== IssueStatus::FINISHED)->count(),
-            'finished' => $issues->filter(fn (Issue $i) => $i->status === IssueStatus::FINISHED)->count(),
+            'open' => $issues->filter(fn(Issue $i) => $i->status !== IssueStatus::FINISHED)->count(),
+            'finished' => $issues->filter(fn(Issue $i) => $i->status === IssueStatus::FINISHED)->count(),
             'total_story_points' => $issues->sum('storypoints') ?? 0,
         ];
     }
 }
-
