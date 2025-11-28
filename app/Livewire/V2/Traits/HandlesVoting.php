@@ -61,6 +61,9 @@ trait HandlesVoting
     {
         $this->votesRevealed = false;
         $this->loadCurrentIssue();
+
+        // Dispatch JavaScript-Event zum Scrollen zum Voting-Panel
+        $this->dispatch('scroll-to-voting-panel');
     }
 
     public function handleIssueCanceled(): void
@@ -119,6 +122,9 @@ trait HandlesVoting
         $this->loadVotedUsers();
 
         broadcast(new IssueSelected($this->session->invite_code))->toOthers();
+
+        // Dispatch JavaScript-Event zum Scrollen zum Voting-Panel
+        $this->dispatch('scroll-to-voting-panel');
     }
 
     /**

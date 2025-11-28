@@ -39,9 +39,9 @@
             <div class="text-sm font-semibold mt-4 mb-3 uppercase tracking-wide">Teilnehmer</div>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                 @foreach($session->users as $user)
-                    <x-v2.participant-card wire:key="participant-{{ $user->id }}" :user="$user" :session="$session" :current-issue="$currentIssue"
-                        :online-user-ids="$onlineUserIds" :voted-user-ids="$votedUserIds" :votes-by-user="$votesByUser"
-                        :votes-revealed="$votesRevealed" />
+                    <x-v2.participant-card wire:key="participant-{{ $user->id }}" :user="$user" :session="$session"
+                        :current-issue="$currentIssue" :online-user-ids="$onlineUserIds" :voted-user-ids="$votedUserIds"
+                        :votes-by-user="$votesByUser" :votes-revealed="$votesRevealed" />
                 @endforeach
             </div>
         </div>
@@ -75,3 +75,16 @@
         @include('livewire.v2.partials._drawer')
     @endif
 </div>
+@script
+<script>
+    // Höre auf das scroll-to-voting-panel Event
+    $wire.on('scroll-to-voting-panel', () => {
+        setTimeout(() => {
+            const panel = document.getElementById('voting-panel');
+            if (panel) {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 200);
+    });
+</script>
+@endscript
