@@ -7,6 +7,7 @@ use App\Models\Session;
 use App\Models\Vote;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Redirect;
@@ -57,6 +58,8 @@ class AsyncVotingPage extends Component
             // Issues can change through imports/deletes
             "echo-presence:session.{$this->session->invite_code},.IssueAdded" => 'refreshAsyncProgress',
             "echo-presence:session.{$this->session->invite_code},.IssueDeleted" => 'refreshAsyncProgress',
+            // Local refresh when voter saves/removes
+            'refresh-async-lists' => 'refreshAsyncProgress',
         ];
     }
 
@@ -101,6 +104,7 @@ class AsyncVotingPage extends Component
 
         $isOwner = Auth::id() === $this->session->owner_id;
 
+        /** @var Collection<int, \App\Models\Issue> $openIssues */
         $openIssues = $this->session->issues
             ->filter(fn($issue) => $issue->status !== IssueStatus::FINISHED && $issue->status !== IssueStatus::VOTING)
             ->sortBy('position')
@@ -111,10 +115,28 @@ class AsyncVotingPage extends Component
             ->unique('id')
             ->count();
 
+        $myVotesByIssue = [];
+        $notVotedIssues = collect();
+        $votedIssues = collect();
+
+        if (!$isOwner && Auth::check() && $openIssues->isNotEmpty()) {
+            $myVotesByIssue = Vote::query()
+                ->where('user_id', Auth::id())
+                ->whereIn('issue_id', $openIssues->pluck('id')->all())
+                ->pluck('value', 'issue_id')
+                ->all();
+
+            $notVotedIssues = $openIssues->filter(fn($issue) => !array_key_exists($issue->id, $myVotesByIssue));
+            $votedIssues = $openIssues->filter(fn($issue) => array_key_exists($issue->id, $myVotesByIssue));
+        }
+
         return view('livewire.async-voting-page', [
             'isOwner' => $isOwner,
             'openIssues' => $openIssues,
             'eligibleVoterCount' => $eligibleVoterCount,
+            'notVotedIssues' => $notVotedIssues,
+            'votedIssues' => $votedIssues,
+            'myVotesByIssue' => $myVotesByIssue,
         ]);
     }
 
