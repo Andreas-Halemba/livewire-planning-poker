@@ -34,6 +34,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Route for the Session Management component
     Route::get('/dashboard', SessionManagement::class)->name('dashboard');
 
+    // Session root (legacy-ish) -> redirect to default voting URL
+    Route::get('/sessions/{inviteCode}', function (string $inviteCode) {
+        return redirect()->route('session.voting', $inviteCode);
+    })->name('session.show');
+
     // Sync Voting (default) - V2 SessionPage
     Route::get('/sessions/{inviteCode}/voting', SessionPage::class)->name('session.voting');
     Route::get('/sessions/{inviteCode}/archived', ArchivedSessionView::class)->name('session.archived');

@@ -349,6 +349,15 @@ test('legacy v2 url redirects to voting url', function () {
         ->assertRedirect(route('session.voting', $session->invite_code));
 });
 
+test('session root url redirects to voting url', function () {
+    $session = createTestSession();
+    $user = $session->owner;
+
+    $this->actingAs($user)
+        ->get(route('session.show', $session->invite_code))
+        ->assertRedirect(route('session.voting', $session->invite_code));
+});
+
 test('v2 voting page attaches user to session on first visit', function () {
     $session = createTestSession();
     $user = User::factory()->create();
@@ -360,6 +369,16 @@ test('v2 voting page attaches user to session on first visit', function () {
 
     $session->refresh();
     expect($session->users()->whereKey($user->id)->exists())->toBeTrue();
+});
+
+test('voting url redirects to archived view when session is archived', function () {
+    $session = createTestSession();
+    $user = $session->owner;
+    $session->update(['archived_at' => now()]);
+
+    $this->actingAs($user)
+        ->get(route('session.voting', $session->invite_code))
+        ->assertRedirect(route('session.archived', $session->invite_code));
 });
 
 // ============================================================================

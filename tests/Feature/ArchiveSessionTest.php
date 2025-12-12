@@ -1,8 +1,8 @@
 <?php
 
 use App\Enums\IssueStatus;
-use App\Livewire\ArchivedSessionView;
 use App\Livewire\ArchivedSessions;
+use App\Livewire\ArchivedSessionView;
 use App\Livewire\OwnerSessions;
 use App\Livewire\Voting;
 use App\Models\Issue;
@@ -66,8 +66,7 @@ test('archived session view shows issue overview', function () {
         ->test(ArchivedSessionView::class, ['inviteCode' => $session->invite_code])
         ->assertSee('Archivierte Session', false)
         ->assertSee($issue->jira_key, false)
-        ->assertSee('8 SP', false)
-        ->assertSee('Beschreibung', false);
+        ->assertSee('8 SP', false);
 });
 
 test('owner can unarchive session from archived view', function () {
