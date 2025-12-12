@@ -1,5 +1,5 @@
-<div class="w-full shadow-md bg-base-200 rounded-lg overflow-hidden">
-    <div class="p-6">
+<div class="w-full shadow-lg bg-base-200 rounded-xl overflow-hidden border border-base-300">
+    <div class="p-5 sm:p-6">
         <h2 class="text-xl font-semibold text-base-content mb-2">Archived Sessions</h2>
         <p class="text-base-content/70 mb-4">Previously archived voting sessions appear here for reference.</p>
 

@@ -17,7 +17,10 @@ class UserSessions extends Component
         $sessions = collect([]);
         if (Auth::user()) {
             // Only show sessions where user is a participant, but not the owner
-            $sessions = Auth::user()->sessions()->where('owner_id', '!=', Auth::id())->get();
+            $sessions = Auth::user()->sessions()
+                ->where('owner_id', '!=', Auth::id())
+                ->whereNull('archived_at')
+                ->get();
         }
         return view('livewire.user-sessions', [
             'sessions' => $sessions,

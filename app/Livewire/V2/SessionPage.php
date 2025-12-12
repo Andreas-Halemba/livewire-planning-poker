@@ -11,8 +11,11 @@ use App\Livewire\V2\Traits\HandlesVoting;
 use App\Models\Session;
 use App\Services\SessionService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
 use Livewire\Component;
+use Livewire\Features\SupportRedirects\Redirector as LivewireRedirector;
 
 /**
  * V2 SessionPage - Hauptkomponente für die Voting-Session.
@@ -32,11 +35,16 @@ class SessionPage extends Component
 
     public Session $session;
 
-    public function mount(string $inviteCode): void
+    public function mount(string $inviteCode): RedirectResponse|LivewireRedirector|null
     {
         $this->session = Session::with(['issues', 'users', 'owner'])
             ->where('invite_code', $inviteCode)
             ->firstOrFail();
+
+        // Archived sessions are read-only and should be shown in archived view
+        if ($this->session->archived_at !== null) {
+            return Redirect::route('session.archived', $inviteCode);
+        }
 
         // Ensure the current user joins the session in the DB on first visit
         if (Auth::check()) {
@@ -48,6 +56,8 @@ class SessionPage extends Component
         $this->initializePresence();
         $this->loadCurrentIssue();
         $this->initializeJiraFilters();
+
+        return null;
     }
 
     /**

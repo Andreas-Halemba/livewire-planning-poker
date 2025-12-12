@@ -1,5 +1,11 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 
+    <x-breadcrumbs :items="[
+        ['label' => 'Dashboard', 'href' => route('dashboard')],
+        ['label' => 'Session: ' . $session->name, 'href' => route('session.voting', $session->invite_code)],
+        ['label' => 'Async Voting'],
+    ]" />
+
     {{-- Session Header (v2-like) --}}
     <div class="bg-base-300 rounded-xl shadow-md border border-base-300 p-5 sm:p-6 mb-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
