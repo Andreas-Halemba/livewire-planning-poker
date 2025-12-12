@@ -193,6 +193,13 @@ To test the Jira integration:
 7. Select some tickets and import them
 8. Verify that the tickets appear in your session's issue list
 
+### Refresh imported tickets (fetch missing fields)
+
+If older imported tickets are missing fields (e.g. description, Spike type → hours), the **owner** can refresh Jira data:
+
+- In the V2 session page, click the small **refresh** button on an issue row (next to Start / next to the estimate), or
+- Open the Jira drawer and click **“Importierte Tickets aus Jira aktualisieren”** to refresh all imported issues with a Jira key.
+
 **Note:** Make sure your Jira instance is accessible and you have permission to view the tickets in the specified project and status.
 
 **If you don't see the Jira import section:** Navigate to your profile settings and configure your Jira credentials first. You'll see a link in the import section that takes you directly to the profile settings.

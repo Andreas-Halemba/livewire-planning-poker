@@ -34,6 +34,9 @@ class AsyncVotingCards extends Component
     /** @var array<int> */
     public array $cards = [1, 2, 3, 5, 8, 13, 21, 100];
 
+    /** @var array<int> */
+    private array $hourCards = [1, 2, 4, 8, 16, 24];
+
     /** @return array<string, string> */
     public function getListeners(): array
     {
@@ -67,6 +70,7 @@ class AsyncVotingCards extends Component
 
         $this->selectedIssue = $issue;
         $this->selectedCard = null;
+        $this->updateCardsForIssue($issue);
 
         $vote = Vote::query()
             ->where('user_id', Auth::id())
@@ -141,6 +145,17 @@ class AsyncVotingCards extends Component
         $this->selectedIssue = null;
         $this->selectedCard = null;
         $this->myVote = null;
+        $this->cards = [1, 2, 3, 5, 8, 13, 21, 100];
+    }
+
+    private function updateCardsForIssue(Issue $issue): void
+    {
+        if (($issue->estimate_unit ?? 'sp') === 'hours') {
+            $this->cards = $this->hourCards;
+            return;
+        }
+
+        $this->cards = [1, 2, 3, 5, 8, 13, 21, 100];
     }
 
     public function render(): View

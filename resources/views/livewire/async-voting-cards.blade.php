@@ -29,6 +29,9 @@
                 <div class="font-semibold text-base-content break-words">
                     {{ $selectedIssue->title }}
                 </div>
+                <div class="mt-1 flex items-center gap-2">
+                    <x-issue-type-badge :type="$selectedIssue->issue_type" />
+                </div>
 
                 @if($selectedIssue->description)
                     <div x-data="{ expanded: false }" class="mt-2">

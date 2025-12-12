@@ -59,13 +59,16 @@
                                         {{ $issue->jira_key ?? 'Jira öffnen' }}
                                     </a>
                                 @endif
+                                <div class="flex items-center gap-2">
+                                    <x-issue-type-badge :type="$issue->issue_type" />
+                                </div>
                                 <div class="text-sm sm:text-base font-semibold text-base-content break-words">
                                     {{ $issue->title }}
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 sm:justify-end sm:shrink-0">
                                 <span class="badge badge-success badge-outline whitespace-nowrap">
-                                    {{ $issue->storypoints ?? '—' }} SP
+                                    {{ $issue->storypoints ?? '—' }} {{ ($issue->estimate_unit ?? 'sp') === 'hours' ? 'h' : 'SP' }}
                                 </span>
                             </div>
                         </div>

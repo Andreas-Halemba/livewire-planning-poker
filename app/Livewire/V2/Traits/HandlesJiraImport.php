@@ -26,11 +26,13 @@ trait HandlesJiraImport
     public string $jiraError = '';
     public string $jiraSuccess = '';
 
-    /** @var array<int, array{key: string, title: string, description: ?string, url: string, alreadyImported: bool}> */
+    /** @var array<int, array{key: string, title: string, description: ?string, url: string, estimate_unit: string, issue_type?: ?string, alreadyImported: bool}> */
     public array $jiraTickets = [];
 
     /** @var array<string> */
     public array $selectedJiraTickets = [];
+
+    public bool $jiraRefreshing = false;
 
     /**
      * Initialisiert Jira-Filter aus der Session.
@@ -219,6 +221,8 @@ trait HandlesJiraImport
                 'title' => $mapped['title'],
                 'description' => $mapped['description'],
                 'url' => $mapped['jira_url'],
+                'estimate_unit' => $mapped['estimate_unit'] ?? 'sp',
+                'issue_type' => $mapped['issue_type'] ?? null,
                 'alreadyImported' => $alreadyImported,
             ];
         }
@@ -284,6 +288,8 @@ trait HandlesJiraImport
                 'position' => $maxPosition,
                 'jira_key' => $ticket['key'],
                 'jira_url' => $ticket['url'],
+                'estimate_unit' => $ticket['estimate_unit'] ?? 'sp',
+                'issue_type' => $ticket['issue_type'] ?? null,
             ]);
 
             $ticket['alreadyImported'] = true;
@@ -307,5 +313,130 @@ trait HandlesJiraImport
         $this->jiraError = '';
         $this->jiraSuccess = '';
         $this->jiraInput = '';
+    }
+
+    /**
+     * Refresh a single imported issue from Jira (title/description/url/type).
+     * Best-effort: failures are shown in $jiraError and do not break the session.
+     */
+    public function refreshIssueFromJira(int $issueId): void
+    {
+        if (Auth::id() !== $this->session->owner_id || !$this->hasJiraCredentials()) {
+            return;
+        }
+
+        $issue = Issue::query()
+            ->where('session_id', $this->session->id)
+            ->whereKey($issueId)
+            ->first();
+
+        if (!$issue || empty($issue->jira_key)) {
+            return;
+        }
+
+        $this->jiraRefreshing = true;
+        $this->jiraError = '';
+        $this->jiraSuccess = '';
+
+        try {
+            $jiraService = new JiraService(Auth::user());
+            $jiraIssue = $jiraService->getIssueByKey($issue->jira_key);
+
+            if (!$jiraIssue) {
+                $this->jiraError = 'Ticket konnte nicht aus Jira geladen werden.';
+                $this->jiraRefreshing = false;
+                return;
+            }
+
+            $mapped = $jiraService->mapJiraIssueToArray($jiraIssue);
+
+            $issue->title = $mapped['title'] ?? $issue->title;
+            $issue->description = $mapped['description'] ?? $issue->description;
+            $issue->jira_url = $mapped['jira_url'] ?? $issue->jira_url;
+            $issue->estimate_unit = $mapped['estimate_unit'] ?? ($issue->estimate_unit ?? 'sp');
+            $issue->issue_type = $mapped['issue_type'] ?? $issue->issue_type;
+            $issue->save();
+
+            // Keep state fresh
+            $this->session->load('issues');
+
+            $this->jiraSuccess = "Ticket {$issue->jira_key} aktualisiert.";
+        } catch (\Throwable $e) {
+            Log::error('Failed to refresh Jira issue: ' . $e->getMessage());
+            $this->jiraError = 'Ticket konnte nicht aktualisiert werden.';
+        }
+
+        $this->jiraRefreshing = false;
+    }
+
+    /**
+     * Refresh all imported issues in this session that have a jira_key.
+     */
+    public function refreshAllJiraIssues(): void
+    {
+        if (Auth::id() !== $this->session->owner_id || !$this->hasJiraCredentials()) {
+            return;
+        }
+
+        $keysById = Issue::query()
+            ->where('session_id', $this->session->id)
+            ->whereNotNull('jira_key')
+            ->pluck('jira_key', 'id')
+            ->all();
+
+        if (empty($keysById)) {
+            return;
+        }
+
+        $this->jiraRefreshing = true;
+        $this->jiraError = '';
+        $this->jiraSuccess = '';
+
+        $updated = 0;
+
+        try {
+            $jiraService = new JiraService(Auth::user());
+            $keys = array_values(array_map('strval', $keysById));
+            $jiraIssues = $jiraService->getIssuesByKeys($keys);
+
+            foreach ($jiraIssues as $jiraIssue) {
+                $mapped = $jiraService->mapJiraIssueToArray($jiraIssue);
+                $key = (string) ($mapped['jira_key'] ?? '');
+                if ($key === '') {
+                    continue;
+                }
+
+                $issueId = array_search($key, $keysById, true);
+                if ($issueId === false) {
+                    continue;
+                }
+
+                $issue = Issue::query()
+                    ->where('session_id', $this->session->id)
+                    ->whereKey((int) $issueId)
+                    ->first();
+
+                if (!$issue) {
+                    continue;
+                }
+
+                $issue->title = $mapped['title'] ?? $issue->title;
+                $issue->description = $mapped['description'] ?? $issue->description;
+                $issue->jira_url = $mapped['jira_url'] ?? $issue->jira_url;
+                $issue->estimate_unit = $mapped['estimate_unit'] ?? ($issue->estimate_unit ?? 'sp');
+                $issue->issue_type = $mapped['issue_type'] ?? $issue->issue_type;
+                $issue->save();
+
+                $updated++;
+            }
+
+            $this->session->load('issues');
+            $this->jiraSuccess = "{$updated} Ticket(s) aktualisiert.";
+        } catch (\Throwable $e) {
+            Log::error('Failed to refresh all Jira issues: ' . $e->getMessage());
+            $this->jiraError = 'Tickets konnten nicht aktualisiert werden.';
+        }
+
+        $this->jiraRefreshing = false;
     }
 }

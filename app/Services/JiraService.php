@@ -64,12 +64,17 @@ class JiraService
     {
         $issueKey = $jiraIssue->key ?? '';
         $browserUrl = $this->convertApiUrlToBrowserUrl($jiraIssue->self ?? '', $issueKey);
+        $issueTypeName = (string) ($jiraIssue->fields->issuetype->name ?? '');
+        $isSpike = mb_strtolower(trim($issueTypeName)) === 'spike';
 
         return [
             'title' => $jiraIssue->fields->summary ?? 'No title',
             'description' => $jiraIssue->renderedFields['description'] ?? null,
             'jira_key' => $issueKey,
             'jira_url' => $browserUrl,
+            'issue_type' => $issueTypeName ?: null,
+            // Spike issues should be estimated in hours (not story points)
+            'estimate_unit' => $isSpike ? 'hours' : 'sp',
         ];
     }
 
@@ -322,6 +327,25 @@ class JiraService
         } catch (JiraException $e) {
             Log::error('Failed to get issues by keys: ' . $e->getMessage());
             return [];
+        }
+    }
+
+    /**
+     * Fetch a single issue by its key (best-effort).
+     */
+    public function getIssueByKey(string $key): ?object
+    {
+        $key = trim($key);
+        if ($key === '') {
+            return null;
+        }
+
+        try {
+            $issues = $this->getIssuesByKeys([$key]);
+            return $issues[0] ?? null;
+        } catch (\Throwable $e) {
+            Log::error('Failed to fetch Jira issue by key: ' . $e->getMessage());
+            return null;
         }
     }
 

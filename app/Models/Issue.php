@@ -21,6 +21,8 @@ use Illuminate\Support\Str;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property int|null $storypoints
+ * @property string $estimate_unit
+ * @property string|null $issue_type
  * @property string|null $jira_key
  * @property string|null $jira_url
  *
@@ -55,6 +57,8 @@ class Issue extends Model
         'session_id',
         'status',
         'storypoints',
+        'estimate_unit',
+        'issue_type',
         'jira_key',
         'jira_url',
         'position',

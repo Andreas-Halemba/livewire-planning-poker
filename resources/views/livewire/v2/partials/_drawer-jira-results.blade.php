@@ -42,6 +42,13 @@
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
                         <span class="font-mono text-sm font-semibold text-info">{{ $ticket['key'] }}</span>
+                        @if(!empty($ticket['issue_type']))
+                            @php
+                                $isSpike = strtolower($ticket['issue_type']) === 'spike';
+                                $badgeClass = $isSpike ? 'badge-warning' : 'badge-outline';
+                            @endphp
+                            <span class="badge badge-xs {{ $badgeClass }}">{{ $ticket['issue_type'] }}</span>
+                        @endif
                         @if($ticket['alreadyImported'])
                             <span class="badge badge-warning badge-xs">bereits importiert</span>
                         @endif

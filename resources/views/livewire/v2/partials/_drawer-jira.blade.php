@@ -35,6 +35,20 @@
             </div>
         @endif
 
+        {{-- Refresh already imported tickets (fetch missing data) --}}
+        <button wire:click="refreshAllJiraIssues"
+            class="btn btn-sm btn-outline w-full gap-2"
+            @disabled($jiraRefreshing)
+            wire:loading.attr="disabled"
+            wire:target="refreshAllJiraIssues">
+            <svg wire:loading.remove wire:target="refreshAllJiraIssues" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 00-14.66-3.34M4 16a8 8 0 0014.66 3.34" />
+            </svg>
+            <span wire:loading.remove wire:target="refreshAllJiraIssues">Importierte Tickets aus Jira aktualisieren</span>
+            <span wire:loading wire:target="refreshAllJiraIssues" class="loading loading-spinner"></span>
+        </button>
+
         {{-- Wenn noch keine Tickets geladen --}}
         @if(empty($jiraTickets))
             @include('livewire.v2.partials._drawer-jira-search')
