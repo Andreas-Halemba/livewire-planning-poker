@@ -3,8 +3,8 @@
 namespace App\Livewire;
 
 use App\Enums\IssueStatus;
-use App\Events\AsyncVoteUpdated;
 use App\Events\AddVote;
+use App\Events\AsyncVoteUpdated;
 use App\Events\HideVotes;
 use App\Models\Issue;
 use App\Models\Session;
