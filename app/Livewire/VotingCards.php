@@ -246,8 +246,9 @@ class VotingCards extends Component
         // Delete the vote
         Vote::whereUserId(auth()->id())->whereIssueId($issue->id)->delete();
 
-        // If this was async voting, notify others without leaking values
-        if ($originalStatus === IssueStatus::NEW) {
+        // If this was NOT an active live voting round, notify others (e.g. Owner Progress view)
+        // WITHOUT leaking vote values. This keeps async progress consistent for NEW and FINISHED issues.
+        if ($originalStatus !== IssueStatus::VOTING) {
             broadcast(new AsyncVoteUpdated(
                 $this->session->invite_code,
                 $issue->id,

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Voting;
 
+use App\Actions\Jira\SyncStoryPointsToJira;
 use App\Enums\IssueStatus;
 use App\Events\HideVotes;
 use App\Events\IssueAdded;
@@ -165,21 +166,10 @@ class Owner extends Component
         $issue->status = IssueStatus::FINISHED;
         $issue->save();
 
-        // Update story points in Jira if issue has Jira key and owner has Jira credentials
-        if ($issue->jira_key && $issue->storypoints !== null) {
-            $owner = $this->session->owner()->first();
-            if ($owner && $owner->jira_url && $owner->jira_user && $owner->jira_api_key) {
-                try {
-                    $jiraService = new \App\Services\JiraService($owner);
-                    $success = $jiraService->updateStoryPoints($issue->jira_key, $issue->storypoints);
-                    if (!$success) {
-                        \Illuminate\Support\Facades\Log::warning("Jira story points update returned false for {$issue->jira_key}");
-                    }
-                } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error("Failed to update Jira story points for {$issue->jira_key}: " . $e->getMessage());
-                    // Don't fail the entire operation if Jira update fails
-                }
-            }
+        // Best-effort Jira sync (only if issue has key/link and owner has Jira credentials)
+        $owner = $this->session->owner()->first();
+        if ($owner) {
+            app(SyncStoryPointsToJira::class)->sync($owner, $issue);
         }
 
         broadcast(new IssueCanceled($this->session->invite_code))->toOthers();

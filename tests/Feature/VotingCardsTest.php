@@ -330,11 +330,19 @@ test('removing vote from finished issue resets status to VOTING', function () {
         'value' => 5,
     ]);
 
+    Event::fake([AsyncVoteUpdated::class]);
+
     // User removes vote
     Livewire::actingAs($user)
         ->test(VotingCards::class, ['session' => $session])
         ->call('selectIssue', $issue->id)
         ->call('removeVote');
+
+    Event::assertDispatched(AsyncVoteUpdated::class, function (AsyncVoteUpdated $event) use ($issue, $user) {
+        return $event->issueId === $issue->id
+            && $event->userId === $user->id
+            && $event->hasVote === false;
+    });
 
     // Verify vote is removed
     expect(Vote::whereUserId($user->id)->whereIssueId($issue->id)->exists())->toBeFalse();

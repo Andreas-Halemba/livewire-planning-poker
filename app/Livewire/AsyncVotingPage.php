@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use App\Enums\IssueStatus;
+use App\Events\AsyncVoteUpdated;
+use App\Models\Issue;
 use App\Models\Session;
 use App\Models\Vote;
 use Illuminate\Contracts\View\View;
@@ -96,6 +98,40 @@ class AsyncVotingPage extends Component
                     ->all();
             })
             ->toArray();
+    }
+
+    /**
+     * Revoke an async estimation (delete current user's vote) without opening the ticket.
+     */
+    public function revokeAsyncVote(int $issueId): void
+    {
+        if (Auth::id() === $this->session->owner_id || !Auth::check()) {
+            return;
+        }
+
+        // Only allow for issues in this session and not in active live voting
+        $issue = Issue::query()
+            ->where('session_id', $this->session->id)
+            ->where('id', $issueId)
+            ->first();
+
+        if (!$issue || $issue->status === IssueStatus::VOTING) {
+            return;
+        }
+
+        Vote::query()
+            ->where('user_id', Auth::id())
+            ->where('issue_id', $issue->id)
+            ->delete();
+
+        broadcast(new AsyncVoteUpdated(
+            $this->session->invite_code,
+            $issue->id,
+            Auth::id(),
+            false,
+        ))->toOthers();
+
+        $this->dispatch('refresh-async-lists');
     }
 
     public function render(): View

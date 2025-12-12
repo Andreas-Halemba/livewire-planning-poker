@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\V2\Traits;
 
+use App\Actions\Jira\SyncStoryPointsToJira;
 use App\Enums\IssueStatus;
 use App\Events\AddVote;
 use App\Events\HideVotes;
@@ -206,9 +207,16 @@ trait HandlesVoting
             return;
         }
 
-        $this->currentIssue->storypoints = $storypoints;
-        $this->currentIssue->status = IssueStatus::FINISHED;
-        $this->currentIssue->save();
+        $issue = $this->currentIssue;
+        $issue->storypoints = $storypoints;
+        $issue->status = IssueStatus::FINISHED;
+        $issue->save();
+
+        // Best-effort Jira sync (only if issue has key/link and owner has Jira credentials)
+        $owner = $this->session->owner()->first();
+        if ($owner) {
+            app(SyncStoryPointsToJira::class)->sync($owner, $issue);
+        }
 
         $this->currentIssue = null;
         $this->votesRevealed = false;
