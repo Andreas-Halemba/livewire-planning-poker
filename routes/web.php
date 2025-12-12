@@ -8,7 +8,6 @@ use App\Livewire\ArchivedSessionView;
 use App\Livewire\AsyncVotingPage;
 use App\Livewire\SessionManagement;
 use App\Livewire\V2\SessionPage;
-use App\Livewire\Voting;
 use App\Models\Session;
 use Illuminate\Support\Facades\Route;
 
@@ -34,12 +33,15 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     // Route for the Session Management component
     Route::get('/dashboard', SessionManagement::class)->name('dashboard');
-    // Route for the Voting component
-    Route::get('/sessions/{inviteCode}/voting', Voting::class)->name('session.voting');
+
+    // Sync Voting (default) - V2 SessionPage
+    Route::get('/sessions/{inviteCode}/voting', SessionPage::class)->name('session.voting');
     Route::get('/sessions/{inviteCode}/archived', ArchivedSessionView::class)->name('session.archived');
 
-    // V2 Routes - Refactored components with improved architecture
-    Route::get('/sessions/{inviteCode}/v2', SessionPage::class)->name('session.v2');
+    // Legacy V2 URL -> redirect to default voting URL
+    Route::get('/sessions/{inviteCode}/v2', function (string $inviteCode) {
+        return redirect()->route('session.voting', $inviteCode);
+    })->name('session.v2');
 
     // Async Voting (Voter View + Owner Progress)
     Route::get('/sessions/{inviteCode}/async', AsyncVotingPage::class)->name('session.async');

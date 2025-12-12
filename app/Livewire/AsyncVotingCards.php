@@ -107,6 +107,9 @@ class AsyncVotingCards extends Component
         ))->toOthers();
 
         $this->dispatch('refresh-async-lists');
+
+        // After saving, clear selection so no issue stays "active" in the async panel.
+        $this->clearSelection();
     }
 
     public function removeVote(): void

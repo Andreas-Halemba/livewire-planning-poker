@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Jira\SyncStoryPointsToJira;
 use App\Enums\IssueStatus;
 use App\Events\AddVote;
 use App\Events\HideVotes;
@@ -306,6 +307,59 @@ test('owner can confirm estimate and finish issue', function () {
     expect($component->get('currentIssue'))->toBeNull();
 
     Event::assertDispatched(IssueCanceled::class);
+});
+
+test('confirm estimate triggers Jira sync when issue has Jira link (browse url)', function () {
+    $session = createTestSession();
+    $owner = $session->owner;
+    $owner->update([
+        'jira_url' => 'https://jira.example.com',
+        'jira_user' => 'user@example.com',
+        'jira_api_key' => 'token',
+    ]);
+
+    $issue = Issue::factory()->create([
+        'session_id' => $session->id,
+        'status' => IssueStatus::VOTING,
+        'jira_key' => null,
+        'jira_url' => 'https://jira.example.com/browse/ABC-123',
+    ]);
+
+    $mock = \Mockery::mock(SyncStoryPointsToJira::class);
+    $mock->shouldReceive('sync')
+        ->once()
+        ->with(
+            \Mockery::on(fn($u) => $u instanceof User && $u->id === $owner->id),
+            \Mockery::on(fn($i) => $i instanceof Issue && $i->id === $issue->id && $i->storypoints === 8),
+        );
+    app()->instance(SyncStoryPointsToJira::class, $mock);
+
+    $component = createSessionPageComponent($session, $owner);
+    $component->set('currentIssue', $issue);
+
+    $component->call('confirmEstimate', 8);
+});
+
+test('legacy v2 url redirects to voting url', function () {
+    $session = createTestSession();
+    $user = $session->owner;
+
+    $this->actingAs($user)
+        ->get(route('session.v2', $session->invite_code))
+        ->assertRedirect(route('session.voting', $session->invite_code));
+});
+
+test('v2 voting page attaches user to session on first visit', function () {
+    $session = createTestSession();
+    $user = User::factory()->create();
+
+    expect($session->users()->whereKey($user->id)->exists())->toBeFalse();
+
+    Livewire::actingAs($user)
+        ->test(SessionPage::class, ['inviteCode' => $session->invite_code]);
+
+    $session->refresh();
+    expect($session->users()->whereKey($user->id)->exists())->toBeTrue();
 });
 
 // ============================================================================

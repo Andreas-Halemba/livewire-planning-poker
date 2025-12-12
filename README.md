@@ -171,6 +171,15 @@ Each user can configure their own Jira credentials in their profile settings:
 9. Click "Import Selected" to import the chosen tickets
 10. Tickets that were already imported will be marked and disabled
 
+### Story Points Sync (Owner confirm)
+
+When the **owner confirms** an estimate, the app will **best-effort** write the selected story points back to Jira **if**:
+
+- the issue has a `jira_key` **or** a Jira link containing an issue key (e.g. `/browse/ABC-123`), and
+- the owner has Jira credentials configured in their profile.
+
+If the Jira update fails, the issue is still finished in the app; the failure is only logged.
+
 ### Testing the Jira Integration
 
 To test the Jira integration:
@@ -187,6 +196,18 @@ To test the Jira integration:
 **Note:** Make sure your Jira instance is accessible and you have permission to view the tickets in the specified project and status.
 
 **If you don't see the Jira import section:** Navigate to your profile settings and configure your Jira credentials first. You'll see a link in the import section that takes you directly to the profile settings.
+
+## Session URLs
+
+- **Sync Voting (default)**: `/sessions/{inviteCode}/voting`
+- **Async Voting**: `/sessions/{inviteCode}/async`
+- **Legacy**: `/sessions/{inviteCode}/v2` redirects to `/sessions/{inviteCode}/voting`
+
+### Testing the URLs (manual)
+
+1. Open `/sessions/{inviteCode}/v2` and verify you are redirected to `/sessions/{inviteCode}/voting`.
+2. Open `/sessions/{inviteCode}/voting` with a user that was not in the session yet and verify they appear in the participants list (DB join on first visit).
+3. Open `/sessions/{inviteCode}/async` and verify the “Zur Session (Voting)” button goes to `/sessions/{inviteCode}/voting`.
 
 ### Production Deployment
 

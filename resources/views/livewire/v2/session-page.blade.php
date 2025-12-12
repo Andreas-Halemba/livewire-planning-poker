@@ -5,33 +5,21 @@
 <div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 
-        {{-- V2 Preview Alert --}}
-        <div role="alert" class="alert alert-info alert-outline alert-vertical sm:alert-horizontal mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                class="stroke-current h-6 w-6 shrink-0">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-                <h3 class="font-bold">V2 Preview</h3>
-                <div class="text-xs">Diese Version ist noch in Entwicklung. Bei Problemen zur stabilen V1 wechseln.
-                </div>
-            </div>
-            <a href="{{ route('session.voting', $session->invite_code) }}" class="btn btn-sm btn-info btn-outline">
-                Zur V1
-            </a>
-        </div>
-
         {{-- Session Header --}}
         <div class="bg-base-300 rounded-xl shadow-md border border-base-300 p-5 sm:p-6 mb-6">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <h1 class="text-xl sm:text-2xl font-semibold text-base-content">
                     Session: <span class="font-bold">{{ $session->name }}</span>
                 </h1>
-                <div class="text-sm text-base-content/70">
-                    <span class="text-success font-medium">{{ $onlineCount }} online</span> •
-                    {{ $participantCount }} Mitglieder •
-                    {{ $finishedCount }}/{{ $issueCount }} Issues
+                <div class="flex flex-col sm:items-end gap-2">
+                    <div class="text-sm text-base-content/70">
+                        <span class="text-success font-medium">{{ $onlineCount }} online</span> •
+                        {{ $participantCount }} Mitglieder •
+                        {{ $finishedCount }}/{{ $issueCount }} Issues
+                    </div>
+                    <a href="{{ route('session.async', $session->invite_code) }}" class="btn btn-sm btn-info btn-outline">
+                        Zum Async Voting
+                    </a>
                 </div>
             </div>
 

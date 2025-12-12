@@ -9,6 +9,7 @@ use App\Livewire\V2\Traits\HandlesJiraImport;
 use App\Livewire\V2\Traits\HandlesPresence;
 use App\Livewire\V2\Traits\HandlesVoting;
 use App\Models\Session;
+use App\Services\SessionService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -36,6 +37,12 @@ class SessionPage extends Component
         $this->session = Session::with(['issues', 'users', 'owner'])
             ->where('invite_code', $inviteCode)
             ->firstOrFail();
+
+        // Ensure the current user joins the session in the DB on first visit
+        if (Auth::check()) {
+            app(SessionService::class)->joinSession($this->session);
+            $this->session->load('users');
+        }
 
         // Trait-Initialisierungen
         $this->initializePresence();

@@ -81,7 +81,7 @@
                     </div>
 
                     <div class="mt-4 flex flex-col sm:flex-row gap-2">
-                        <button wire:click="clearSelection" class="btn btn-ghost">
+                        <button wire:click="clearSelection" class="btn btn-error">
                             Abbrechen
                         </button>
                         <div class="flex-1"></div>
