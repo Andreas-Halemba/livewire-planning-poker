@@ -81,17 +81,20 @@
         </div>
 
         {{-- Issue Info --}}
-        @if($currentIssue->jira_url || $currentIssue->jira_key)
-            <a href="{{ $currentIssue->jira_url ?? '#' }}"
-               target="_blank"
-               rel="nofollow"
-               class="inline-flex items-center gap-1 text-xs text-info hover:underline mb-1">
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M11.571 11.513H0a5.218 5.218 0 0 0 5.232 5.215h2.13v2.057A5.215 5.215 0 0 0 12.575 24V12.518a1.005 1.005 0 0 0-1.005-1.005zm5.723-5.756H5.736a5.215 5.215 0 0 0 5.215 5.214h2.129v2.058a5.218 5.218 0 0 0 5.215 5.214V6.758a1.001 1.001 0 0 0-1.001-1.001zM23.013 0H11.455a5.215 5.215 0 0 0 5.215 5.215h2.129v2.057A5.215 5.215 0 0 0 24 12.483V1.005A1.005 1.005 0 0 0 23.013 0z"/>
-                </svg>
-                {{ $currentIssue->jira_key ?? 'Jira öffnen' }}
-            </a>
-        @endif
+        <div class="flex items-center gap-2 mb-1">
+            @if($currentIssue->jira_url || $currentIssue->jira_key)
+                <a href="{{ $currentIssue->jira_url ?? '#' }}"
+                   target="_blank"
+                   rel="nofollow"
+                   class="inline-flex items-center gap-1 text-xs text-info hover:underline">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M11.571 11.513H0a5.218 5.218 0 0 0 5.232 5.215h2.13v2.057A5.215 5.215 0 0 0 12.575 24V12.518a1.005 1.005 0 0 0-1.005-1.005zm5.723-5.756H5.736a5.215 5.215 0 0 0 5.215 5.214h2.129v2.058a5.218 5.218 0 0 0 5.215 5.214V6.758a1.001 1.001 0 0 0-1.001-1.001zM23.013 0H11.455a5.215 5.215 0 0 0 5.215 5.215h2.129v2.057A5.215 5.215 0 0 0 24 12.483V1.005A1.005 1.005 0 0 0 23.013 0z"/>
+                    </svg>
+                    {{ $currentIssue->jira_key ?? 'Jira öffnen' }}
+                </a>
+            @endif
+            <x-issue-type-badge :type="$currentIssue->issue_type" />
+        </div>
         <h2 class="card-title text-lg">{{ $currentIssue->title }}</h2>
 
         {{-- Description mit Collapse --}}
@@ -127,17 +130,18 @@
                 <div class="flex flex-wrap items-center gap-3">
                     @php
                         $voteCounts = collect($votesByUser)->values()->countBy()->sortKeys();
+                        $unitSuffix = ($currentIssue->estimate_unit ?? 'sp') === 'hours' ? 'h' : 'SP';
                     @endphp
                     @foreach($voteCounts as $vote => $count)
                         @if($isOwner)
                             <button wire:click="confirmEstimate({{ $vote }})"
                                 class="btn btn-lg min-w-14 text-lg font-bold btn-success flex-col h-auto py-2">
-                                <span>{{ $vote }} SP</span>
+                                <span>{{ $vote }} {{ $unitSuffix }}</span>
                                 <span class="text-xs font-normal opacity-80">{{ $count }}x</span>
                             </button>
                         @else
                             <div class="btn btn-lg min-w-14 text-lg font-bold btn-ghost bg-base-content/10 flex-col h-auto py-2 cursor-default no-animation">
-                                <span>{{ $vote }} SP</span>
+                                <span>{{ $vote }} {{ $unitSuffix }}</span>
                                 <span class="text-xs font-normal opacity-80">{{ $count }}x</span>
                             </div>
                         @endif

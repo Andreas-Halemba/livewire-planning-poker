@@ -23,6 +23,8 @@ class IssueFactory extends Factory
             'status' => fake()->randomElement(['open', 'voting', 'finished']),
             'session_id' => Session::factory(),
             'storypoints' => fake()->optional()->numberBetween(1, 21),
+            'estimate_unit' => 'sp',
+            'issue_type' => fake()->randomElement(['Story', 'Task', 'Spike', 'Bug']),
         ];
     }
 }

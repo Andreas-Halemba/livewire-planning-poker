@@ -167,6 +167,9 @@
                                                     {{ $issue->jira_key ?? 'Jira öffnen' }}
                                                 </a>
                                             @endif
+                                            <div class="flex items-center gap-2">
+                                                <x-issue-type-badge :type="$issue->issue_type" />
+                                            </div>
                                             <div class="font-medium text-base-content truncate">{{ $issue->title }}</div>
                                         </div>
                                         <span class="badge badge-accent">schätzen</span>
@@ -220,11 +223,14 @@
                                                     {{ $issue->jira_key ?? 'Jira öffnen' }}
                                                 </a>
                                             @endif
+                                            <div class="flex items-center gap-2">
+                                                <x-issue-type-badge :type="$issue->issue_type" />
+                                            </div>
                                             <div class="font-medium text-base-content truncate">{{ $issue->title }}</div>
                                         </div>
                                         <div class="flex items-center gap-2 shrink-0">
                                             <span class="badge badge-success badge-outline whitespace-nowrap shrink-0">
-                                                {{ $voteVal }} SP
+                                                {{ $voteVal }} {{ ($issue->estimate_unit ?? 'sp') === 'hours' ? 'h' : 'SP' }}
                                             </span>
                                             <button
                                                 type="button"

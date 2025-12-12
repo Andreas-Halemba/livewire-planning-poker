@@ -15,6 +15,7 @@ use App\Models\Issue;
 use App\Models\Session;
 use App\Models\User;
 use App\Models\Vote;
+use App\Services\JiraService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Livewire\Livewire;
@@ -379,6 +380,53 @@ test('voting url redirects to archived view when session is archived', function 
     $this->actingAs($user)
         ->get(route('session.voting', $session->invite_code))
         ->assertRedirect(route('session.archived', $session->invite_code));
+});
+
+test('owner can refresh an imported jira issue to fetch missing fields', function () {
+    $session = createTestSession();
+    $owner = $session->owner;
+    $owner->update([
+        'jira_url' => 'https://jira.example.com',
+        'jira_user' => 'user@example.com',
+        'jira_api_key' => 'token',
+    ]);
+
+    $issue = Issue::factory()->create([
+        'session_id' => $session->id,
+        'status' => IssueStatus::NEW,
+        'title' => 'Old title',
+        'description' => null,
+        'jira_key' => 'ABC-123',
+        'jira_url' => 'https://jira.example.com/browse/ABC-123',
+        'estimate_unit' => 'sp',
+    ]);
+
+    // Intercept `new JiraService(...)` inside the Livewire action
+    $jiraMock = \Mockery::mock('overload:' . JiraService::class);
+    $jiraMock->shouldReceive('getIssueByKey')
+        ->once()
+        ->with('ABC-123')
+        ->andReturn((object) ['key' => 'ABC-123']);
+    $jiraMock->shouldReceive('mapJiraIssueToArray')
+        ->once()
+        ->andReturn([
+            'title' => 'New title',
+            'description' => '<p>desc</p>',
+            'jira_key' => 'ABC-123',
+            'jira_url' => 'https://jira.example.com/browse/ABC-123',
+            'issue_type' => 'Spike',
+            'estimate_unit' => 'hours',
+        ]);
+
+    Livewire::actingAs($owner)
+        ->test(SessionPage::class, ['inviteCode' => $session->invite_code])
+        ->call('refreshIssueFromJira', $issue->id);
+
+    $issue->refresh();
+    expect($issue->title)->toBe('New title');
+    expect($issue->description)->toBe('<p>desc</p>');
+    expect($issue->issue_type)->toBe('Spike');
+    expect($issue->estimate_unit)->toBe('hours');
 });
 
 // ============================================================================

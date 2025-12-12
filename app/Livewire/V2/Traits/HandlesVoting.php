@@ -37,6 +37,9 @@ trait HandlesVoting
     /** @var array<int> Verfügbare Voting-Karten */
     public array $cards = [1, 2, 3, 5, 8, 13, 21, 100];
 
+    /** @var array<int> */
+    private array $hourCards = [1, 2, 4, 8, 16, 24];
+
     /** @var int|null Eigene Auswahl des aktuellen Users */
     public ?int $myVote = null;
 
@@ -72,6 +75,7 @@ trait HandlesVoting
         $this->currentIssue = null;
         $this->votesRevealed = false;
         $this->votedUserIds = [];
+        $this->updateCardsForIssue(null);
     }
 
     public function handleAddVote(): void
@@ -120,6 +124,7 @@ trait HandlesVoting
         // State aktualisieren
         $this->currentIssue = $issue;
         $this->votesRevealed = false;
+        $this->updateCardsForIssue($issue);
         $this->loadVotedUsers();
 
         broadcast(new IssueSelected($this->session->invite_code))->toOthers();
@@ -223,6 +228,7 @@ trait HandlesVoting
         $this->votedUserIds = [];
         $this->votesByUser = [];
         $this->myVote = null;
+        $this->updateCardsForIssue(null);
 
         broadcast(new IssueCanceled($this->session->invite_code))->toOthers();
     }
@@ -283,7 +289,18 @@ trait HandlesVoting
             ->where('status', 'voting')
             ->first();
 
+        $this->updateCardsForIssue($this->currentIssue);
         $this->loadVotedUsers();
+    }
+
+    private function updateCardsForIssue(?Issue $issue): void
+    {
+        if ($issue && ($issue->estimate_unit ?? 'sp') === 'hours') {
+            $this->cards = $this->hourCards;
+            return;
+        }
+
+        $this->cards = [1, 2, 3, 5, 8, 13, 21, 100];
     }
 
     /**
