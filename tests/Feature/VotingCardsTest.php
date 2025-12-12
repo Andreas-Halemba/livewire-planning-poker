@@ -1,11 +1,13 @@
 <?php
 
 use App\Enums\IssueStatus;
+use App\Events\AsyncVoteUpdated;
 use App\Livewire\VotingCards;
 use App\Models\Issue;
 use App\Models\Session;
 use App\Models\User;
 use App\Models\Vote;
+use Illuminate\Support\Facades\Event;
 use Livewire\Livewire;
 
 test('user can select a numeric card when no vote exists', function () {
@@ -183,12 +185,20 @@ test('async vote persists even when issue is not STATUS_VOTING', function () {
         'status' => IssueStatus::NEW,
     ]);
 
+    Event::fake([AsyncVoteUpdated::class]);
+
     // User votes async
     Livewire::actingAs($user)
         ->test(VotingCards::class, ['session' => $session])
         ->call('selectIssue', $issue->id)
         ->call('selectCard', 13)
         ->call('confirmVote');
+
+    Event::assertDispatched(AsyncVoteUpdated::class, function (AsyncVoteUpdated $event) use ($issue, $user) {
+        return $event->issueId === $issue->id
+            && $event->userId === $user->id
+            && $event->hasVote === true;
+    });
 
     // Verify vote exists
     expect(Vote::whereUserId($user->id)->whereIssueId($issue->id)->exists())->toBeTrue();

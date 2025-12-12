@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\IssueStatus;
+use App\Events\AsyncVoteUpdated;
 use App\Events\AddVote;
 use App\Events\HideVotes;
 use App\Models\Issue;
@@ -214,6 +215,14 @@ class VotingCards extends Component
             // Each user works independently, issue stays open for others to vote
             $this->dispatch('refresh-voter-lists');
 
+            // Notify others (e.g. Owner Progress view) WITHOUT leaking vote values
+            broadcast(new AsyncVoteUpdated(
+                $this->session->invite_code,
+                $this->currentIssue->id,
+                auth()->id(),
+                true,
+            ))->toOthers();
+
             // Clear selection after saving
             $this->selectedIssueId = null;
             $this->selectedCard = null;
@@ -236,6 +245,16 @@ class VotingCards extends Component
 
         // Delete the vote
         Vote::whereUserId(auth()->id())->whereIssueId($issue->id)->delete();
+
+        // If this was async voting, notify others without leaking values
+        if ($originalStatus === IssueStatus::NEW) {
+            broadcast(new AsyncVoteUpdated(
+                $this->session->invite_code,
+                $issue->id,
+                auth()->id(),
+                false,
+            ))->toOthers();
+        }
 
         // Only reset issue status to VOTING if it was previously in a voting state
         // (e.g., STATUS_FINISHED). For async voting (STATUS_NEW), keep the status unchanged.
