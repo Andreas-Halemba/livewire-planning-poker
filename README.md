@@ -76,6 +76,25 @@ php artisan serve
 - Nur Owner sehen auf der read-only Seite einen Button „Session reaktivieren“, der das Archiv zurücksetzt und sofort wieder auf die aktive Voting-Ansicht führt.
 - Ebenfalls im Dashboard-Archivblock steht Ownern ein „Reactivate“-Button zur Verfügung, um Sessions ohne Umweg wieder zu öffnen.
 
+## Async Voting Screen (separater Screen)
+
+Zusätzlich zur Session-Ansicht gibt es einen separaten Screen für **Async Voting**:
+
+- **Route**: `/sessions/{inviteCode}/async`
+- **Voter-View**: Entwickler können Issues auswählen und **Vorab-Schätzungen** abgeben, ohne dass eine Live-Runde gestartet wird.
+- **Owner-View (ohne Values)**: Owner sehen pro Issue nur, **wer** bereits geschätzt hat (inkl. Count), aber **keine** Schätzwerte.
+
+### Testing (manuell)
+
+1. Stelle sicher, dass die App läuft (z.B. `php artisan serve` oder Valet).
+2. Öffne die Session im Browser:
+    - v2 Session: `/sessions/{inviteCode}/v2`
+    - Async Screen: `/sessions/{inviteCode}/async`
+3. Öffne zwei Browser-Fenster (oder Incognito):
+    - **Voter**: im Async Screen ein Issue auswählen → Vote speichern/ändern/löschen.
+    - **Owner**: im Async Screen prüfen, dass beim Issue nur **Namen/✓** und **Count** sichtbar sind, **keine Storypoints**.
+4. Optional für Live-Updates: Reverb lokal starten (siehe Abschnitt „Starting Reverb Locally“).
+
 ## Services
 
 If you want to use the mail verification feature make sure to start a mailpit
