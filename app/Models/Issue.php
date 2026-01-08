@@ -81,7 +81,7 @@ class Issue extends Model
 
     public function getAverageVoteAttribute(): float
     {
-        return round((int) $this->votes->avg('value'), 1);
+        return round($this->votes->avg('value') ?? 0, 1);
     }
 
     public function getTitleHtmlAttribute(): string
