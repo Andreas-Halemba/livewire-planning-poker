@@ -10,6 +10,13 @@
             "env": {
                 "SITE_PATH": "/Users/andreas.halemba/Projects/personal/livewire-planning-poker"
             }
+        },
+        "github": {
+            "type": "http",
+            "url": "https://api.githubcopilot.com/mcp/",
+            "headers": {
+                "Authorization": "Bearer ${GITHUB_TOKEN}"
+            }
         }
     }
 }
