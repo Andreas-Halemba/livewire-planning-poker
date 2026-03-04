@@ -341,15 +341,6 @@ test('confirm estimate triggers Jira sync when issue has Jira link (browse url)'
     $component->call('confirmEstimate', 8);
 });
 
-test('legacy v2 url redirects to voting url', function () {
-    $session = createTestSession();
-    $user = $session->owner;
-
-    $this->actingAs($user)
-        ->get(route('session.v2', $session->invite_code))
-        ->assertRedirect(route('session.voting', $session->invite_code));
-});
-
 test('session root url redirects to voting url', function () {
     $session = createTestSession();
     $user = $session->owner;

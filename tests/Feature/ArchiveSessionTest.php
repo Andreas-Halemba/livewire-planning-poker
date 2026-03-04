@@ -4,7 +4,7 @@ use App\Enums\IssueStatus;
 use App\Livewire\ArchivedSessions;
 use App\Livewire\ArchivedSessionView;
 use App\Livewire\OwnerSessions;
-use App\Livewire\Voting;
+use App\Livewire\V2\SessionPage;
 use App\Models\Issue;
 use App\Models\Session;
 use App\Models\User;
@@ -42,7 +42,7 @@ test('archived session voting route redirects to readonly view', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(Voting::class, ['inviteCode' => $session->invite_code])
+        ->test(SessionPage::class, ['inviteCode' => $session->invite_code])
         ->assertRedirect(route('session.archived', $session->invite_code));
 });
 

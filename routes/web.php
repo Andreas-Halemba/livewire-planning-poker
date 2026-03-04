@@ -43,11 +43,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/sessions/{inviteCode}/voting', SessionPage::class)->name('session.voting');
     Route::get('/sessions/{inviteCode}/archived', ArchivedSessionView::class)->name('session.archived');
 
-    // Legacy V2 URL -> redirect to default voting URL
-    Route::get('/sessions/{inviteCode}/v2', function (string $inviteCode) {
-        return redirect()->route('session.voting', $inviteCode);
-    })->name('session.v2');
-
     // Async Voting (Voter View + Owner Progress)
     Route::get('/sessions/{inviteCode}/async', AsyncVotingPage::class)->name('session.async');
 
