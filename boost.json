@@ -1,0 +1,6 @@
+{
+    "agents": ["claude_code", "cursor", "opencode", "phpstorm"],
+    "editors": ["claude_code", "cursor", "opencode"],
+    "guidelines": [],
+    "herd_mcp": true
+}

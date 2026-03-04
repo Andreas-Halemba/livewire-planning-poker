@@ -27,3 +27,6 @@ resources/assets/fonts
 .gitignore
 phpstan.neon
 **/.gitkeep
+AGENTS.md
+CLAUDE.md
+.junie/guidelines.md
