@@ -1,0 +1,10 @@
+version: 2
+
+secret:
+    ignored_paths:
+        - '.env'
+        - 'storage/**'
+        - 'node_modules/**'
+        - 'public/build/**'
+        - '*.lock'
+        - '.cache_ggshield'

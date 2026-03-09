@@ -141,3 +141,5 @@ test-reports/coverage-html/_js/d3.min.js
 test-reports/coverage-html/_js/file.js
 test-reports/coverage-html/_js/jquery.min.js
 test-reports/coverage-html/_js/nv.d3.min.js
+# Added by ggshield
+.cache_ggshield
