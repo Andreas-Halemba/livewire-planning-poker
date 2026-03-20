@@ -1,8 +1,14 @@
-<p align="center"><img src="https://raw.githubusercontent.com/Andreas-Halemba/livewire-planning-poker/main/resources/images/logo-cards.png" height="200" alt="Planning Poker Logo"></p>
+# Livewire Planning Poker
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Andreas-Halemba/livewire-planning-poker/main/resources/images/logo-cards.png" alt="Planning Poker Logo" style="max-width: 400px; display: block; margin: auto;" />
+</p>
 
 ## Configuration
 
 These environment variables should be set accordingly
+
+Copy **`.env.example`** to `.env` and adjust values. For **Herd + Reverb**, prefer the `REVERB_*` / `VITE_REVERB_*` pattern already documented there (HTTPS / `reverb.herd.test` or your service host). Minimal illustration:
 
 ```env
 DB_DATABASE=planning_poker
@@ -24,6 +30,19 @@ VITE_REVERB_SCHEME="${REVERB_SCHEME}"
 
 MAIL_MAILER=
 ```
+
+With **`php artisan reverb:start`** on port `6000`, `REVERB_*` as above is fine; with **Herd’s Reverb service**, use the host/port/scheme from Herd (see `.env.example`).
+
+## Local development (Laravel Herd)
+
+Use **[Laravel Herd](https://herd.laravel.com/)** for local development (macOS / Windows). This repo includes a root **`herd.yml`** so the team can align on PHP **8.4**, **HTTPS** (`secured: true`), and **Herd Pro** services: **MySQL**, **Redis**, and **Laravel Reverb**.
+
+1. Install Herd and (for databases / Reverb / Redis from the manifest) **Herd Pro**.
+2. Clone the project and from the project root run **`herd init`** — it applies `herd.yml` (PHP version, secure site, service versions/ports). If `.env` is missing, copy `.env.example` when prompted.
+3. Link the site if needed: **`herd link`** (optional: **`herd link --secure`**). The app URL matches Herd’s naming, e.g. **`https://livewire-planning-poker.test`** (see `APP_URL` in `.env`).
+4. Align **Reverb** credentials in `.env` with your Herd Reverb service (defaults are often shown in Herd’s Services UI; `.env.example` includes a Herd-oriented example).
+
+If **`herd init`** reports a **port already in use** (e.g. Redis `6379`), set a free port in `.env` and the same `port` under the matching service in `herd.yml`, then run `herd init` again.
 
 ## Setup
 
@@ -55,13 +74,9 @@ php artisan key:generate
 
 ## Start app
 
-if you have valet installed, what i recommend
+With Herd, Nginx/PHP are handled by Herd — open your `.test` URL after **`herd init`** / **`herd link`**.
 
-```bash
-valet link
-```
-
-or run
+Fallback without Herd:
 
 ```bash
 php artisan serve
@@ -86,7 +101,7 @@ Zusätzlich zur Session-Ansicht gibt es einen separaten Screen für **Async Voti
 
 ### Testing (manuell)
 
-1. Stelle sicher, dass die App läuft (z.B. `php artisan serve` oder Valet).
+1. Stelle sicher, dass die App läuft (z.B. über Herd oder `php artisan serve`).
 2. Öffne die Session im Browser:
     - v2 Session: `/sessions/{inviteCode}/v2`
     - Async Screen: `/sessions/{inviteCode}/async`
@@ -107,26 +122,24 @@ For the websocket server, this project uses **Laravel Reverb** - Laravel's offic
 
 ### Starting Reverb Locally
 
-**Option 1: Direct command (simple)**
+**Recommended (Herd Pro):** Run Reverb as a **Herd service** (see `herd.yml` and `herd init`). Match `REVERB_*` / `VITE_REVERB_*` in `.env` to that instance (see `.env.example`).
+
+**Option 1: Artisan (no Herd Reverb service)**
 
 ```bash
 php artisan reverb:start --host=127.0.0.1 --port=6000
 ```
 
-**Option 2: With PM2 (recommended for development)**
-
-First, create your PM2 config:
+**Option 2: PM2**
 
 ```bash
 cp ecosystem.config.example.js ecosystem.config.js
 # Edit ecosystem.config.js with your local settings (port, hostname)
 ```
 
-Then start with PM2:
-
 ```bash
 pm2 start ecosystem.config.js
-pm2 save  # Save the process list
+pm2 save
 ```
 
 **Note:** The Reverb server must be running for real-time features like voting to work.

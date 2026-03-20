@@ -1,0 +1,13 @@
+name: livewire-planning-poker
+php: '8.4'
+secured: true
+services:
+    mysql:
+        version: 8.4.8
+        port: '${DB_PORT}'
+    redis:
+        version: 7.4.7
+        port: '${REDIS_PORT}'
+    reverb:
+        version: 1.x
+        port: 8082
