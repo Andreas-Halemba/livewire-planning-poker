@@ -31,3 +31,7 @@ test-reports/
 .agents/
 .claude/
 .opencode/
+AGENTS.md
+CLAUDE.md
+opencode.json
+.mcp.json
