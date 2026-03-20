@@ -1,6 +1,21 @@
 {
-    "agents": ["claude_code", "cursor", "opencode", "phpstorm"],
-    "editors": ["claude_code", "cursor", "opencode"],
-    "guidelines": [],
-    "herd_mcp": true
+    "agents": ["claude_code", "cursor", "opencode"],
+    "guidelines": true,
+    "herd_mcp": true,
+    "mcp": true,
+    "nightwatch_mcp": false,
+    "packages": [
+        "inspector-apm/inspector-laravel",
+        "saloonphp/laravel-plugin",
+        "spatie/laravel-ray"
+    ],
+    "sail": false,
+    "skills": [
+        "pulse-development",
+        "livewire-development",
+        "pest-testing",
+        "tailwindcss-development",
+        "saloon-development",
+        "debugging-output-and-previewing-html-using-ray"
+    ]
 }

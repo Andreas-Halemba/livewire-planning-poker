@@ -1,0 +1,56 @@
+# Dependencies & VCS
+**/node_modules
+**/vendor
+.git
+.gitattributes
+.github
+
+# Local env & secrets (mount at runtime)
+.env
+.env.*
+
+# IDE & tooling
+.idea
+.vscode
+.fleet
+.phpstorm.meta.php
+_ide_helper*
+
+# Frontend build artifacts (image uses multi-stage Vite output)
+/public/build
+/public/hot
+
+# Laravel runtime (entrypoint / image recreate structure)
+/storage/*.key
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+/bootstrap/cache/*
+
+# Tests & quality
+/tests
+phpunit.xml
+.phpunit.cache
+.phpunit.result.cache
+phpstan.neon
+phpstan.neon.dist
+pint.json
+
+# Docs & local-only config
+*.md
+herd.yml
+captainhook.config.json
+services/soketi/config.json
+deploy.config
+ecosystem.config.js
+test-reports/
+.cursor/
+.junie/
+.agents/
+.claude/
+.opencode/
+.mcp.json
+opencode.json
+.cache_ggshield
+.rnd

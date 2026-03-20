@@ -33,6 +33,10 @@ MAIL_MAILER=
 
 With **`php artisan reverb:start`** on port `6000`, `REVERB_*` as above is fine; with **Herd’s Reverb service**, use the host/port/scheme from Herd (see `.env.example`).
 
+## Docker & production images
+
+Container images are built from the root [`Dockerfile`](Dockerfile) and published to **GitHub Container Registry** (`ghcr.io`). See **[DEPLOYMENT.md](DEPLOYMENT.md)** for build arguments (`VITE_REVERB_*`), tagging, `ghcr.io` login, and pulling images on a server. Helper script: [`build-docker-images.sh`](build-docker-images.sh).
+
 ## Local development (Laravel Herd)
 
 Use **[Laravel Herd](https://herd.laravel.com/)** for local development (macOS / Windows). This repo includes a root **`herd.yml`** so the team can align on PHP **8.4**, **HTTPS** (`secured: true`), and **Herd Pro** services: **MySQL**, **Redis**, and **Laravel Reverb**.

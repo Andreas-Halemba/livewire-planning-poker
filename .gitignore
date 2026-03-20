@@ -31,3 +31,9 @@ test-reports/
 .agents/
 .claude/
 .opencode/
+AGENTS.md
+CLAUDE.md
+opencode.json
+.mcp.json
+.env.reverb
+build-docker-images.sh

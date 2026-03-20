@@ -1,7 +1,9 @@
-name: Deploy to Production
+# Disabled — replaced by docker-publish.yml (GHCR build & manual pull on server)
+# To re-enable: remove `if: false` from the deploy job.
+name: Deploy to Production (disabled)
 
 on:
-    workflow_dispatch: # Allows manual trigger from GitHub Actions UI
+    workflow_dispatch:
         inputs:
             environment:
                 description: 'Deployment environment'
@@ -16,6 +18,7 @@ jobs:
     deploy:
         name: Deploy Application
         runs-on: ubuntu-latest
+        if: false
 
         steps:
             - name: Checkout code
