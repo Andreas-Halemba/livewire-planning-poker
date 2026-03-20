@@ -1,311 +1,163 @@
-# Deployment Guide
+# Deployment: building Docker images locally
 
-## Option 1: Shell-Skript (Einfach & Schnell)
+This app uses a **multi-stage** [`Dockerfile`](Dockerfile):
 
-**Für lokale Entwicklung.** Server-Daten werden in einer lokalen Config-Datei gespeichert, die nicht ins Repository committed wird.
+| Stage / target     | Role                                                               |
+| ------------------ | ------------------------------------------------------------------ |
+| `node-builder`     | `npm ci` + `vite build` (needs `VITE_*` build args for production) |
+| `composer-builder` | `composer install --no-dev`                                        |
+| `nginx`            | Serves `public/` + built assets; proxies PHP to the `app` service  |
+| `app`              | PHP 8.4-FPM (default final image if you do not pass `--target`)    |
 
-### Setup
+`VITE_REVERB_*` values are **compiled into the JavaScript bundle** at image build time. They must match the public Reverb URL users will use in the browser (same values you would put in production `.env` for `VITE_REVERB_*`). Runtime `.env` on the server does **not** change already-built assets inside the image.
 
-1. **Deployment-Skript ausführbar machen:**
+## Prerequisites
 
-```bash
-chmod +x deploy.sh
-```
+- [Docker](https://docs.docker.com/get-docker/) with BuildKit enabled (default on current Docker Desktop).
+- Repository root as build context (where the `Dockerfile` lives).
 
-2. **Server-Konfiguration anlegen:**
+## Production image build (recommended)
 
-Kopiere die Beispiel-Konfiguration und passe sie an:
-
-```bash
-cp deploy.config.example deploy.config
-```
-
-3. **Server-Daten in `deploy.config` eintragen:**
-
-Bearbeite `deploy.config` (diese Datei ist gitignored und wird nicht committed):
+From the project root, pass **all four** Reverb-related build arguments (use your real app key and host):
 
 ```bash
-# Server configuration
-SERVERS[production]="dein-user@deine-server-ip.com"
-SERVERS[staging]="dein-user@dein-staging-server.com"  # optional
-
-# Remote paths
-PATHS[production]="/var/www/livewire-planning-poker"
-PATHS[staging]="/var/www/livewire-planning-poker-staging"  # optional
+docker build \
+  --build-arg VITE_REVERB_APP_KEY="pk_your_public_key" \
+  --build-arg VITE_REVERB_HOST="poker.example.com" \
+  --build-arg VITE_REVERB_PORT="443" \
+  --build-arg VITE_REVERB_SCHEME="https" \
+  -t livewire-planning-poker:latest \
+  .
 ```
 
-4. **SSH-Key Setup (falls noch nicht vorhanden):**
+This produces the **default** final stage (`app`, PHP-FPM). To tag the **Nginx** image separately (e.g. if you split web and app in Compose):
 
 ```bash
-# Lokalen SSH-Key generieren (falls noch keiner existiert)
-ssh-keygen -t ed25519 -C "deployment@planning-poker"
-
-# Public Key auf Server kopieren
-ssh-copy-id dein-user@deine-server-ip.com
+docker build \
+  --target nginx \
+  --build-arg VITE_REVERB_APP_KEY="pk_your_public_key" \
+  --build-arg VITE_REVERB_HOST="poker.example.com" \
+  --build-arg VITE_REVERB_PORT="443" \
+  --build-arg VITE_REVERB_SCHEME="https" \
+  -t livewire-planning-poker-web:latest \
+  .
 ```
 
-### Verwendung
+`--build-arg` is required for **every** build that includes the `node-builder` stage (both `app` and `nginx` targets use it).
+
+## Using a local env file for build args
+
+`docker build` does not read a `.env` file for build args by itself. Options:
+
+**1. Export variables then build**
+
+Create a file (e.g. `.env.docker-build`, **gitignored**) with only:
+
+```env
+VITE_REVERB_APP_KEY=pk_...
+VITE_REVERB_HOST=poker.example.com
+VITE_REVERB_PORT=443
+VITE_REVERB_SCHEME=https
+```
+
+Then:
 
 ```bash
-# Deployment auf Production
-./deploy.sh production
+set -a
+source .env.docker-build
+set +a
 
-# Deployment auf Staging (falls konfiguriert)
-./deploy.sh staging
+docker build \
+  --build-arg VITE_REVERB_APP_KEY \
+  --build-arg VITE_REVERB_HOST \
+  --build-arg VITE_REVERB_PORT \
+  --build-arg VITE_REVERB_SCHEME \
+  -t livewire-planning-poker:latest \
+  .
 ```
 
-Das Skript macht automatisch:
+Omitting the `=` value after `--build-arg NAME` tells Docker to take the value from the **current shell environment**.
 
-- ✅ Git Push zum Repository
-- ✅ Git Pull auf dem Server
-- ✅ Composer Dependencies installieren
-- ✅ NPM Dependencies installieren
-- ✅ Assets kompilieren (`npm run build`)
-- ✅ Datenbank-Migrationen ausführen
-- ✅ Cache clearen
-- ✅ Laravel optimieren
-- ✅ Reverb-Server neu starten (PM2)
+**2. Docker Compose**
 
----
+Use `build.args` with `${VITE_REVERB_HOST}` etc., and run `docker compose --env-file .env.docker-build build`. See [Compose Build specification](https://docs.docker.com/compose/compose-file/build/).
 
-## Option 2: GitHub Actions (Manuell)
+Keep build-time files limited to **`VITE_*`** (public client config). Do not put database passwords or `REVERB_APP_SECRET` into a file used only for frontend build unless you also use that file for something else—prefer separate files.
 
-**Für CI/CD.** Nutzt GitHub Secrets, keine lokale Config-Datei nötig. Wird **manuell über GitHub UI gestartet**.
+## Apple Silicon → Linux server
 
-### Setup
-
-1. **GitHub Secrets konfigurieren:**
-
-Gehe zu deinem GitHub Repository → **Settings** → **Secrets and variables** → **Actions**
-
-Erstelle folgende Secrets:
-
-- `SSH_HOST`: Deine Server-IP oder Domain (z.B. `123.456.78.90` oder `dein-server.de`)
-- `SSH_USERNAME`: SSH-Username (z.B. `www-data` oder `deploy`)
-- `SSH_PRIVATE_KEY`: Dein privater SSH-Key (gesamter Inhalt der privaten Key-Datei)
-- `REMOTE_PATH`: Pfad zur Anwendung auf dem Server (z.B. `/var/www/livewire-planning-poker`)
-- `SSH_PORT`: SSH-Port (optional, Standard: 22 wenn nicht gesetzt)
-
-2. **SSH-Key für GitHub Actions erstellen:**
+If the server runs **amd64** Linux and your Mac is **arm64**, build for the server platform:
 
 ```bash
-# Auf deinem lokalen Rechner
-ssh-keygen -t ed25519 -C "github-actions@planning-poker" -f ~/.ssh/github_actions
-
-# Public Key auf Server kopieren
-ssh-copy-id -i ~/.ssh/github_actions.pub dein-user@deine-server-ip.com
-
-# Private Key in GitHub Secrets eintragen (gesamten Inhalt kopieren)
-cat ~/.ssh/github_actions
+docker build \
+  --platform linux/amd64 \
+  --build-arg VITE_REVERB_APP_KEY="pk_..." \
+  --build-arg VITE_REVERB_HOST="poker.example.com" \
+  --build-arg VITE_REVERB_PORT="443" \
+  --build-arg VITE_REVERB_SCHEME="https" \
+  -t livewire-planning-poker:latest \
+  .
 ```
 
-### Verwendung
+## GitHub Container Registry (ghcr.io)
 
-Die GitHub Action wird **manuell gestartet**:
+Images for this project are published to **GitHub Packages** ([`ghcr.io`](https://docs.github.com/packages/working-with-a-github-packages-registry/working-with-the-container-registry)). You need two images if you run Nginx and PHP-FPM as separate services (see targets above): one for **`app`** (default Dockerfile stage) and one for **`nginx`**.
 
-1. Gehe zu deinem GitHub Repository
-2. Klicke auf den Tab **"Actions"**
-3. Wähle den Workflow **"Deploy to Production"** aus
-4. Klicke auf **"Run workflow"**
-5. Wähle die Umgebung (production oder staging)
-6. Klicke auf **"Run workflow"** (grüner Button)
+Replace `OWNER` with your GitHub user or organization name. Image names below match the local tags from [`build-docker-images.sh`](build-docker-images.sh) (`livewire-planning-poker` and `livewire-planning-poker-web`).
 
-Der Deployment-Status wird dann live angezeigt.
+### Login (machine that pushes: your laptop or CI)
 
-**Hinweis:** Die Action deployed den aktuellen Stand des `main` Branches auf dem Server. Stelle sicher, dass du deine Änderungen vorher gepusht hast:
+Create a [Personal Access Token](https://github.com/settings/tokens) with **`write:packages`** (and `read:packages` if you only pull). For organization packages, authorize the token for the org if required.
 
 ```bash
-git add .
-git commit -m "Your changes"
-git push origin main
+echo YOUR_GITHUB_PAT | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
 ```
 
----
+In **GitHub Actions**, the default `GITHUB_TOKEN` can push to ghcr if the workflow has `permissions: packages: write` (and the job uses the correct `registry` login action or `docker login` with `GITHUB_TOKEN`).
 
-## Server-Anforderungen
-
-Dein Server sollte folgendes installiert haben:
-
-- PHP 8.2+
-- Composer
-- Node.js & NPM
-- Git
-- PM2 (für Reverb)
-- MySQL/PostgreSQL
-
-### Ersteinrichtung auf dem Server
-
-Nach dem ersten Clone des Repositories auf dem Server:
+### Tag and push (after local `docker build`)
 
 ```bash
-# PM2-Konfiguration erstellen
-cp ecosystem.config.example.js ecosystem.config.js
+# PHP-FPM (default / final stage)
+docker tag livewire-planning-poker:latest ghcr.io/OWNER/livewire-planning-poker:latest
 
-# ecosystem.config.js anpassen:
-# - Port (z.B. 6000, 8080, etc.)
-# - Hostname (deine Domain oder Server-IP)
-# - APP_ENV auf 'production' setzen
+# Nginx
+docker tag livewire-planning-poker-web:latest ghcr.io/OWNER/livewire-planning-poker-web:latest
 
-# PM2 starten
-pm2 start ecosystem.config.js
-pm2 save
-pm2 startup  # Autostart bei Server-Neustart
+docker push ghcr.io/OWNER/livewire-planning-poker:latest
+docker push ghcr.io/OWNER/livewire-planning-poker-web:latest
 ```
 
----
+Use a version tag (e.g. `v1.0.0` or git SHA) instead of or in addition to `latest` for reproducible deploys.
 
-## Manuelle Schritte (falls etwas schief geht)
+Packages appear under the repository **Packages** sidebar on GitHub. Set **package visibility** (public / private) under the package **Settings** on GitHub.
 
-Falls das automatische Deployment fehlschlägt, kannst du diese Schritte manuell ausführen:
+### Pull on the production server
+
+Use a PAT with at least **`read:packages`** (same user/org as the package owner):
 
 ```bash
-# SSH auf Server
-ssh dein-user@deine-server-ip.com
+echo YOUR_GITHUB_PAT | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
 
-# In Projekt-Verzeichnis wechseln
-cd /var/www/planning-poker
-
-# Code aktualisieren
-git pull origin main
-
-# Dependencies installieren
-composer install --no-dev --optimize-autoloader
-npm ci --production=false
-
-# Assets kompilieren
-npm run build
-
-# Migrationen ausführen
-php artisan migrate --force
-
-# Caches clearen und optimieren
-php artisan cache:clear
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-
-# Reverb neu starten
-pm2 restart reverb
-
-# Status prüfen
-pm2 status
-pm2 logs reverb
+docker pull ghcr.io/OWNER/livewire-planning-poker:latest
+docker pull ghcr.io/OWNER/livewire-planning-poker-web:latest
 ```
 
----
+Private packages require login on every host that pulls.
 
-## Troubleshooting
+### Other registries
 
-### Deployment schlägt fehl
-
-1. **SSH-Verbindung prüfen:**
+For a generic registry host, tag and push the same way with your registry hostname:
 
 ```bash
-ssh -v dein-user@deine-server-ip.com
+docker tag livewire-planning-poker:latest your-registry.example.com/planning-poker:latest
+docker push your-registry.example.com/planning-poker:latest
 ```
 
-2. **Berechtigungen prüfen:**
+## Runtime configuration
 
-```bash
-# Auf dem Server
-ls -la /var/www/planning-poker
-# Der User sollte Schreibrechte haben
-```
+PHP/Laravel settings (`APP_KEY`, `DB_*`, `REVERB_APP_SECRET`, Redis, etc.) are **not** set by the Node build args. Provide them at runtime (Compose `env_file`, Docker secrets, or orchestrator env) on the server. Nginx in this repo expects the PHP-FPM upstream hostname **`app`** on port **9000** (see [`.docker/nginx.conf`](.docker/nginx.conf)).
 
-3. **Git-Status prüfen:**
+## CI
 
-```bash
-# Auf dem Server
-cd /var/www/planning-poker
-git status
-git log
-```
-
-### Assets werden nicht aktualisiert
-
-```bash
-# Auf dem Server
-cd /var/www/planning-poker
-npm run build
-php artisan view:clear
-```
-
-### Reverb startet nicht
-
-```bash
-# PM2 Logs prüfen
-pm2 logs reverb --lines 100
-
-# Reverb manuell neu starten
-pm2 delete reverb
-pm2 start ecosystem.config.js
-pm2 save
-```
-
----
-
-## Rollback
-
-Falls nach dem Deployment Probleme auftreten:
-
-```bash
-# Auf dem Server
-cd /var/www/planning-poker
-
-# Zum vorherigen Commit zurück
-git log --oneline -10  # Letzten guten Commit finden
-git reset --hard <commit-hash>
-
-# Dependencies neu installieren
-composer install --no-dev --optimize-autoloader
-npm ci --production=false
-npm run build
-
-# Cache clearen
-php artisan cache:clear
-php artisan config:cache
-php artisan view:cache
-
-# Reverb neu starten
-pm2 restart reverb
-```
-
----
-
-## Best Practices
-
-1. **Immer erst auf Staging testen** (falls vorhanden)
-2. **Backup vor Deployment:**
-
-```bash
-# Auf dem Server
-cd /var/www
-tar -czf planning-poker-backup-$(date +%Y%m%d-%H%M%S).tar.gz planning-poker/
-mysqldump -u user -p database > backup-$(date +%Y%m%d-%H%M%S).sql
-```
-
-3. **Monitoring aktivieren:**
-
-```bash
-# PM2 Monitoring
-pm2 monitor
-
-# Laravel Logs
-tail -f /var/www/planning-poker/storage/logs/laravel.log
-```
-
-4. **Health-Check nach Deployment:**
-    - ✅ Webseite lädt
-    - ✅ WebSocket-Verbindung funktioniert
-    - ✅ Login funktioniert
-    - ✅ Voting funktioniert
-    - ✅ Keine Fehler in Browser-Console
-    - ✅ Keine Fehler in Laravel-Logs
-
----
-
-## Empfehlung
-
-**Für den Start:** Verwende das Shell-Skript (`deploy.sh`), es ist einfacher zu debuggen und gibt dir mehr Kontrolle.
-
-**Für später:** Wechsle zu GitHub Actions, wenn du vollautomatisches Deployment möchtest.
+In GitHub Actions (or similar), inject the same four `VITE_REVERB_*` values from **repository variables** or **secrets**, then run `docker build` with `--build-arg` as above. Avoid committing production `.env` files.

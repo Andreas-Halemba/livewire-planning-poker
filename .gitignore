@@ -35,3 +35,4 @@ AGENTS.md
 CLAUDE.md
 opencode.json
 .mcp.json
+.env.reverb
