@@ -9,7 +9,7 @@
 # ---------------------------------------------------------------------------
 # Stage 1: Build frontend assets
 # ---------------------------------------------------------------------------
-    FROM node:24-alpine AS node-builder
+    FROM --platform=$BUILDPLATFORM node:24-alpine AS node-builder
 
     WORKDIR /build
 
@@ -32,7 +32,7 @@
     # ---------------------------------------------------------------------------
     # Stage 2: Install PHP dependencies
     # ---------------------------------------------------------------------------
-    FROM composer:2 AS composer-builder
+    FROM --platform=$BUILDPLATFORM composer:2 AS composer-builder
 
     WORKDIR /build
 
