@@ -3,9 +3,11 @@
 namespace App\Livewire;
 
 use App\Enums\IssueStatus;
+use App\Enums\SessionParticipantRole;
 use App\Events\AsyncVoteUpdated;
 use App\Models\Issue;
 use App\Models\Session;
+use App\Models\User;
 use App\Models\Vote;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -30,7 +32,11 @@ class AsyncVotingPage extends Component
     public function mount(string $inviteCode): RedirectResponse|LivewireRedirector|null
     {
         $this->inviteCode = $inviteCode;
-        $this->session = Session::with(['issues', 'users', 'owner'])
+        $this->session = Session::with([
+            'issues',
+            'users' => fn($query) => $query->withPivot('role'),
+            'owner',
+        ])
             ->whereInviteCode($inviteCode)
             ->firstOrFail();
 
@@ -68,7 +74,10 @@ class AsyncVotingPage extends Component
     public function refreshAsyncProgress(): void
     {
         // Always work with fresh relations
-        $this->session->load(['issues', 'users']);
+        $this->session->load([
+            'issues',
+            'users' => fn($query) => $query->withPivot('role'),
+        ]);
 
         $openIssueIds = $this->session->issues
             ->filter(fn($issue) => $issue->status !== IssueStatus::FINISHED && $issue->status !== IssueStatus::VOTING)
@@ -90,6 +99,11 @@ class AsyncVotingPage extends Component
             ->groupBy('issue_id')
             ->map(function ($votesForIssue) {
                 return $votesForIssue
+                    ->filter(function ($vote) {
+                        $user = $vote->user;
+
+                        return $user && $this->session->canUserVote($user);
+                    })
                     ->map(fn($vote) => [
                         'id' => $vote->user_id,
                         'name' => $vote->user?->name ?? 'Unknown',
@@ -105,7 +119,13 @@ class AsyncVotingPage extends Component
      */
     public function revokeAsyncVote(int $issueId): void
     {
-        if (Auth::id() === $this->session->owner_id || !Auth::check()) {
+        if (Auth::id() === $this->session->owner_id || ! Auth::check()) {
+            return;
+        }
+
+        /** @var User $user */
+        $user = Auth::user();
+        if (! $this->session->canUserVote($user)) {
             return;
         }
 
@@ -136,9 +156,17 @@ class AsyncVotingPage extends Component
 
     public function render(): View
     {
-        $this->session->loadMissing(['issues', 'users', 'owner']);
+        $this->session->loadMissing([
+            'issues',
+            'users' => fn($query) => $query->withPivot('role'),
+            'owner',
+        ]);
 
         $isOwner = Auth::id() === $this->session->owner_id;
+
+        /** @var User|null $authUser */
+        $authUser = Auth::user();
+        $canVote = $authUser !== null && $this->session->canUserVote($authUser);
 
         /** @var Collection<int, \App\Models\Issue> $openIssues */
         $openIssues = $this->session->issues
@@ -147,7 +175,7 @@ class AsyncVotingPage extends Component
             ->values();
 
         $eligibleVoterCount = $this->session->users
-            ->filter(fn($u) => $u->id !== $this->session->owner_id)
+            ->filter(fn($u) => $this->session->canUserVote($u))
             ->unique('id')
             ->count();
 
@@ -155,7 +183,7 @@ class AsyncVotingPage extends Component
         $notVotedIssues = collect();
         $votedIssues = collect();
 
-        if (!$isOwner && Auth::check() && $openIssues->isNotEmpty()) {
+        if (! $isOwner && $canVote && $openIssues->isNotEmpty()) {
             $myVotesByIssue = Vote::query()
                 ->where('user_id', Auth::id())
                 ->whereIn('issue_id', $openIssues->pluck('id')->all())
@@ -168,6 +196,7 @@ class AsyncVotingPage extends Component
 
         return view('livewire.async-voting-page', [
             'isOwner' => $isOwner,
+            'canVote' => $canVote,
             'openIssues' => $openIssues,
             'eligibleVoterCount' => $eligibleVoterCount,
             'notVotedIssues' => $notVotedIssues,
@@ -186,7 +215,7 @@ class AsyncVotingPage extends Component
             return;
         }
 
-        $this->session->users()->attach(Auth::user());
-        $this->session->load('users');
+        $this->session->users()->attach(Auth::id(), ['role' => SessionParticipantRole::Voter->value]);
+        $this->session->load(['users' => fn($query) => $query->withPivot('role')]);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\IssueStatus;
+use App\Enums\SessionParticipantRole;
 use Database\Factories\SessionFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -70,7 +71,49 @@ class Session extends Model
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class)->withTimestamps();
+        return $this->belongsToMany(User::class)
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * Whether the user may cast votes in live and async flows (not the PO, not a viewer).
+     */
+    public function canUserVote(User $user): bool
+    {
+        if ($user->id === $this->owner_id) {
+            return false;
+        }
+
+        $member = $this->users()->where('users.id', $user->id)->first();
+
+        if (! $member) {
+            return false;
+        }
+
+        $role = SessionParticipantRole::tryFrom((string) ($member->pivot->role ?? SessionParticipantRole::Voter->value))
+            ?? SessionParticipantRole::Voter;
+
+        return $role === SessionParticipantRole::Voter;
+    }
+
+    /**
+     * Membership role for UI (PO is not represented here).
+     */
+    public function participantRoleFor(User $user): ?SessionParticipantRole
+    {
+        if ($user->id === $this->owner_id) {
+            return null;
+        }
+
+        $member = $this->users()->where('users.id', $user->id)->first();
+
+        if (! $member) {
+            return null;
+        }
+
+        return SessionParticipantRole::tryFrom((string) ($member->pivot->role ?? SessionParticipantRole::Voter->value))
+            ?? SessionParticipantRole::Voter;
     }
 
     /**

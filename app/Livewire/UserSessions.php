@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\SessionParticipantRole;
 use App\Models\Session;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -36,7 +37,7 @@ class UserSessions extends Component
     {
         $session = Session::whereInviteCode($inviteCode)->firstOrFail();
         if (Auth::id() !== $session->owner_id && ! $session->users->contains(Auth::user() ?? '')) {
-            $session->users()->attach(Auth::user());
+            $session->users()->attach(Auth::id(), ['role' => SessionParticipantRole::Voter->value]);
         }
         redirect()->to(route('session.voting', ['inviteCode' => $session->invite_code]));
     }

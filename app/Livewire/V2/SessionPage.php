@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Livewire\V2;
 
+use App\Enums\SessionParticipantRole;
 use App\Livewire\V2\Traits\HandlesIssues;
 use App\Livewire\V2\Traits\HandlesJiraImport;
 use App\Livewire\V2\Traits\HandlesPresence;
 use App\Livewire\V2\Traits\HandlesVoting;
 use App\Models\Session;
+use App\Models\User;
 use App\Services\SessionService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -49,7 +51,9 @@ class SessionPage extends Component
         // Ensure the current user joins the session in the DB on first visit
         if (Auth::check()) {
             app(SessionService::class)->joinSession($this->session);
-            $this->session->load('users');
+            $this->session->load([
+                'users' => fn($query) => $query->withPivot('role'),
+            ]);
         }
 
         // Trait-Initialisierungen
@@ -74,6 +78,39 @@ class SessionPage extends Component
     }
 
     /**
+     * Setzt die eigene Session-Rolle (Voter / Viewer). Nicht für die Session-Owner (PO).
+     */
+    public function setMyParticipantRole(string $role): void
+    {
+        $user = Auth::user();
+        if (! $user) {
+            return;
+        }
+
+        if ($user->id === $this->session->owner_id) {
+            return;
+        }
+
+        $next = SessionParticipantRole::tryFrom($role);
+        if (! $next) {
+            return;
+        }
+
+        // Use the query, not the loaded collection — after Livewire rehydrates, `users` may be empty.
+        $membership = $this->session->users()->where('user_id', $user->id);
+
+        if ($membership->exists()) {
+            $this->session->users()->updateExistingPivot($user->id, ['role' => $next->value]);
+        } else {
+            $this->session->users()->attach($user->id, ['role' => $next->value]);
+        }
+
+        $this->session->load([
+            'users' => fn($query) => $query->withPivot('role'),
+        ]);
+    }
+
+    /**
      * Kombiniert alle Event Listeners aus den Traits.
      *
      * @return array<string, string>
@@ -89,7 +126,10 @@ class SessionPage extends Component
 
     public function render(): View
     {
-        $this->session->load('issues');
+        $this->session->load([
+            'issues',
+            'users' => fn($query) => $query->withPivot('role'),
+        ]);
 
         $openIssues = $this->session->issues
             ->where('status', '!=', 'finished')
@@ -100,8 +140,24 @@ class SessionPage extends Component
             ->where('status', 'finished')
             ->sortBy('position');
 
+        /** @var User|null $authUser */
+        $authUser = Auth::user();
+
+        $showMyRoleToggle = false;
+        $myParticipantRole = SessionParticipantRole::Voter;
+        if ($authUser !== null && $authUser->id !== $this->session->owner_id) {
+            if ($this->session->users()->where('user_id', $authUser->id)->exists()) {
+                $showMyRoleToggle = true;
+                $myParticipantRole = $this->session->participantRoleFor($authUser)
+                    ?? SessionParticipantRole::Voter;
+            }
+        }
+
         return view('livewire.v2.session-page', [
             'isOwner' => Auth::id() === $this->session->owner_id,
+            'canVote' => $authUser !== null && $this->session->canUserVote($authUser),
+            'showMyRoleToggle' => $showMyRoleToggle,
+            'myParticipantRole' => $myParticipantRole,
             'issueCount' => $this->session->issues->count(),
             'finishedCount' => $finishedIssues->count(),
             'participantCount' => $this->session->users->count(),

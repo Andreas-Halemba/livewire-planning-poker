@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\IssueStatus;
+use App\Enums\SessionParticipantRole;
 use App\Livewire\AsyncVotingCards;
 use App\Livewire\AsyncVotingPage;
 use App\Models\Issue;
@@ -18,7 +19,10 @@ test('owner sees async voting progress without vote values', function () {
     $dev2 = User::factory()->create();
 
     $session = Session::factory()->create(['owner_id' => $owner->id]);
-    $session->users()->attach([$owner->id, $dev1->id, $dev2->id]);
+    $session->users()->attach(
+        [$owner->id, $dev1->id, $dev2->id],
+        ['role' => SessionParticipantRole::Voter->value],
+    );
 
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
@@ -49,7 +53,10 @@ test('voter can open async voting page', function () {
     $voter = User::factory()->create();
 
     $session = Session::factory()->create(['owner_id' => $owner->id]);
-    $session->users()->attach([$owner->id, $voter->id]);
+    $session->users()->attach(
+        [$owner->id, $voter->id],
+        ['role' => SessionParticipantRole::Voter->value],
+    );
 
     Livewire::actingAs($voter)
         ->test(AsyncVotingPage::class, ['inviteCode' => $session->invite_code])
@@ -64,7 +71,10 @@ test('async save stores vote, moves issue to voted list, and clears active selec
     $voter = User::factory()->create();
 
     $session = Session::factory()->create(['owner_id' => $owner->id]);
-    $session->users()->attach([$owner->id, $voter->id]);
+    $session->users()->attach(
+        [$owner->id, $voter->id],
+        ['role' => SessionParticipantRole::Voter->value],
+    );
 
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
@@ -95,7 +105,10 @@ test('voter can revoke async estimation from the voted list without opening the 
     $voter = User::factory()->create();
 
     $session = Session::factory()->create(['owner_id' => $owner->id]);
-    $session->users()->attach([$owner->id, $voter->id]);
+    $session->users()->attach(
+        [$owner->id, $voter->id],
+        ['role' => SessionParticipantRole::Voter->value],
+    );
 
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
@@ -114,4 +127,19 @@ test('voter can revoke async estimation from the voted list without opening the 
         ->call('revokeAsyncVote', $issue->id);
 
     expect(Vote::whereUserId($voter->id)->whereIssueId($issue->id)->exists())->toBeFalse();
+});
+
+test('viewer sees observer message instead of async voting cards', function () {
+    $owner = User::factory()->create();
+    $viewer = User::factory()->create();
+
+    $session = Session::factory()->create(['owner_id' => $owner->id]);
+    $session->users()->attach($owner->id, ['role' => SessionParticipantRole::Voter->value]);
+    $session->users()->attach($viewer->id, ['role' => SessionParticipantRole::Viewer->value]);
+
+    Livewire::actingAs($viewer)
+        ->test(AsyncVotingPage::class, ['inviteCode' => $session->invite_code])
+        ->assertStatus(200)
+        ->assertSee('Nur Zuschauer')
+        ->assertDontSee('Async schätzen');
 });

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\SessionParticipantRole;
 use App\Models\Session;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -24,9 +25,16 @@ class SessionService
 
     public function joinSession(Session $session): void
     {
-        if (Auth::user()) {
-            $session->users()->syncWithoutDetaching(Auth::user());
+        $user = Auth::user();
+        if (! $user) {
+            return;
         }
+
+        if ($session->users()->where('user_id', $user->id)->exists()) {
+            return;
+        }
+
+        $session->users()->attach($user->id, ['role' => SessionParticipantRole::Voter->value]);
     }
 
     public function leaveSession(Session $session): void

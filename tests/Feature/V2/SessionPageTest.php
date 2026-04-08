@@ -2,6 +2,7 @@
 
 use App\Actions\Jira\SyncStoryPointsToJira;
 use App\Enums\IssueStatus;
+use App\Enums\SessionParticipantRole;
 use App\Events\AddVote;
 use App\Events\HideVotes;
 use App\Events\IssueAdded;
@@ -48,7 +49,7 @@ function createTestSession(array $participants = []): Session
     $session = Session::factory()->create(['owner_id' => $owner->id]);
 
     foreach ($participants as $participant) {
-        $session->users()->attach($participant->id);
+        $session->users()->attach($participant->id, ['role' => SessionParticipantRole::Voter->value]);
     }
 
     return $session->load('users', 'owner');
@@ -145,7 +146,7 @@ test('owner can start voting for an issue', function () {
 test('owner cannot start voting if not owner', function () {
     $session = createTestSession();
     $nonOwner = User::factory()->create();
-    $session->users()->attach($nonOwner->id);
+    $session->users()->attach($nonOwner->id, ['role' => SessionParticipantRole::Voter->value]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
         'status' => IssueStatus::NEW,
@@ -163,7 +164,7 @@ test('starting voting loads existing async votes', function () {
     $session = createTestSession();
     $owner = $session->owner;
     $voter = User::factory()->create();
-    $session->users()->attach($voter->id);
+    $session->users()->attach($voter->id, ['role' => SessionParticipantRole::Voter->value]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
         'status' => IssueStatus::NEW,
@@ -187,7 +188,7 @@ test('owner can reveal votes when at least one vote exists', function () {
     $session = createTestSession();
     $owner = $session->owner;
     $voter = User::factory()->create();
-    $session->users()->attach($voter->id);
+    $session->users()->attach($voter->id, ['role' => SessionParticipantRole::Voter->value]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
         'status' => IssueStatus::VOTING,
@@ -259,7 +260,7 @@ test('owner can restart voting (clears all votes)', function () {
     $session = createTestSession();
     $owner = $session->owner;
     $voter = User::factory()->create();
-    $session->users()->attach($voter->id);
+    $session->users()->attach($voter->id, ['role' => SessionParticipantRole::Voter->value]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
         'status' => IssueStatus::VOTING,
@@ -427,7 +428,7 @@ test('owner can refresh an imported jira issue to fetch missing fields', functio
 test('voter can submit vote', function () {
     $session = createTestSession();
     $voter = User::factory()->create();
-    $session->users()->attach($voter->id);
+    $session->users()->attach($voter->id, ['role' => SessionParticipantRole::Voter->value]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
         'status' => IssueStatus::VOTING,
@@ -451,7 +452,7 @@ test('voter can submit vote', function () {
 test('voter can remove their vote', function () {
     $session = createTestSession();
     $voter = User::factory()->create();
-    $session->users()->attach($voter->id);
+    $session->users()->attach($voter->id, ['role' => SessionParticipantRole::Voter->value]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
         'status' => IssueStatus::VOTING,
@@ -480,7 +481,7 @@ test('voter can remove their vote', function () {
 test('voter cannot vote if no current issue', function () {
     $session = createTestSession();
     $voter = User::factory()->create();
-    $session->users()->attach($voter->id);
+    $session->users()->attach($voter->id, ['role' => SessionParticipantRole::Voter->value]);
 
     $component = createSessionPageComponent($session, $voter);
     $component->set('currentIssue', null);
@@ -488,6 +489,90 @@ test('voter cannot vote if no current issue', function () {
     $component->call('submitVote', 5);
 
     expect(Vote::where('user_id', $voter->id)->count())->toBe(0);
+});
+
+test('viewer cannot submit vote', function () {
+    $session = createTestSession();
+    $viewer = User::factory()->create();
+    $session->users()->attach($viewer->id, ['role' => SessionParticipantRole::Viewer->value]);
+
+    $issue = Issue::factory()->create([
+        'session_id' => $session->id,
+        'status' => IssueStatus::VOTING,
+    ]);
+
+    $component = createSessionPageComponent($session, $viewer);
+    $component->set('currentIssue', $issue);
+
+    $component->call('submitVote', 5);
+
+    expect(Vote::where('user_id', $viewer->id)->where('issue_id', $issue->id)->exists())->toBeFalse();
+});
+
+test('viewer cannot remove vote', function () {
+    $session = createTestSession();
+    $viewer = User::factory()->create();
+    $session->users()->attach($viewer->id, ['role' => SessionParticipantRole::Viewer->value]);
+
+    $issue = Issue::factory()->create([
+        'session_id' => $session->id,
+        'status' => IssueStatus::VOTING,
+    ]);
+
+    Vote::factory()->create([
+        'user_id' => $viewer->id,
+        'issue_id' => $issue->id,
+        'value' => 5,
+    ]);
+
+    $component = createSessionPageComponent($session, $viewer);
+    $component->set('currentIssue', $issue);
+    $component->set('myVote', 5);
+
+    $component->call('removeVote');
+
+    expect(Vote::where('user_id', $viewer->id)->where('issue_id', $issue->id)->exists())->toBeTrue();
+});
+
+test('participant can set own role to viewer', function () {
+    $session = createTestSession();
+    $member = User::factory()->create();
+    $session->users()->attach($member->id, ['role' => SessionParticipantRole::Voter->value]);
+
+    $component = createSessionPageComponent($session, $member);
+    $component->call('setMyParticipantRole', SessionParticipantRole::Viewer->value);
+
+    $session->refresh();
+    $session->load(['users' => fn($query) => $query->withPivot('role')]);
+    $m = $session->users->firstWhere('id', $member->id);
+    expect($m)->not->toBeNull();
+    expect($m->pivot->role)->toBe(SessionParticipantRole::Viewer->value);
+});
+
+test('participant can set own role back to voter', function () {
+    $session = createTestSession();
+    $member = User::factory()->create();
+    $session->users()->attach($member->id, ['role' => SessionParticipantRole::Viewer->value]);
+
+    $component = createSessionPageComponent($session, $member);
+    $component->call('setMyParticipantRole', SessionParticipantRole::Voter->value);
+
+    $session->refresh();
+    $session->load(['users' => fn($query) => $query->withPivot('role')]);
+    expect($session->users->firstWhere('id', $member->id)->pivot->role)->toBe(SessionParticipantRole::Voter->value);
+});
+
+test('owner cannot change own participant role via Livewire', function () {
+    $session = createTestSession();
+    $owner = $session->owner;
+    $session->users()->attach($owner->id, ['role' => SessionParticipantRole::Voter->value]);
+
+    $component = createSessionPageComponent($session, $owner);
+    $component->call('setMyParticipantRole', SessionParticipantRole::Viewer->value);
+
+    $session->refresh();
+    $session->load(['users' => fn($query) => $query->withPivot('role')]);
+    expect($session->users->firstWhere('id', $owner->id)->pivot->role)->toBe(SessionParticipantRole::Voter->value);
 });
 
 // ============================================================================
@@ -573,7 +658,7 @@ test('owner can update issue order', function () {
 test('non-owner cannot add issue', function () {
     $session = createTestSession();
     $nonOwner = User::factory()->create();
-    $session->users()->attach($nonOwner->id);
+    $session->users()->attach($nonOwner->id, ['role' => SessionParticipantRole::Voter->value]);
 
     $component = createSessionPageComponent($session, $nonOwner);
     $component->set('newIssueTitle', 'Test Issue');
@@ -645,8 +730,8 @@ test('complete voting flow: start -> vote -> reveal -> confirm', function () {
     $owner = $session->owner;
     $voter1 = User::factory()->create();
     $voter2 = User::factory()->create();
-    $session->users()->attach($voter1->id);
-    $session->users()->attach($voter2->id);
+    $session->users()->attach($voter1->id, ['role' => SessionParticipantRole::Voter->value]);
+    $session->users()->attach($voter2->id, ['role' => SessionParticipantRole::Voter->value]);
     $issue = Issue::factory()->create([
         'session_id' => $session->id,
         'status' => IssueStatus::NEW,
@@ -699,8 +784,8 @@ test('render returns correct view data', function () {
     $session = createTestSession();
     $owner = $session->owner;
     $voter = User::factory()->create();
-    $session->users()->attach($voter->id);
-    $session->users()->attach($owner->id); // Owner muss auch zur users-Relation
+    $session->users()->attach($voter->id, ['role' => SessionParticipantRole::Voter->value]);
+    $session->users()->attach($owner->id, ['role' => SessionParticipantRole::Voter->value]); // Owner muss auch zur users-Relation
     $session->load('users'); // Reload für korrekte Zählung
     Issue::factory()->count(3)->create([
         'session_id' => $session->id,
