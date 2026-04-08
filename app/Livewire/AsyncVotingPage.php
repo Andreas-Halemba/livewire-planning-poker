@@ -66,6 +66,7 @@ class AsyncVotingPage extends Component
             // Issues can change through imports/deletes
             "echo-presence:session.{$this->session->invite_code},.IssueAdded" => 'refreshAsyncProgress',
             "echo-presence:session.{$this->session->invite_code},.IssueDeleted" => 'refreshAsyncProgress',
+            "echo-presence:session.{$this->session->invite_code},.ParticipantRoleChanged" => 'refreshAsyncProgress',
             // Local refresh when voter saves/removes
             'refresh-async-lists' => 'refreshAsyncProgress',
         ];

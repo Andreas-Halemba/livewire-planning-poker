@@ -10,6 +10,7 @@ use App\Events\IssueCanceled;
 use App\Events\IssueDeleted;
 use App\Events\IssueOrderChanged;
 use App\Events\IssueSelected;
+use App\Events\ParticipantRoleChanged;
 use App\Events\RevealVotes;
 use App\Livewire\V2\SessionPage;
 use App\Models\Issue;
@@ -535,12 +536,16 @@ test('viewer cannot remove vote', function () {
 });
 
 test('participant can set own role to viewer', function () {
+    Event::fake([ParticipantRoleChanged::class]);
+
     $session = createTestSession();
     $member = User::factory()->create();
     $session->users()->attach($member->id, ['role' => SessionParticipantRole::Voter->value]);
 
     $component = createSessionPageComponent($session, $member);
     $component->call('setMyParticipantRole', SessionParticipantRole::Viewer->value);
+
+    Event::assertDispatched(ParticipantRoleChanged::class);
 
     $session->refresh();
     $session->load(['users' => fn($query) => $query->withPivot('role')]);
@@ -563,12 +568,16 @@ test('participant can set own role back to voter', function () {
 });
 
 test('owner cannot change own participant role via Livewire', function () {
+    Event::fake([ParticipantRoleChanged::class]);
+
     $session = createTestSession();
     $owner = $session->owner;
     $session->users()->attach($owner->id, ['role' => SessionParticipantRole::Voter->value]);
 
     $component = createSessionPageComponent($session, $owner);
     $component->call('setMyParticipantRole', SessionParticipantRole::Viewer->value);
+
+    Event::assertNotDispatched(ParticipantRoleChanged::class);
 
     $session->refresh();
     $session->load(['users' => fn($query) => $query->withPivot('role')]);

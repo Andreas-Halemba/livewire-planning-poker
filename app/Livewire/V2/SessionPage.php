@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\V2;
 
 use App\Enums\SessionParticipantRole;
+use App\Events\ParticipantRoleChanged;
 use App\Livewire\V2\Traits\HandlesIssues;
 use App\Livewire\V2\Traits\HandlesJiraImport;
 use App\Livewire\V2\Traits\HandlesPresence;
@@ -108,6 +109,19 @@ class SessionPage extends Component
         $this->session->load([
             'users' => fn($query) => $query->withPivot('role'),
         ]);
+
+        broadcast(new ParticipantRoleChanged($this->session->invite_code))->toOthers();
+    }
+
+    /**
+     * Andere Clients: Mitgliedschaft neu laden (Rollen-Änderung).
+     */
+    public function refreshSessionMembers(): void
+    {
+        $this->session->load([
+            'users' => fn($query) => $query->withPivot('role'),
+            'owner',
+        ]);
     }
 
     /**
@@ -121,6 +135,9 @@ class SessionPage extends Component
             $this->getPresenceListeners(),
             $this->getVotingListeners(),
             $this->getIssueListeners(),
+            [
+                "echo-presence:session.{$this->session->invite_code},.ParticipantRoleChanged" => 'refreshSessionMembers',
+            ],
         );
     }
 
