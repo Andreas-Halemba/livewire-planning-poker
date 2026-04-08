@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
+use App\Http\Middleware\SanitizeBroadcastSocketIdHeader;
 use Illuminate\Foundation\Configuration\Middleware;
 use Inspector\Laravel\Middleware\WebRequestMonitoring;
 
@@ -14,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->prependToGroup('web', SanitizeBroadcastSocketIdHeader::class);
+
         $middleware->appendToGroup('web', WebRequestMonitoring::class)
             ->appendToGroup('api', WebRequestMonitoring::class);
     })

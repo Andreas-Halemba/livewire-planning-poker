@@ -62,7 +62,7 @@
             </div>
 
             {{-- Voter Controls --}}
-            @if(! $isOwner && $myVote !== null && ! $votesRevealed)
+            @if($canVote && $myVote !== null && ! $votesRevealed)
                 <div class="flex gap-2">
                     <button wire:click="removeVote" class="btn btn-sm btn-warning gap-1">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,8 +153,8 @@
                     </div>
                 @endif
             @else
-                {{-- Voting-Karten (für Nicht-Owner) --}}
-                @if(! $isOwner)
+                {{-- Voting-Karten (für Voter) --}}
+                @if($canVote)
                     <div x-data="{
                         cards: @js($cards),
                         vote(index) {

@@ -82,7 +82,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function sessions(): BelongsToMany
     {
-        return $this->belongsToMany(Session::class);
+        return $this->belongsToMany(Session::class)
+            ->withPivot('role')
+            ->withTimestamps();
     }
 
     public function ownedSessions(): HasMany

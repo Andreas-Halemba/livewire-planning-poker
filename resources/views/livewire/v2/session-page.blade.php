@@ -13,17 +13,52 @@
 
         {{-- Session Header --}}
         <div class="bg-base-300 rounded-xl shadow-md border border-base-300 p-5 sm:p-6 mb-6">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <h1 class="text-xl sm:text-2xl font-semibold text-base-content">
-                    Session: <span class="font-bold">{{ $session->name }}</span>
-                </h1>
-                <div class="flex flex-col sm:items-end gap-2">
-                    <div class="text-sm text-base-content/70">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div class="flex flex-col gap-3 min-w-0">
+                    <h1 class="text-xl sm:text-2xl font-semibold text-base-content">
+                        Session: <span class="font-bold">{{ $session->name }}</span>
+                    </h1>
+                    @if($showMyRoleToggle)
+                        <div class="flex flex-col items-start gap-1.5">
+                            <span class="text-xs font-semibold text-base-content/50 uppercase tracking-wide">Deine Rolle</span>
+                            <div class="join join-horizontal shadow-sm">
+                                <button
+                                    type="button"
+                                    wire:click="setMyParticipantRole('voter')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="setMyParticipantRole"
+                                    @class([
+                                        'join-item btn btn-sm px-3 sm:px-4',
+                                        'btn-primary' => $myParticipantRole === \App\Enums\SessionParticipantRole::Voter,
+                                        'btn-ghost bg-base-100 hover:bg-base-200 border border-base-content/15' => $myParticipantRole !== \App\Enums\SessionParticipantRole::Voter,
+                                    ])
+                                >
+                                    Schätzt mit
+                                </button>
+                                <button
+                                    type="button"
+                                    wire:click="setMyParticipantRole('viewer')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="setMyParticipantRole"
+                                    @class([
+                                        'join-item btn btn-sm px-3 sm:px-4',
+                                        'btn-primary' => $myParticipantRole === \App\Enums\SessionParticipantRole::Viewer,
+                                        'btn-ghost bg-base-100 hover:bg-base-200 border border-base-content/15' => $myParticipantRole !== \App\Enums\SessionParticipantRole::Viewer,
+                                    ])
+                                >
+                                    Nur zuschauen
+                                </button>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+                <div class="flex flex-col sm:items-end gap-2 w-full sm:w-auto shrink-0">
+                    <div class="text-sm text-base-content/70 text-left sm:text-right">
                         <span class="text-success font-medium">{{ $onlineCount }} online</span> •
                         {{ $participantCount }} Mitglieder •
                         {{ $finishedCount }}/{{ $issueCount }} Issues
                     </div>
-                    <a href="{{ route('session.async', $session->invite_code) }}" class="btn btn-sm btn-info btn-outline">
+                    <a href="{{ route('session.async', $session->invite_code) }}" class="btn btn-sm btn-info btn-outline self-start sm:self-end">
                         Zum Async Voting
                     </a>
                 </div>
@@ -33,9 +68,24 @@
             <div class="text-sm font-semibold mt-4 mb-3 uppercase tracking-wide">Teilnehmer</div>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                 @foreach($session->users as $user)
-                    <x-v2.participant-card wire:key="participant-{{ $user->id }}" :user="$user" :session="$session"
-                        :current-issue="$currentIssue" :online-user-ids="$onlineUserIds" :voted-user-ids="$votedUserIds"
-                        :votes-by-user="$votesByUser" :votes-revealed="$votesRevealed" />
+                    @php
+                        $participantRole = $user->id === $session->owner_id
+                            ? null
+                            : (\App\Enums\SessionParticipantRole::tryFrom((string) ($user->pivot->role ?? \App\Enums\SessionParticipantRole::Voter->value))
+                                ?? \App\Enums\SessionParticipantRole::Voter);
+                    @endphp
+                    <div wire:key="participant-wrap-{{ $user->id }}" class="min-w-0">
+                        <x-v2.participant-card
+                            :user="$user"
+                            :session="$session"
+                            :current-issue="$currentIssue"
+                            :online-user-ids="$onlineUserIds"
+                            :voted-user-ids="$votedUserIds"
+                            :votes-by-user="$votesByUser"
+                            :votes-revealed="$votesRevealed"
+                            :participant-role="$participantRole"
+                        />
+                    </div>
                 @endforeach
             </div>
         </div>

@@ -12,6 +12,7 @@ use App\Events\IssueCanceled;
 use App\Events\IssueSelected;
 use App\Events\RevealVotes;
 use App\Models\Issue;
+use App\Models\User;
 use App\Models\Vote;
 use Illuminate\Support\Facades\Auth;
 
@@ -240,7 +241,13 @@ trait HandlesVoting
      */
     public function submitVote(int $card): void
     {
-        if (!$this->currentIssue || !Auth::check()) {
+        if (! $this->currentIssue || ! Auth::check()) {
+            return;
+        }
+
+        /** @var User $user */
+        $user = Auth::user();
+        if (! $this->session->canUserVote($user)) {
             return;
         }
 
@@ -262,7 +269,13 @@ trait HandlesVoting
      */
     public function removeVote(): void
     {
-        if (!$this->currentIssue || !Auth::check()) {
+        if (! $this->currentIssue || ! Auth::check()) {
+            return;
+        }
+
+        /** @var User $user */
+        $user = Auth::user();
+        if (! $this->session->canUserVote($user)) {
             return;
         }
 

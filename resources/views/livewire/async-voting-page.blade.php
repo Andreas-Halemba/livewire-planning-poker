@@ -16,8 +16,10 @@
                 <div class="mt-1 text-xs sm:text-sm text-base-content/70">
                     @if($isOwner)
                         Zeigt nur, <span class="font-semibold">wer</span> geschätzt hat – keine Werte.
-                    @else
+                    @elseif($canVote)
                         Vorab-Schätzungen ohne Live-Runde. Finale Storypoints setzt der Owner im Session Screen.
+                    @else
+                        Du bist als Zuschauer eingetragen – keine Vorab-Schätzung. Nutze die Live-Session, um Ergebnisse zu sehen.
                     @endif
                 </div>
             </div>
@@ -123,7 +125,7 @@
                 @endif
             </div>
         </div>
-    @else
+    @elseif($canVote)
         {{-- Voter Async Voting View (v2-style) --}}
         <div class="min-w-0 space-y-6">
             <livewire:async-voting-cards :session="$session" :key="'async-v2-cards-'.$session->id" />
@@ -252,6 +254,17 @@
                         </ul>
                     @endif
                 </div>
+            </div>
+        </div>
+    @else
+        <div class="alert alert-info shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <div class="font-semibold">Nur Zuschauer</div>
+                <div class="text-sm">Vorab-Schätzungen sind für dich nicht verfügbar. Wechsle zur Live-Session, um das Voting zu verfolgen.</div>
+                <a href="{{ route('session.voting', $session->invite_code) }}" class="btn btn-sm btn-primary mt-3">Zur Live-Session</a>
             </div>
         </div>
     @endif

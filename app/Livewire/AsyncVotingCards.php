@@ -6,6 +6,7 @@ use App\Enums\IssueStatus;
 use App\Events\AsyncVoteUpdated;
 use App\Models\Issue;
 use App\Models\Session;
+use App\Models\User;
 use App\Models\Vote;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -87,7 +88,13 @@ class AsyncVotingCards extends Component
 
     public function saveVote(): void
     {
-        if (!Auth::check() || !$this->selectedIssue || $this->selectedCard === null) {
+        if (! Auth::check() || ! $this->selectedIssue || $this->selectedCard === null) {
+            return;
+        }
+
+        /** @var User $user */
+        $user = Auth::user();
+        if (! $this->session->canUserVote($user)) {
             return;
         }
 
@@ -118,7 +125,13 @@ class AsyncVotingCards extends Component
 
     public function removeVote(): void
     {
-        if (!Auth::check() || !$this->selectedIssue) {
+        if (! Auth::check() || ! $this->selectedIssue) {
+            return;
+        }
+
+        /** @var User $user */
+        $user = Auth::user();
+        if (! $this->session->canUserVote($user)) {
             return;
         }
 
