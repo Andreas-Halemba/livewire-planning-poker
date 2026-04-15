@@ -17,9 +17,9 @@ class JiraCredentials extends Component
     public bool $connectionSuccessful = false;
     public string $connectionMessage = '';
 
-    /** @var array<string, string> */
+    /** @var array<string, array<int, string>|string> */
     protected array $rules = [
-        'jira_url' => 'nullable|url|max:255',
+        'jira_url' => ['nullable', 'url', 'max:255', 'regex:/^https:\/\/[a-zA-Z0-9-]+\.atlassian\.net\/?$/'],
         'jira_user' => 'nullable|email|max:255',
         'jira_api_key' => 'nullable|string|max:255',
     ];
@@ -27,6 +27,7 @@ class JiraCredentials extends Component
     /** @var array<string, string> */
     protected array $messages = [
         'jira_url.url' => 'The Jira URL must be a valid URL.',
+        'jira_url.regex' => 'Please provide only the base URL of your Jira Cloud instance (e.g., https://company.atlassian.net). Do not include paths to boards or issues.',
         'jira_user.email' => 'The Jira user must be a valid email address.',
     ];
 
@@ -54,7 +55,7 @@ class JiraCredentials extends Component
         $this->validate();
 
         $user = auth()->user();
-        $user->jira_url = $this->jira_url;
+        $user->jira_url = rtrim($this->jira_url, '/');
         $user->jira_user = $this->jira_user;
 
         // Only update API key if a new one was provided and it's different from the placeholder
@@ -80,7 +81,7 @@ class JiraCredentials extends Component
     public function testConnection(): void
     {
         $this->validate([
-            'jira_url' => 'required|url',
+            'jira_url' => ['required', 'url', 'regex:/^https:\/\/[a-zA-Z0-9-]+\.atlassian\.net\/?$/'],
             'jira_user' => 'required|email',
             'jira_api_key' => 'required|string',
         ]);
@@ -99,7 +100,7 @@ class JiraCredentials extends Component
 
             // Create a temporary user with the entered credentials for testing
             $tempUser = new \App\Models\User();
-            $tempUser->jira_url = $this->jira_url;
+            $tempUser->jira_url = rtrim($this->jira_url, '/');
             $tempUser->jira_user = $this->jira_user;
             $tempUser->jira_api_key = $apiKeyToUse;
 
