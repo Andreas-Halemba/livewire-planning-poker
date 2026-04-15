@@ -7,7 +7,6 @@
         "reverb": "php artisan reverb:start --host 0.0.0.0 --port 32001 --hostname livewire-planning-poker.test"
     },
     "devDependencies": {
-        "@soketi/soketi": "^1.5.0",
         "@tailwindcss/forms": "^0.5.3",
         "autoprefixer": "^10.4.14",
         "laravel-vite-plugin": "^2.0.1",
