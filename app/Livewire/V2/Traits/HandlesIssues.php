@@ -10,6 +10,7 @@ use App\Events\IssueDeleted;
 use App\Events\IssueOrderChanged;
 use App\Models\Issue;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 /**
  * Trait für Issue-Management.
@@ -68,12 +69,37 @@ trait HandlesIssues
             return;
         }
 
-        $this->validate([
-            'newIssueTitle' => 'required|string|max:255',
-            'newIssueDescription' => 'nullable|string|max:2000',
-            'newIssueJiraKey' => 'nullable|string|max:50',
-            'newIssueJiraUrl' => 'nullable|url|max:500',
-        ]);
+        $this->newIssueJiraKey = trim($this->newIssueJiraKey ?? '');
+        $this->newIssueJiraUrl = trim($this->newIssueJiraUrl ?? '');
+
+        $jiraKeyRules = ['nullable', 'string', 'max:50'];
+        if ($this->newIssueJiraKey !== '') {
+            $jiraKeyRules[] = Rule::unique('issues', 'jira_key')->where('session_id', $this->session->id);
+        }
+
+        $jiraUrlRules = ['nullable', 'string', 'max:500'];
+        if ($this->newIssueJiraUrl !== '') {
+            $jiraUrlRules[] = 'url';
+        }
+
+        $this->validate(
+            [
+                'newIssueTitle' => 'required|string|max:255',
+                'newIssueDescription' => 'nullable|string|max:2000',
+                'newIssueJiraKey' => $jiraKeyRules,
+                'newIssueJiraUrl' => $jiraUrlRules,
+            ],
+            [
+                'newIssueJiraKey.unique' => 'Dieser Jira Issue Key ist in dieser Session bereits vergeben.',
+                'newIssueJiraUrl.url' => 'Bitte eine gültige URL eingeben oder das Feld leer lassen.',
+            ],
+            [
+                'newIssueTitle' => 'Titel',
+                'newIssueDescription' => 'Beschreibung',
+                'newIssueJiraKey' => 'Jira Issue Key',
+                'newIssueJiraUrl' => 'Jira URL',
+            ],
+        );
 
         $maxPosition = Issue::query()
             ->where('session_id', $this->session->id)

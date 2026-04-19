@@ -614,6 +614,44 @@ test('owner can add issue manually', function () {
     Event::assertDispatched(IssueAdded::class);
 });
 
+test('owner can add issue with empty optional jira url and key', function () {
+    $session = createTestSession();
+    $owner = $session->owner;
+
+    $component = createSessionPageComponent($session, $owner);
+    $component->set('newIssueTitle', 'No Jira fields');
+    $component->set('newIssueJiraKey', '');
+    $component->set('newIssueJiraUrl', '');
+
+    $component->call('addIssue');
+
+    $issue = Issue::where('session_id', $session->id)->where('title', 'No Jira fields')->first();
+    expect($issue)->not->toBeNull();
+    expect($issue->jira_key)->toBeNull();
+    expect($issue->jira_url)->toBeNull();
+});
+
+test('add issue rejects duplicate jira key in same session', function () {
+    $session = createTestSession();
+    $owner = $session->owner;
+
+    Issue::factory()->create([
+        'session_id' => $session->id,
+        'status' => IssueStatus::NEW,
+        'jira_key' => 'DUP-KEY',
+        'position' => 0,
+    ]);
+
+    $component = createSessionPageComponent($session, $owner);
+    $component->set('newIssueTitle', 'Second');
+    $component->set('newIssueJiraKey', 'DUP-KEY');
+
+    $component->call('addIssue');
+
+    $component->assertHasErrors(['newIssueJiraKey']);
+    expect(Issue::where('title', 'Second')->exists())->toBeFalse();
+});
+
 test('owner can delete issue', function () {
     $session = createTestSession();
     $owner = $session->owner;
