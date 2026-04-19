@@ -214,6 +214,136 @@ test('owner can reveal votes when at least one vote exists', function () {
     Event::assertDispatched(RevealVotes::class);
 });
 
+test('reveal dispatches planning-poker-unanimous when all eligible voters voted the same', function () {
+    $session = createTestSession();
+    $owner = $session->owner;
+    $voter1 = User::factory()->create();
+    $voter2 = User::factory()->create();
+    $session->users()->attach($voter1->id, ['role' => SessionParticipantRole::Voter->value]);
+    $session->users()->attach($voter2->id, ['role' => SessionParticipantRole::Voter->value]);
+    $issue = Issue::factory()->create([
+        'session_id' => $session->id,
+        'status' => IssueStatus::VOTING,
+    ]);
+
+    Vote::factory()->create([
+        'user_id' => $voter1->id,
+        'issue_id' => $issue->id,
+        'value' => 5,
+    ]);
+    Vote::factory()->create([
+        'user_id' => $voter2->id,
+        'issue_id' => $issue->id,
+        'value' => 5,
+    ]);
+
+    Event::fake([RevealVotes::class]);
+
+    $component = createSessionPageComponent($session, $owner);
+    $component->set('currentIssue', $issue);
+    $component->set('votedUserIds', [$voter1->id, $voter2->id]);
+    $component->set('votesByUser', [$voter1->id => 5, $voter2->id => 5]);
+
+    $component->call('revealVotes');
+
+    $component->assertDispatched('planning-poker-unanimous');
+});
+
+test('reveal does not dispatch planning-poker-unanimous when eligible voters disagree', function () {
+    $session = createTestSession();
+    $owner = $session->owner;
+    $voter1 = User::factory()->create();
+    $voter2 = User::factory()->create();
+    $session->users()->attach($voter1->id, ['role' => SessionParticipantRole::Voter->value]);
+    $session->users()->attach($voter2->id, ['role' => SessionParticipantRole::Voter->value]);
+    $issue = Issue::factory()->create([
+        'session_id' => $session->id,
+        'status' => IssueStatus::VOTING,
+    ]);
+
+    Vote::factory()->create([
+        'user_id' => $voter1->id,
+        'issue_id' => $issue->id,
+        'value' => 5,
+    ]);
+    Vote::factory()->create([
+        'user_id' => $voter2->id,
+        'issue_id' => $issue->id,
+        'value' => 8,
+    ]);
+
+    Event::fake([RevealVotes::class]);
+
+    $component = createSessionPageComponent($session, $owner);
+    $component->set('currentIssue', $issue);
+    $component->set('votedUserIds', [$voter1->id, $voter2->id]);
+    $component->set('votesByUser', [$voter1->id => 5, $voter2->id => 8]);
+
+    $component->call('revealVotes');
+
+    $component->assertNotDispatched('planning-poker-unanimous');
+});
+
+test('reveal dispatches planning-poker-unanimous when only voters must agree and viewer ignores unanimity', function () {
+    $session = createTestSession();
+    $owner = $session->owner;
+    $voter = User::factory()->create();
+    $viewer = User::factory()->create();
+    $session->users()->attach($voter->id, ['role' => SessionParticipantRole::Voter->value]);
+    $session->users()->attach($viewer->id, ['role' => SessionParticipantRole::Viewer->value]);
+    $issue = Issue::factory()->create([
+        'session_id' => $session->id,
+        'status' => IssueStatus::VOTING,
+    ]);
+
+    Vote::factory()->create([
+        'user_id' => $voter->id,
+        'issue_id' => $issue->id,
+        'value' => 3,
+    ]);
+
+    Event::fake([RevealVotes::class]);
+
+    $component = createSessionPageComponent($session, $owner);
+    $component->set('currentIssue', $issue);
+    $component->set('votedUserIds', [$voter->id]);
+    $component->set('votesByUser', [$voter->id => 3]);
+
+    $component->call('revealVotes');
+
+    $component->assertDispatched('planning-poker-unanimous');
+});
+
+test('reveal does not dispatch planning-poker-unanimous when an eligible voter has not voted', function () {
+    $session = createTestSession();
+    $owner = $session->owner;
+    $voter1 = User::factory()->create();
+    $voter2 = User::factory()->create();
+    $session->users()->attach($voter1->id, ['role' => SessionParticipantRole::Voter->value]);
+    $session->users()->attach($voter2->id, ['role' => SessionParticipantRole::Voter->value]);
+    $issue = Issue::factory()->create([
+        'session_id' => $session->id,
+        'status' => IssueStatus::VOTING,
+    ]);
+
+    Vote::factory()->create([
+        'user_id' => $voter1->id,
+        'issue_id' => $issue->id,
+        'value' => 5,
+    ]);
+
+    Event::fake([RevealVotes::class]);
+
+    $component = createSessionPageComponent($session, $owner);
+    $component->set('currentIssue', $issue);
+    $component->set('votedUserIds', [$voter1->id]);
+    $component->set('votesByUser', [$voter1->id => 5]);
+
+    $component->call('revealVotes');
+
+    $component->assertNotDispatched('planning-poker-unanimous');
+});
+
 test('owner can hide votes after revealing', function () {
     $session = createTestSession();
     $owner = $session->owner;

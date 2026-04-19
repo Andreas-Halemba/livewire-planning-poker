@@ -1,5 +1,26 @@
 import './bootstrap'
 
+import confetti from 'canvas-confetti'
+
+/**
+ * Called from Livewire SessionPage @script when all eligible voters agreed.
+ */
+window.planningPokerPlayUnanimousConfetti = () => {
+    confetti({
+        particleCount: 125,
+        spread: 70,
+        origin: { y: 0.62 },
+    })
+    window.setTimeout(() => {
+        confetti({
+            particleCount: 85,
+            angle: 60,
+            spread: 55,
+            origin: { y: 0.68 },
+        })
+    }, 200)
+}
+
 // import Alpine from 'alpinejs'
 // import Clipboard from '@ryangjchandler/alpine-clipboard'
 

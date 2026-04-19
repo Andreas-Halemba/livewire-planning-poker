@@ -130,5 +130,9 @@
             }
         }, 200);
     });
+
+    $wire.on('planning-poker-unanimous', () => {
+        window.planningPokerPlayUnanimousConfetti?.();
+    });
 </script>
 @endscript
