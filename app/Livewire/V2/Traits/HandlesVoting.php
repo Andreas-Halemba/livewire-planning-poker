@@ -88,6 +88,7 @@ trait HandlesVoting
     {
         $this->votesRevealed = true;
         $this->loadVotedUsers();
+        $this->dispatchUnanimousRevealIfNeeded();
     }
 
     public function handleHideVotes(): void
@@ -145,6 +146,7 @@ trait HandlesVoting
 
         $this->votesRevealed = true;
         $this->loadVotedUsers();
+        $this->dispatchUnanimousRevealIfNeeded();
 
         broadcast(new RevealVotes($this->session->invite_code))->toOthers();
     }
@@ -336,5 +338,51 @@ trait HandlesVoting
         $this->votedUserIds = $votes->pluck('user_id')->all();
         $this->votesByUser = $votes->pluck('value', 'user_id')->all();
         $this->myVote = $this->votesByUser[Auth::id()] ?? null;
+    }
+
+    /**
+     * True when every eligible voter has voted and all values match.
+     */
+    private function allEligibleVotersAgree(): bool
+    {
+        if (! $this->currentIssue) {
+            return false;
+        }
+
+        $voterIds = $this->session->users()
+            ->get()
+            ->filter(fn(User $user) => $this->session->canUserVote($user))
+            ->pluck('id')
+            ->all();
+
+        if ($voterIds === []) {
+            return false;
+        }
+
+        foreach ($voterIds as $userId) {
+            if (! array_key_exists($userId, $this->votesByUser)) {
+                return false;
+            }
+        }
+
+        $firstId = $voterIds[0];
+        $firstValue = (int) $this->votesByUser[$firstId];
+
+        foreach ($voterIds as $userId) {
+            if ((int) $this->votesByUser[$userId] !== $firstValue) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function dispatchUnanimousRevealIfNeeded(): void
+    {
+        if (! $this->allEligibleVotersAgree()) {
+            return;
+        }
+
+        $this->dispatch('planning-poker-unanimous');
     }
 }

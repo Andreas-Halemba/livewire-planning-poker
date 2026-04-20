@@ -86,6 +86,10 @@ Fallback without Herd:
 php artisan serve
 ```
 
+## Live voting highlights (v2)
+
+When the owner reveals votes and every member in the **Voter** role has submitted the same estimate, the browser briefly shows confetti. Viewers and the session owner are not counted toward that unanimity check.
+
 ## Session Archiving
 
 - Run `php artisan migrate` after pulling the latest changes to add the `archived_at` column on `sessions`.
