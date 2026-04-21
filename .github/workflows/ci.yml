@@ -1,0 +1,64 @@
+name: CI
+
+on:
+    pull_request:
+    push:
+        branches:
+            - main
+
+concurrency:
+    group: ci-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    quality:
+        name: Pint & Pest
+        runs-on: ubuntu-latest
+        env:
+            # No .env in CI — default broadcaster is "reverb" (needs REVERB_*); use null for install + artisan
+            BROADCAST_DRIVER: 'null'
+            # Satisfy Laravel when config/cache references encryption (composer scripts run package:discover)
+            APP_KEY: 'base64:MtBvQOOQTmI5iTv900mPHWnzJjjyoG8q5hD1ZcH+0eg='
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.4'
+                  extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
+                  coverage: none
+
+            - name: Get Composer cache directory
+              id: composer-cache
+              run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+            - name: Cache Composer dependencies
+              uses: actions/cache@v5
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-composer-
+
+            - name: Install Composer dependencies
+              run: composer install --prefer-dist --no-interaction --no-progress
+
+            - name: Setup Node
+              uses: actions/setup-node@v6
+              with:
+                  node-version: '22'
+                  cache: npm
+
+            - name: Install npm dependencies and build assets
+              run: |
+                  npm ci
+                  npm run build
+
+            - name: Run Pint
+              run: vendor/bin/pint --test
+
+            - name: Run tests
+              run: vendor/bin/pest
