@@ -14,6 +14,11 @@ jobs:
     quality:
         name: Pint & Pest
         runs-on: ubuntu-latest
+        env:
+            # No .env in CI — default broadcaster is "reverb" (needs REVERB_*); use null for install + artisan
+            BROADCAST_DRIVER: 'null'
+            # Satisfy Laravel when config/cache references encryption (composer scripts run package:discover)
+            APP_KEY: 'base64:MtBvQOOQTmI5iTv900mPHWnzJjjyoG8q5hD1ZcH+0eg='
 
         steps:
             - name: Checkout code
