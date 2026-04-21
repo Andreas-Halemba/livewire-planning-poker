@@ -1,95 +1,102 @@
-# Disabled — replaced by docker-publish.yml (GHCR build & manual pull on server)
-# To re-enable: remove `if: false` from the deploy job.
-name: Deploy to Production (disabled)
+name: Deploy to Production
 
 on:
+    release:
+        types: [published]
     workflow_dispatch:
         inputs:
-            environment:
-                description: 'Deployment environment'
-                required: true
-                default: 'production'
-                type: choice
-                options:
-                    - production
-                    - staging
+            tag:
+                description: 'Image tag to deploy (default: latest). Use for manual re-deploy or rollback.'
+                required: false
+                default: 'latest'
+
+permissions:
+    contents: read
+    packages: read
+
+concurrency:
+    group: deploy-production
+    cancel-in-progress: false
+
+env:
+    IMAGE_APP: ghcr.io/andreas-halemba/livewire-planning-poker
+    IMAGE_WEB: ghcr.io/andreas-halemba/livewire-planning-poker-web
+    SSH_HOST: poker.halemba.rocks
+    SSH_USER: root
 
 jobs:
     deploy:
-        name: Deploy Application
+        name: Deploy to poker.halemba.rocks
         runs-on: ubuntu-latest
-        if: false
+        environment:
+            name: production
+            url: https://poker.halemba.rocks
 
         steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+            - name: Resolve image tag
+              id: tag
+              run: |
+                  TAG="${{ github.event.release.tag_name || inputs.tag }}"
+                  TAG="${TAG:-latest}"
+                  echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+                  echo "Deploying tag: ${TAG}"
 
-            - name: Setup SSH
+            - name: Login to GHCR
+              uses: docker/login-action@v4
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.repository_owner }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Wait for images to be available
+              env:
+                  TAG: ${{ steps.tag.outputs.tag }}
+              run: |
+                  set -euo pipefail
+                  for image in "$IMAGE_APP:$TAG" "$IMAGE_WEB:$TAG"; do
+                    echo "⏳ Waiting for $image..."
+                    for i in $(seq 1 30); do
+                      if docker manifest inspect "$image" > /dev/null 2>&1; then
+                        echo "✅ $image is available"
+                        break
+                      fi
+                      if [ "$i" -eq 30 ]; then
+                        echo "❌ Timeout waiting for $image"
+                        exit 1
+                      fi
+                      echo "   attempt $i/30 — not yet available, retrying in 20s..."
+                      sleep 20
+                    done
+                  done
+
+            - name: Setup SSH key
               uses: webfactory/ssh-agent@v0.9.0
               with:
                   ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-            - name: Add server to known hosts
+            - name: Add server to known_hosts
               run: |
                   mkdir -p ~/.ssh
-                  ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+                  ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+                  chmod 644 ~/.ssh/known_hosts
 
-            - name: Deploy to Server
+            - name: Trigger deploy on server
+              run: |
+                  ssh -o StrictHostKeyChecking=yes "$SSH_USER@$SSH_HOST"
+
+            - name: Deployment summary
+              if: always()
               env:
-                  SSH_HOST: ${{ secrets.SSH_HOST }}
-                  SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
-                  REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
-                  SSH_PORT: ${{ secrets.SSH_PORT || 22 }}
+                  TAG: ${{ steps.tag.outputs.tag }}
               run: |
-                  echo "🚀 Deploying to ${{ inputs.environment }}..."
-
-                  ssh -p $SSH_PORT $SSH_USERNAME@$SSH_HOST << 'ENDSSH'
-                    set -e
-                    
-                    echo "📂 Navigating to application directory..."
-                    cd ${{ secrets.REMOTE_PATH }}
-                    
-                    echo "📥 Pulling latest code..."
-                    git pull origin main
-                    
-                    echo "📦 Installing Composer dependencies..."
-                    composer install --no-dev --optimize-autoloader --no-interaction
-                    
-                    echo "📦 Installing NPM dependencies..."
-                    npm ci --production=false
-                    
-                    echo "🔨 Building assets..."
-                    npm run build
-                    
-                    echo "🗄️ Running database migrations..."
-                    php artisan migrate --force
-                    
-                    echo "🧹 Clearing caches..."
-                    php artisan cache:clear
-                    php artisan config:clear
-                    php artisan route:clear
-                    php artisan view:clear
-                    
-                    echo "⚡ Optimizing application..."
-                    php artisan config:cache
-                    php artisan route:cache
-                    php artisan view:cache
-                    
-                    echo "🔄 Restarting Reverb server..."
-                    pm2 restart reverb || echo "⚠️ Could not restart reverb (maybe not running)"
-                    
-                    echo "✅ Deployment completed successfully!"
-                  ENDSSH
-
-            - name: Deployment Summary
-              if: success()
-              run: |
-                  echo "✅ Deployment to ${{ inputs.environment }} completed successfully!"
-                  echo "🔗 Check your application and verify everything works."
-
-            - name: Deployment Failed
-              if: failure()
-              run: |
-                  echo "❌ Deployment to ${{ inputs.environment }} failed!"
-                  echo "Please check the logs above and fix any issues."
-                  exit 1
+                  {
+                    echo "## Deployment"
+                    echo ""
+                    echo "| Field | Value |"
+                    echo "|---|---|"
+                    echo "| Host | \`$SSH_HOST\` |"
+                    echo "| Tag | \`$TAG\` |"
+                    echo "| Trigger | \`${{ github.event_name }}\` |"
+                    echo "| Release | \`${{ github.event.release.tag_name || 'n/a' }}\` |"
+                    echo "| Status | \`${{ job.status }}\` |"
+                  } >> "$GITHUB_STEP_SUMMARY"
