@@ -3,6 +3,7 @@
     "description": "The Laravel Framework.",
     "license": "MIT",
     "type": "project",
+    "version": "3.0.0",
     "keywords": [
         "framework",
         "laravel"
@@ -14,7 +15,7 @@
         "guzzlehttp/guzzle": "^7.10.0",
         "inspector-apm/inspector-laravel": "^4.19.0",
         "inspector-apm/inspector-php": "^3.17.1",
-        "laravel/framework": "^12.56.0",
+        "laravel/framework": "^13.0",
         "laravel/pulse": "^1.7.3",
         "laravel/reverb": "^1.10.0",
         "laravel/sanctum": "^4.3.1",

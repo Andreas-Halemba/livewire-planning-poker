@@ -17,6 +17,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Version
+    |--------------------------------------------------------------------------
+    |
+    | Sourced from composer.json via Composer's runtime InstalledVersions API
+    | so the same string appears in the footer, meta tag, logs, and APM.
+    |
+    */
+
+    'version' => \Composer\InstalledVersions::getRootPackage()['pretty_version'] ?? 'dev',
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |
