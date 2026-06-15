@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="app-version" content="{{ config('app.version') }}">
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
@@ -35,6 +36,8 @@
         <main class="py-4 bg-base-100 md:py-8">
             <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">{{ $slot }}</div>
         </main>
+
+        @include('partials.version-footer')
     </div>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/theme-change@2.0.2/index.js"></script>

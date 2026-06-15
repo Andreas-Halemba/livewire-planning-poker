@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="app-version" content="{{ config('app.version') }}">
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
@@ -26,6 +27,8 @@
                 {{ $slot }}
             </div>
         </div>
+
+        @include('partials.version-footer')
     </div>
 </body>
 
