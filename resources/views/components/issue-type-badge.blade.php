@@ -20,6 +20,6 @@
     };
 @endphp
 
-@if($label)
+@if ($label)
     <span class="badge badge-xs {{ $badge }}">{{ $label }}</span>
 @endif

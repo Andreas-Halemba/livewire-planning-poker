@@ -48,7 +48,7 @@ class AsyncVotingPage extends Component
             $this->attachUserToSession();
         }
 
-        if (!Gate::allows('vote_session', $this->session)) {
+        if (! Gate::allows('vote_session', $this->session)) {
             abort(403);
         }
 
@@ -87,6 +87,7 @@ class AsyncVotingPage extends Component
 
         if (empty($openIssueIds)) {
             $this->asyncVotersByIssue = [];
+
             return;
         }
 
@@ -136,7 +137,7 @@ class AsyncVotingPage extends Component
             ->where('id', $issueId)
             ->first();
 
-        if (!$issue || $issue->status === IssueStatus::VOTING) {
+        if (! $issue || $issue->status === IssueStatus::VOTING) {
             return;
         }
 
@@ -169,7 +170,7 @@ class AsyncVotingPage extends Component
         $authUser = Auth::user();
         $canVote = $authUser !== null && $this->session->canUserVote($authUser);
 
-        /** @var Collection<int, \App\Models\Issue> $openIssues */
+        /** @var Collection<int, Issue> $openIssues */
         $openIssues = $this->session->issues
             ->filter(fn($issue) => $issue->status !== IssueStatus::FINISHED && $issue->status !== IssueStatus::VOTING)
             ->sortBy('position')
@@ -191,7 +192,7 @@ class AsyncVotingPage extends Component
                 ->pluck('value', 'issue_id')
                 ->all();
 
-            $notVotedIssues = $openIssues->filter(fn($issue) => !array_key_exists($issue->id, $myVotesByIssue));
+            $notVotedIssues = $openIssues->filter(fn($issue) => ! array_key_exists($issue->id, $myVotesByIssue));
             $votedIssues = $openIssues->filter(fn($issue) => array_key_exists($issue->id, $myVotesByIssue));
         }
 

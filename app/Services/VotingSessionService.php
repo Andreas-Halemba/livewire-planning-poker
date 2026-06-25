@@ -65,7 +65,7 @@ class VotingSessionService
             }
 
             $value = (string) $vote->value;
-            if (!isset($grouped[$value])) {
+            if (! isset($grouped[$value])) {
                 $grouped[$value] = [
                     'count' => 0,
                     'participants' => [],

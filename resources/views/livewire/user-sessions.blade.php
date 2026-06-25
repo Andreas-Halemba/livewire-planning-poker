@@ -3,10 +3,11 @@
         <h2 class="text-xl font-semibold text-base-content mb-2">Your voting Sessions</h2>
         <p class="text-base-content/70 mb-4">
             Here you can see all sessions you joined as a voter.
-            <span class="text-base-content/60">Use “Async” for pre-estimates or “Live” for the normal voting session.</span>
+            <span class="text-base-content/60">Use “Async” for pre-estimates or “Live” for the normal voting
+                session.</span>
         </p>
-        
-        @if($sessions->isEmpty())
+
+        @if ($sessions->isEmpty())
             <div class="text-center py-8 text-base-content/60">
                 No voting sessions available.
             </div>

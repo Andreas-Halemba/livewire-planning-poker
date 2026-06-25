@@ -23,6 +23,7 @@ class UserSessions extends Component
                 ->whereNull('archived_at')
                 ->get();
         }
+
         return view('livewire.user-sessions', [
             'sessions' => $sessions,
         ]);

@@ -3,12 +3,20 @@
     "semi": false,
     "singleQuote": true,
     "quoteProps": "consistent",
+    "plugins": ["@shufo/prettier-plugin-blade"],
     "overrides": [
         {
             "files": "*.vue",
             "options": {
                 "trailingComma": "none",
                 "tabWidth": 2
+            }
+        },
+        {
+            "files": ["*.blade.php"],
+            "options": {
+                "parser": "blade",
+                "tabWidth": 4
             }
         }
     ]

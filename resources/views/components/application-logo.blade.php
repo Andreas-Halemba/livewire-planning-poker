@@ -31,8 +31,8 @@
     <!-- Cards with gradients -->
     <g filter="url(#glow)">
         <!-- Card 3 (back) - Orange/Red -->
-        <rect x="85" y="20" width="50" height="70" rx="8" fill="url(#grad3)" transform="rotate(10 110 55)"
-            opacity="0.9"></rect>
+        <rect x="85" y="20" width="50" height="70" rx="8" fill="url(#grad3)"
+            transform="rotate(10 110 55)" opacity="0.9"></rect>
         <text x="110" y="65" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white"
             text-anchor="middle" transform="rotate(10 110 65)">?</text>
 
@@ -44,11 +44,14 @@
         <circle cx="115" cy="80" r="3" fill="white" opacity="0.3"></circle>
 
         <!-- Card 1 (front) - Blue/Purple -->
-        <rect x="65" y="20" width="50" height="70" rx="8" fill="url(#grad1)" transform="rotate(-10 90 55)"></rect>
+        <rect x="65" y="20" width="50" height="70" rx="8" fill="url(#grad1)"
+            transform="rotate(-10 90 55)"></rect>
         <text x="90" y="65" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white"
             text-anchor="middle" transform="rotate(-10 90 65)">8</text>
-        <circle cx="75" cy="30" r="3" fill="white" opacity="0.3" transform="rotate(-10 90 55)"></circle>
-        <circle cx="105" cy="80" r="3" fill="white" opacity="0.3" transform="rotate(-10 90 55)"></circle>
+        <circle cx="75" cy="30" r="3" fill="white" opacity="0.3" transform="rotate(-10 90 55)">
+        </circle>
+        <circle cx="105" cy="80" r="3" fill="white" opacity="0.3" transform="rotate(-10 90 55)">
+        </circle>
     </g>
 
     <!-- Text with gradient -->

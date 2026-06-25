@@ -5,13 +5,13 @@
 
         <!-- Name -->
         <div class="flex flex-col gap-2">
-            <x-text-input value="{{ old('name') }}" id="name" name="name" placeholder="Name" type="text" required
-                autofocus autocomplete="name" />
+            <x-text-input value="{{ old('name') }}" id="name" name="name" placeholder="Name" type="text"
+                required autofocus autocomplete="name" />
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
         <div class="flex flex-col gap-2">
-            <x-text-input value="{{ old('email') }}" id="email" name="email" placeholder="Email" type="email" required
-                autofocus autocomplete="email" />
+            <x-text-input value="{{ old('email') }}" id="email" name="email" placeholder="Email" type="email"
+                required autofocus autocomplete="email" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 

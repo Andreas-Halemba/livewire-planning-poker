@@ -1,5 +1,5 @@
 @assets
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 @endassets
 
 <div>
@@ -18,34 +18,31 @@
                     <h1 class="text-xl sm:text-2xl font-semibold text-base-content">
                         Session: <span class="font-bold">{{ $session->name }}</span>
                     </h1>
-                    @if($showMyRoleToggle)
+                    @if ($showMyRoleToggle)
                         <div class="flex flex-col items-start gap-1.5">
-                            <span class="text-xs font-semibold text-base-content/50 uppercase tracking-wide">Deine Rolle</span>
+                            <span class="text-xs font-semibold text-base-content/50 uppercase tracking-wide">Deine
+                                Rolle</span>
                             <div class="join join-horizontal shadow-sm">
-                                <button
-                                    type="button"
-                                    wire:click="setMyParticipantRole('voter')"
-                                    wire:loading.attr="disabled"
-                                    wire:target="setMyParticipantRole"
+                                <button type="button" wire:click="setMyParticipantRole('voter')"
+                                    wire:loading.attr="disabled" wire:target="setMyParticipantRole"
                                     @class([
                                         'join-item btn btn-sm px-3 sm:px-4',
-                                        'btn-primary' => $myParticipantRole === \App\Enums\SessionParticipantRole::Voter,
-                                        'btn-ghost bg-base-100 hover:bg-base-200 border border-base-content/15' => $myParticipantRole !== \App\Enums\SessionParticipantRole::Voter,
-                                    ])
-                                >
+                                        'btn-primary' =>
+                                            $myParticipantRole === \App\Enums\SessionParticipantRole::Voter,
+                                        'btn-ghost bg-base-100 hover:bg-base-200 border border-base-content/15' =>
+                                            $myParticipantRole !== \App\Enums\SessionParticipantRole::Voter,
+                                    ])>
                                     Schätzt mit
                                 </button>
-                                <button
-                                    type="button"
-                                    wire:click="setMyParticipantRole('viewer')"
-                                    wire:loading.attr="disabled"
-                                    wire:target="setMyParticipantRole"
+                                <button type="button" wire:click="setMyParticipantRole('viewer')"
+                                    wire:loading.attr="disabled" wire:target="setMyParticipantRole"
                                     @class([
                                         'join-item btn btn-sm px-3 sm:px-4',
-                                        'btn-primary' => $myParticipantRole === \App\Enums\SessionParticipantRole::Viewer,
-                                        'btn-ghost bg-base-100 hover:bg-base-200 border border-base-content/15' => $myParticipantRole !== \App\Enums\SessionParticipantRole::Viewer,
-                                    ])
-                                >
+                                        'btn-primary' =>
+                                            $myParticipantRole === \App\Enums\SessionParticipantRole::Viewer,
+                                        'btn-ghost bg-base-100 hover:bg-base-200 border border-base-content/15' =>
+                                            $myParticipantRole !== \App\Enums\SessionParticipantRole::Viewer,
+                                    ])>
                                     Nur zuschauen
                                 </button>
                             </div>
@@ -58,7 +55,8 @@
                         {{ $participantCount }} Mitglieder •
                         {{ $finishedCount }}/{{ $issueCount }} Issues
                     </div>
-                    <a href="{{ route('session.async', $session->invite_code) }}" class="btn btn-sm btn-info btn-outline self-start sm:self-end">
+                    <a href="{{ route('session.async', $session->invite_code) }}"
+                        class="btn btn-sm btn-info btn-outline self-start sm:self-end">
                         Zum Async Voting
                     </a>
                 </div>
@@ -67,31 +65,26 @@
             {{-- Teilnehmer-Liste --}}
             <div class="text-sm font-semibold mt-4 mb-3 uppercase tracking-wide">Teilnehmer</div>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                @foreach($session->users as $user)
+                @foreach ($session->users as $user)
                     @php
-                        $participantRole = $user->id === $session->owner_id
-                            ? null
-                            : (\App\Enums\SessionParticipantRole::tryFrom((string) ($user->pivot->role ?? \App\Enums\SessionParticipantRole::Voter->value))
-                                ?? \App\Enums\SessionParticipantRole::Voter);
+                        $participantRole =
+                            $user->id === $session->owner_id
+                                ? null
+                                : \App\Enums\SessionParticipantRole::tryFrom(
+                                        (string) ($user->pivot->role ??
+                                            \App\Enums\SessionParticipantRole::Voter->value),
+                                    ) ?? \App\Enums\SessionParticipantRole::Voter;
                     @endphp
                     <div wire:key="participant-wrap-{{ $user->id }}" class="min-w-0">
-                        <x-v2.participant-card
-                            :user="$user"
-                            :session="$session"
-                            :current-issue="$currentIssue"
-                            :online-user-ids="$onlineUserIds"
-                            :voted-user-ids="$votedUserIds"
-                            :votes-by-user="$votesByUser"
-                            :votes-revealed="$votesRevealed"
-                            :participant-role="$participantRole"
-                        />
+                        <x-v2.participant-card :user="$user" :session="$session" :current-issue="$currentIssue" :online-user-ids="$onlineUserIds"
+                            :voted-user-ids="$votedUserIds" :votes-by-user="$votesByUser" :votes-revealed="$votesRevealed" :participant-role="$participantRole" />
                     </div>
                 @endforeach
             </div>
         </div>
 
         {{-- Aktuelles Voting (wenn aktiv) --}}
-        @if($currentIssue)
+        @if ($currentIssue)
             @include('livewire.v2.partials._voting-panel')
         @endif
 
@@ -102,7 +95,7 @@
         </div>
 
         {{-- FAB für Owner --}}
-        @if($isOwner)
+        @if ($isOwner)
             <div class="fixed bottom-6 right-6 z-50">
                 <label for="add-issue-drawer" class="btn btn-primary btn-circle btn-lg shadow-xl">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,24 +108,27 @@
     </div>
 
     {{-- Drawer (außerhalb des Layouts) --}}
-    @if($isOwner)
+    @if ($isOwner)
         @include('livewire.v2.partials._drawer')
     @endif
 </div>
 @script
-<script>
-    // Höre auf das scroll-to-voting-panel Event
-    $wire.on('scroll-to-voting-panel', () => {
-        setTimeout(() => {
-            const panel = document.getElementById('voting-panel');
-            if (panel) {
-                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }, 200);
-    });
+    <script>
+        // Höre auf das scroll-to-voting-panel Event
+        $wire.on('scroll-to-voting-panel', () => {
+            setTimeout(() => {
+                const panel = document.getElementById('voting-panel');
+                if (panel) {
+                    panel.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            }, 200);
+        });
 
-    $wire.on('planning-poker-unanimous', () => {
-        window.planningPokerPlayUnanimousConfetti?.();
-    });
-</script>
+        $wire.on('planning-poker-unanimous', () => {
+            window.planningPokerPlayUnanimousConfetti?.();
+        });
+    </script>
 @endscript

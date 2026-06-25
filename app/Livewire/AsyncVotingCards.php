@@ -51,7 +51,7 @@ class AsyncVotingCards extends Component
 
     public function selectIssue(int $issueId): void
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return;
         }
 
@@ -60,7 +60,7 @@ class AsyncVotingCards extends Component
             ->where('id', $issueId)
             ->first();
 
-        if (!$issue) {
+        if (! $issue) {
             return;
         }
 
@@ -165,6 +165,7 @@ class AsyncVotingCards extends Component
     {
         if (($issue->estimate_unit ?? 'sp') === 'hours') {
             $this->cards = $this->hourCards;
+
             return;
         }
 

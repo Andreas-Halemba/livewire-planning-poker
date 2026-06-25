@@ -31,10 +31,10 @@ use Livewire\Features\SupportRedirects\Redirector as LivewireRedirector;
  */
 class SessionPage extends Component
 {
-    use HandlesPresence;
-    use HandlesVoting;
     use HandlesIssues;
     use HandlesJiraImport;
+    use HandlesPresence;
+    use HandlesVoting;
 
     public Session $session;
 

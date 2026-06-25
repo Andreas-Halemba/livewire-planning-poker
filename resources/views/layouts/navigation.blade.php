@@ -9,19 +9,23 @@
                         <svg width="280" height="70" viewBox="0 0 280 70" fill="none"
                             xmlns="http://www.w3.org/2000/svg">
                             <defs>
-                                <linearGradient id="hGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <linearGradient id="hGrad1" x1="0%" y1="0%" x2="100%"
+                                    y2="100%">
                                     <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1"></stop>
                                     <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1"></stop>
                                 </linearGradient>
-                                <linearGradient id="hGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <linearGradient id="hGrad2" x1="0%" y1="0%" x2="100%"
+                                    y2="100%">
                                     <stop offset="0%" style="stop-color:#10B981;stop-opacity:1"></stop>
                                     <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:1"></stop>
                                 </linearGradient>
-                                <linearGradient id="hGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <linearGradient id="hGrad3" x1="0%" y1="0%" x2="100%"
+                                    y2="100%">
                                     <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1"></stop>
                                     <stop offset="100%" style="stop-color:#EF4444;stop-opacity:1"></stop>
                                 </linearGradient>
-                                <linearGradient id="hTextGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <linearGradient id="hTextGrad" x1="0%" y1="0%" x2="100%"
+                                    y2="0%">
                                     <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1"></stop>
                                     <stop offset="50%" style="stop-color:#8B5CF6;stop-opacity:1"></stop>
                                     <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:1"></stop>
@@ -41,7 +45,8 @@
                                 <text x="45" y="36" font-family="Arial, sans-serif" font-size="20" font-weight="bold"
                                     fill="white" text-anchor="middle" transform="rotate(10 45 36)">?</text>
 
-                                <rect x="25" y="10" width="30" height="42" rx="5" fill="url(#hGrad2)"></rect>
+                                <rect x="25" y="10" width="30" height="42" rx="5" fill="url(#hGrad2)">
+                                </rect>
                                 <text x="40" y="36" font-family="Arial, sans-serif" font-size="20" font-weight="bold"
                                     fill="white" text-anchor="middle">5</text>
 
@@ -86,8 +91,8 @@
                             </div>
                             <span
                                 class="hidden md:inline text-sm font-medium text-base-content">{{ Auth::user()->name }}</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/60" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/60"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 9l-7 7-7-7" />
                             </svg>
@@ -112,7 +117,8 @@
                             <li>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
-                                    <a href="{{ route('logout') }}" onclick="event.preventDefault();
+                                    <a href="{{ route('logout') }}"
+                                        onclick="event.preventDefault();
                                                     this.closest('form').submit();"
                                         class="flex items-center gap-2 text-error">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
@@ -181,7 +187,8 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
 
-                    <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault();
+                    <x-responsive-nav-link :href="route('logout')"
+                        onclick="event.preventDefault();
                                         this.closest('form').submit();">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>
