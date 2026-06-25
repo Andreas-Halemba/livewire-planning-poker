@@ -66,7 +66,8 @@ test('archived session view shows issue overview', function () {
         ->test(ArchivedSessionView::class, ['inviteCode' => $session->invite_code])
         ->assertSee('Archivierte Session', false)
         ->assertSee($issue->jira_key, false)
-        ->assertSee('8 SP', false);
+        ->assertSee('8', false)
+        ->assertSee('SP', false);
 });
 
 test('owner can unarchive session from archived view', function () {

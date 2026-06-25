@@ -458,12 +458,12 @@ test('confirm estimate triggers Jira sync when issue has Jira link (browse url)'
         'jira_url' => 'https://jira.example.com/browse/ABC-123',
     ]);
 
-    $mock = \Mockery::mock(SyncStoryPointsToJira::class);
+    $mock = Mockery::mock(SyncStoryPointsToJira::class);
     $mock->shouldReceive('sync')
         ->once()
         ->with(
-            \Mockery::on(fn($u) => $u instanceof User && $u->id === $owner->id),
-            \Mockery::on(fn($i) => $i instanceof Issue && $i->id === $issue->id && $i->storypoints === 8),
+            Mockery::on(fn($u) => $u instanceof User && $u->id === $owner->id),
+            Mockery::on(fn($i) => $i instanceof Issue && $i->id === $issue->id && $i->storypoints === 8),
         );
     app()->instance(SyncStoryPointsToJira::class, $mock);
 
@@ -524,8 +524,8 @@ test('owner can refresh an imported jira issue to fetch missing fields', functio
         'estimate_unit' => 'sp',
     ]);
 
-    // Intercept `new JiraService(...)` inside the Livewire action
-    $jiraMock = \Mockery::mock('overload:' . JiraService::class);
+    // Bind a mock JiraService into the container so the trait resolves it.
+    $jiraMock = Mockery::mock(JiraService::class);
     $jiraMock->shouldReceive('getIssueByKey')
         ->once()
         ->with('ABC-123')
@@ -538,8 +538,12 @@ test('owner can refresh an imported jira issue to fetch missing fields', functio
             'jira_key' => 'ABC-123',
             'jira_url' => 'https://jira.example.com/browse/ABC-123',
             'issue_type' => 'Spike',
+            'parent_key' => 'ABC-100',
+            'parent_title' => 'Epic Title',
+            'parent_url' => 'https://jira.example.com/browse/ABC-100',
             'estimate_unit' => 'hours',
         ]);
+    app()->bind(JiraService::class, fn() => $jiraMock);
 
     Livewire::actingAs($owner)
         ->test(SessionPage::class, ['inviteCode' => $session->invite_code])
@@ -549,6 +553,9 @@ test('owner can refresh an imported jira issue to fetch missing fields', functio
     expect($issue->title)->toBe('New title');
     expect($issue->description)->toBe('<p>desc</p>');
     expect($issue->issue_type)->toBe('Spike');
+    expect($issue->parent_key)->toBe('ABC-100');
+    expect($issue->parent_title)->toBe('Epic Title');
+    expect($issue->parent_url)->toBe('https://jira.example.com/browse/ABC-100');
     expect($issue->estimate_unit)->toBe('hours');
 });
 
@@ -896,6 +903,43 @@ test('hasJiraCredentials returns false when credentials missing', function () {
     // hasJiraCredentials ist eine public Methode, kann direkt aufgerufen werden
     $result = $component->instance()->hasJiraCredentials();
     expect($result)->toBeFalse();
+});
+
+test('voting panel renders parent issue link when issue has parent data', function () {
+    $session = createTestSession();
+    $owner = $session->owner;
+    $issue = Issue::factory()->create([
+        'session_id' => $session->id,
+        'status' => IssueStatus::VOTING,
+        'parent_key' => 'ABC-100',
+        'parent_title' => 'Epic Title',
+        'parent_url' => 'https://jira.example.com/browse/ABC-100',
+    ]);
+
+    $component = createSessionPageComponent($session, $owner);
+    $component->set('currentIssue', $issue);
+
+    $component->assertSee('ABC-100');
+    $component->assertSee('Epic Title');
+    $component->assertSeeHtml('href="https://jira.example.com/browse/ABC-100"');
+});
+
+test('issue list renders parent issue link when issue has parent data', function () {
+    $session = createTestSession();
+    $owner = $session->owner;
+    Issue::factory()->create([
+        'session_id' => $session->id,
+        'status' => IssueStatus::NEW,
+        'parent_key' => 'ABC-100',
+        'parent_title' => 'Epic Title',
+        'parent_url' => 'https://jira.example.com/browse/ABC-100',
+    ]);
+
+    $component = createSessionPageComponent($session, $owner);
+
+    $component->assertSee('ABC-100');
+    $component->assertSee('Epic Title');
+    $component->assertSeeHtml('href="https://jira.example.com/browse/ABC-100"');
 });
 
 // ============================================================================

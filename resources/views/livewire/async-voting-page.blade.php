@@ -14,12 +14,13 @@
                     Session: <span class="font-bold">{{ $session->name }}</span>
                 </h1>
                 <div class="mt-1 text-xs sm:text-sm text-base-content/70">
-                    @if($isOwner)
+                    @if ($isOwner)
                         Zeigt nur, <span class="font-semibold">wer</span> geschätzt hat – keine Werte.
                     @elseif($canVote)
                         Vorab-Schätzungen ohne Live-Runde. Finale Storypoints setzt der Owner im Session Screen.
                     @else
-                        Du bist als Zuschauer eingetragen – keine Vorab-Schätzung. Nutze die Live-Session, um Ergebnisse zu sehen.
+                        Du bist als Zuschauer eingetragen – keine Vorab-Schätzung. Nutze die Live-Session, um Ergebnisse
+                        zu sehen.
                     @endif
                 </div>
             </div>
@@ -34,7 +35,7 @@
         </div>
     </div>
 
-    @if($isOwner)
+    @if ($isOwner)
         {{-- Owner Progress View --}}
         <div class="card bg-base-200 shadow-lg border border-base-300">
             <div class="card-body p-5 sm:p-6">
@@ -46,13 +47,13 @@
                     Vorab-Schätzungen (Fortschritt)
                 </h2>
 
-                @if($openIssues->isEmpty())
+                @if ($openIssues->isEmpty())
                     <div class="text-sm text-base-content/60 mt-2">
                         Keine offenen Issues.
                     </div>
                 @else
                     <div class="divide-y divide-base-300 mt-3">
-                        @foreach($openIssues as $issue)
+                        @foreach ($openIssues as $issue)
                             @php
                                 $voters = $asyncVotersByIssue[$issue->id] ?? [];
                                 $votersShown = array_slice($voters, 0, 10);
@@ -61,7 +62,7 @@
                             <div class="py-4">
                                 <div class="flex items-start justify-between gap-4">
                                     <div class="min-w-0">
-                                        @if($issue->jira_url || $issue->jira_key)
+                                        @if ($issue->jira_url || $issue->jira_key)
                                             <a href="{{ $issue->jira_url ?? '#' }}" target="_blank" rel="nofollow"
                                                 class="inline-flex items-center gap-1 text-xs text-info hover:underline mb-0.5">
                                                 <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
@@ -83,29 +84,37 @@
                                 </div>
 
                                 <div class="mt-3 flex items-center flex-wrap gap-2">
-                                    @if(!empty($voters))
+                                    @if (!empty($voters))
                                         <div class="flex -space-x-2">
-                                            @foreach($votersShown as $voter)
+                                            @foreach ($votersShown as $voter)
                                                 @php
                                                     $name = (string) $voter['name'];
                                                     $parts = preg_split('/\s+/', trim($name)) ?: [];
-                                                    $initials = collect($parts)->filter()->take(2)->map(fn ($p) => mb_strtoupper(mb_substr($p, 0, 1)))->implode('');
+                                                    $initials = collect($parts)
+                                                        ->filter()
+                                                        ->take(2)
+                                                        ->map(fn($p) => mb_strtoupper(mb_substr($p, 0, 1)))
+                                                        ->implode('');
                                                     if ($initials === '' && $name !== '') {
                                                         $initials = mb_strtoupper(mb_substr($name, 0, 2));
                                                     }
                                                 @endphp
                                                 <div class="tooltip" data-tip="{{ $name }}">
                                                     <div class="avatar avatar-placeholder">
-                                                        <div class="bg-success/15 text-success rounded-full w-8 h-8 ring-2 ring-success/30 flex items-center justify-center">
-                                                            <span class="text-[11px] font-semibold leading-none">{{ $initials }}</span>
+                                                        <div
+                                                            class="bg-success/15 text-success rounded-full w-8 h-8 ring-2 ring-success/30 flex items-center justify-center">
+                                                            <span
+                                                                class="text-[11px] font-semibold leading-none">{{ $initials }}</span>
                                                         </div>
                                                     </div>
                                                 </div>
                                             @endforeach
-                                            @if($remaining > 0)
+                                            @if ($remaining > 0)
                                                 <div class="avatar avatar-placeholder">
-                                                    <div class="bg-base-300 text-base-content rounded-full w-8 h-8 ring-2 ring-base-300 flex items-center justify-center">
-                                                        <span class="text-[11px] font-semibold leading-none">+{{ $remaining }}</span>
+                                                    <div
+                                                        class="bg-base-300 text-base-content rounded-full w-8 h-8 ring-2 ring-base-300 flex items-center justify-center">
+                                                        <span
+                                                            class="text-[11px] font-semibold leading-none">+{{ $remaining }}</span>
                                                     </div>
                                                 </div>
                                             @endif
@@ -128,7 +137,7 @@
     @elseif($canVote)
         {{-- Voter Async Voting View (v2-style) --}}
         <div class="min-w-0 space-y-6">
-            <livewire:async-voting-cards :session="$session" :key="'async-v2-cards-'.$session->id" />
+            <livewire:async-voting-cards :session="$session" :key="'async-v2-cards-' . $session->id" />
 
             {{-- Not yet voted --}}
             <div class="card bg-base-200 shadow-lg border border-base-300">
@@ -143,22 +152,20 @@
                     </h2>
                 </div>
                 <div class="p-0">
-                    @if($notVotedIssues->isEmpty())
+                    @if ($notVotedIssues->isEmpty())
                         <div class="p-6 text-center text-base-content/50 text-sm">
                             Alles erledigt 🎉
                         </div>
                     @else
                         <ul class="divide-y divide-base-300">
-                            @foreach($notVotedIssues as $issue)
+                            @foreach ($notVotedIssues as $issue)
                                 <li wire:key="async-notvoted-{{ $issue->id }}"
-                                    class="p-4 hover:bg-base-300/50 transition-colors cursor-pointer"
-                                    x-data
+                                    class="p-4 hover:bg-base-300/50 transition-colors cursor-pointer" x-data
                                     @click="$dispatch('async-select-issue', { issueId: {{ $issue->id }} })">
                                     <div class="flex items-center justify-between gap-3">
                                         <div class="min-w-0">
-                                            @if($issue->jira_url || $issue->jira_key)
-                                                <a href="{{ $issue->getJiraBrowserUrl() }}"
-                                                    target="_blank"
+                                            @if ($issue->jira_url || $issue->jira_key)
+                                                <a href="{{ $issue->getJiraBrowserUrl() }}" target="_blank"
                                                     rel="nofollow"
                                                     class="inline-flex items-center gap-1 text-xs text-info hover:underline mb-0.5"
                                                     @click.stop>
@@ -170,9 +177,12 @@
                                                 </a>
                                             @endif
                                             <div class="flex items-center gap-2">
+                                                <x-parent-issue-link :key="$issue->parent_key" :title="$issue->parent_title"
+                                                    :url="$issue->parent_url" />
                                                 <x-issue-type-badge :type="$issue->issue_type" />
                                             </div>
-                                            <div class="font-medium text-base-content truncate">{{ $issue->title }}</div>
+                                            <div class="font-medium text-base-content truncate">{{ $issue->title }}
+                                            </div>
                                         </div>
                                         <span class="badge badge-accent">schätzen</span>
                                     </div>
@@ -196,25 +206,23 @@
                     </h2>
                 </div>
                 <div class="p-0">
-                    @if($votedIssues->isEmpty())
+                    @if ($votedIssues->isEmpty())
                         <div class="p-6 text-center text-base-content/50 text-sm">
                             Noch keine Vorab-Schätzungen gespeichert.
                         </div>
                     @else
                         <ul class="divide-y divide-base-300">
-                            @foreach($votedIssues as $issue)
+                            @foreach ($votedIssues as $issue)
                                 @php
                                     $voteVal = $myVotesByIssue[$issue->id] ?? null;
                                 @endphp
                                 <li wire:key="async-voted-{{ $issue->id }}"
-                                    class="p-4 hover:bg-base-300/50 transition-colors cursor-pointer"
-                                    x-data
+                                    class="p-4 hover:bg-base-300/50 transition-colors cursor-pointer" x-data
                                     @click="$dispatch('async-select-issue', { issueId: {{ $issue->id }} })">
                                     <div class="flex items-center justify-between gap-3">
                                         <div class="min-w-0">
-                                            @if($issue->jira_url || $issue->jira_key)
-                                                <a href="{{ $issue->getJiraBrowserUrl() }}"
-                                                    target="_blank"
+                                            @if ($issue->jira_url || $issue->jira_key)
+                                                <a href="{{ $issue->getJiraBrowserUrl() }}" target="_blank"
                                                     rel="nofollow"
                                                     class="inline-flex items-center gap-1 text-xs text-info hover:underline mb-0.5"
                                                     @click.stop>
@@ -226,24 +234,28 @@
                                                 </a>
                                             @endif
                                             <div class="flex items-center gap-2">
+                                                <x-parent-issue-link :key="$issue->parent_key" :title="$issue->parent_title"
+                                                    :url="$issue->parent_url" />
                                                 <x-issue-type-badge :type="$issue->issue_type" />
                                             </div>
-                                            <div class="font-medium text-base-content truncate">{{ $issue->title }}</div>
+                                            <div class="font-medium text-base-content truncate">{{ $issue->title }}
+                                            </div>
                                         </div>
                                         <div class="flex items-center gap-2 shrink-0">
                                             <span class="badge badge-success badge-outline whitespace-nowrap shrink-0">
-                                                {{ $voteVal }} {{ ($issue->estimate_unit ?? 'sp') === 'hours' ? 'h' : 'SP' }}
+                                                {{ $voteVal }}
+                                                {{ ($issue->estimate_unit ?? 'sp') === 'hours' ? 'h' : 'SP' }}
                                             </span>
-                                            <button
-                                                type="button"
+                                            <button type="button"
                                                 class="btn btn-ghost btn-sm btn-square text-error tooltip tooltip-left"
                                                 wire:click.prevent="revokeAsyncVote({{ $issue->id }})"
                                                 wire:confirm="Vorab-Schätzung widerrufen? (Das Ticket bleibt erhalten.)"
-                                                @click.stop
-                                                aria-label="Vorab-Schätzung widerrufen"
+                                                @click.stop aria-label="Vorab-Schätzung widerrufen"
                                                 data-tip="Vorab-Schätzung widerrufen">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
                                             </button>
@@ -258,13 +270,17 @@
         </div>
     @else
         <div class="alert alert-info shadow-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                class="stroke-current shrink-0 w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <div>
                 <div class="font-semibold">Nur Zuschauer</div>
-                <div class="text-sm">Vorab-Schätzungen sind für dich nicht verfügbar. Wechsle zur Live-Session, um das Voting zu verfolgen.</div>
-                <a href="{{ route('session.voting', $session->invite_code) }}" class="btn btn-sm btn-primary mt-3">Zur Live-Session</a>
+                <div class="text-sm">Vorab-Schätzungen sind für dich nicht verfügbar. Wechsle zur Live-Session, um das
+                    Voting zu verfolgen.</div>
+                <a href="{{ route('session.voting', $session->invite_code) }}"
+                    class="btn btn-sm btn-primary mt-3">Zur Live-Session</a>
             </div>
         </div>
     @endif

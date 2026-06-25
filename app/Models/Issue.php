@@ -4,10 +4,12 @@ namespace App\Models;
 
 use App\Enums\IssueStatus;
 use Database\Factories\IssueFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
@@ -18,18 +20,20 @@ use Illuminate\Support\Str;
  * @property string|null $description
  * @property string $status
  * @property int $session_id
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property int|null $storypoints
  * @property string $estimate_unit
  * @property string|null $issue_type
+ * @property string|null $parent_key
+ * @property string|null $parent_title
+ * @property string|null $parent_url
  * @property string|null $jira_key
  * @property string|null $jira_url
- *
  * @property-read float $average_vote
  * @property-read string $title_html
- * @property-read \App\Models\Session $session
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Vote> $votes
+ * @property-read Session $session
+ * @property-read Collection<int, Vote> $votes
  * @property-read int|null $votes_count
  *
  * @method static \Illuminate\Database\Eloquent\Builder|Issue newModelQuery()
@@ -59,6 +63,9 @@ class Issue extends Model
         'storypoints',
         'estimate_unit',
         'issue_type',
+        'parent_key',
+        'parent_title',
+        'parent_url',
         'jira_key',
         'jira_url',
         'position',
@@ -89,7 +96,8 @@ class Issue extends Model
         // If we have Jira URL and key, create link
         if ($this->jira_url && $this->jira_key) {
             $browserUrl = $this->getJiraBrowserUrl();
-            return "<a href='{$browserUrl}' class='hover:underline text-accent' target='_blank'>{$this->jira_key}<br>" . Str::limit($this->title, 100) . "</a>";
+
+            return "<a href='{$browserUrl}' class='hover:underline text-accent' target='_blank'>{$this->jira_key}<br>" . Str::limit($this->title, 100) . '</a>';
         }
 
         // Fallback to existing URL parsing logic
@@ -118,6 +126,7 @@ class Issue extends Model
         // If it's an API URL (contains /rest/api/), convert it
         if (str_contains($this->jira_url, '/rest/api/')) {
             $baseUrl = preg_replace('#/rest/api/.*#', '', $this->jira_url);
+
             return $baseUrl . '/browse/' . $this->jira_key;
         }
 
@@ -144,6 +153,7 @@ class Issue extends Model
             function ($matches) {
                 $attachmentId = $matches[1];
                 $proxyUrl = route('jira.attachment.proxy', ['attachmentId' => $attachmentId]) . '?issue_id=' . $this->id;
+
                 return $proxyUrl;
             },
             $html,
@@ -155,6 +165,7 @@ class Issue extends Model
             function ($matches) {
                 $attachmentId = $matches[2];
                 $proxyUrl = route('jira.attachment.proxy', ['attachmentId' => $attachmentId]) . '?issue_id=' . $this->id;
+
                 return 'src="' . $proxyUrl . '"';
             },
             $html,
