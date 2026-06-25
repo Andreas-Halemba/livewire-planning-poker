@@ -4,12 +4,15 @@ namespace App\Services;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use JiraRestApi\Configuration\ArrayConfiguration;
+use JiraRestApi\Issue\IssueField;
 use JiraRestApi\Issue\IssueService;
 use JiraRestApi\JiraException;
 
 class JiraService
 {
     private ?IssueService $issueService = null;
+
     private ?User $user = null;
 
     public function __construct(User $user)
@@ -21,7 +24,7 @@ class JiraService
     private function initializeIssueService(): void
     {
         // Use user-specific credentials
-        $config = new \JiraRestApi\Configuration\ArrayConfiguration([
+        $config = new ArrayConfiguration([
             'jiraHost' => $this->user->jira_url,
             'jiraUser' => $this->user->jira_user,
             'jiraPassword' => $this->user->jira_api_key,
@@ -33,20 +36,20 @@ class JiraService
     /**
      * Search for Jira issues by project key and status
      *
-     * @param string $projectKey
-     * @param string $status
      * @return array<int, object>
+     *
      * @throws JiraException
      */
     public function searchIssuesByProjectAndStatus(string $projectKey, string $status): array
     {
-        if (!$this->issueService) {
+        if (! $this->issueService) {
             throw new \RuntimeException('Jira service not initialized. Please configure your Jira credentials in your profile.');
         }
 
         $jql = "project = \"{$projectKey}\" AND status = \"{$status}\" ORDER BY created DESC";
         try {
             $response = $this->issueService->search(jql: $jql, maxResults: 100, expand: 'renderedFields');
+
             return $response->getIssues();
         } catch (JiraException $e) {
             Log::error('Jira API error: ' . $e->getMessage());
@@ -57,8 +60,7 @@ class JiraService
     /**
      * Map Jira issue to array format for Issue model
      *
-     * @param object $jiraIssue
-     * @return array<string, string|null>
+     * @return array{title: string, description: string|null, jira_key: string, jira_url: string, issue_type: string|null, parent_key: string|null, parent_title: string|null, parent_url: string|null, estimate_unit: string}
      */
     public function mapJiraIssueToArray(object $jiraIssue): array
     {
@@ -66,6 +68,7 @@ class JiraService
         $browserUrl = $this->convertApiUrlToBrowserUrl($jiraIssue->self ?? '', $issueKey);
         $issueTypeName = (string) ($jiraIssue->fields->issuetype->name ?? '');
         $isSpike = mb_strtolower(trim($issueTypeName)) === 'spike';
+        $parent = $this->mapParentIssue($jiraIssue);
 
         return [
             'title' => $jiraIssue->fields->summary ?? 'No title',
@@ -73,17 +76,40 @@ class JiraService
             'jira_key' => $issueKey,
             'jira_url' => $browserUrl,
             'issue_type' => $issueTypeName ?: null,
+            'parent_key' => $parent['key'],
+            'parent_title' => $parent['title'],
+            'parent_url' => $parent['url'],
             // Spike issues should be estimated in hours (not story points)
             'estimate_unit' => $isSpike ? 'hours' : 'sp',
         ];
     }
 
     /**
-     * Convert Jira API URL to browser URL
+     * Map a Jira parent issue to a normalized array.
      *
-     * @param string $apiUrl
-     * @param string $issueKey
-     * @return string
+     * @return array{key: string|null, title: string|null, url: string|null}
+     */
+    private function mapParentIssue(object $jiraIssue): array
+    {
+        $parent = $jiraIssue->fields->parent ?? null;
+
+        if (! $parent || empty($parent->key)) {
+            return ['key' => null, 'title' => null, 'url' => null];
+        }
+
+        $parentKey = (string) $parent->key;
+        $parentTitle = (string) ($parent->fields->summary ?? '');
+        $parentUrl = $this->convertApiUrlToBrowserUrl($parent->self ?? '', $parentKey);
+
+        return [
+            'key' => $parentKey,
+            'title' => $parentTitle ?: null,
+            'url' => $parentUrl ?: null,
+        ];
+    }
+
+    /**
+     * Convert Jira API URL to browser URL
      */
     private function convertApiUrlToBrowserUrl(string $apiUrl, string $issueKey): string
     {
@@ -103,14 +129,15 @@ class JiraService
     /**
      * Update story points for a Jira issue
      *
-     * @param string $issueKey The Jira issue key (e.g., "PROJECT-123")
-     * @param int $storyPoints The story points value to set
+     * @param  string  $issueKey  The Jira issue key (e.g., "PROJECT-123")
+     * @param  int  $storyPoints  The story points value to set
      * @return bool True if successful, false otherwise
      */
     public function updateStoryPoints(string $issueKey, int $storyPoints): bool
     {
-        if (!$this->issueService) {
+        if (! $this->issueService) {
             Log::error('Jira service not initialized for updating story points');
+
             return false;
         }
 
@@ -136,12 +163,12 @@ class JiraService
             }
 
             // If no standard field found, try to use REST API to find it
-            if (!$storyPointsField) {
+            if (! $storyPointsField) {
                 return $this->updateStoryPointsViaRestApi($issueKey, $storyPoints);
             }
 
             // Update using IssueService with IssueField
-            $issueField = new \JiraRestApi\Issue\IssueField(true);
+            $issueField = new IssueField(true);
 
             // Use addCustomField if it's a custom field, otherwise set directly
             if (str_starts_with($storyPointsField, 'customfield_')) {
@@ -155,14 +182,17 @@ class JiraService
             $this->issueService->update($issueKey, $issueField);
 
             Log::info("Successfully updated story points for {$issueKey} to {$storyPoints}");
+
             return true;
 
         } catch (JiraException $e) {
             Log::error("Failed to update story points for {$issueKey}: " . $e->getMessage());
+
             // Try REST API as fallback
             return $this->updateStoryPointsViaRestApi($issueKey, $storyPoints);
         } catch (\Exception $e) {
             Log::error("Error updating story points for {$issueKey}: " . $e->getMessage());
+
             return false;
         }
     }
@@ -192,6 +222,7 @@ class JiraService
 
             if ($httpCode !== 200) {
                 Log::error("Failed to get issue metadata for {$issueKey}");
+
                 return false;
             }
 
@@ -210,8 +241,9 @@ class JiraService
                 }
             }
 
-            if (!$storyPointsField) {
+            if (! $storyPointsField) {
                 Log::warning("Story points field not found for issue {$issueKey}");
+
                 return false;
             }
 
@@ -240,14 +272,17 @@ class JiraService
 
             if ($httpCode === 204 || $httpCode === 200) {
                 Log::info("Successfully updated story points for {$issueKey} to {$storyPoints} via REST API");
+
                 return true;
             }
 
             Log::error("Failed to update story points for {$issueKey}: HTTP {$httpCode}");
+
             return false;
 
         } catch (\Exception $e) {
             Log::error("Error updating story points via REST API for {$issueKey}: " . $e->getMessage());
+
             return false;
         }
     }
@@ -282,14 +317,13 @@ class JiraService
     /**
      * Search issues by JQL query
      *
-     * @param string $jql
-     * @param int $maxResults
      * @return array<int, object>
+     *
      * @throws JiraException
      */
     public function searchByJql(string $jql, int $maxResults = 100): array
     {
-        if (!$this->issueService) {
+        if (! $this->issueService) {
             throw new \RuntimeException('Jira service not initialized.');
         }
 
@@ -299,6 +333,7 @@ class JiraService
                 maxResults: $maxResults,
                 expand: 'renderedFields',
             );
+
             return $response->getIssues();
         } catch (JiraException $e) {
             Log::error('Jira JQL search error: ' . $e->getMessage());
@@ -309,7 +344,7 @@ class JiraService
     /**
      * Get multiple issues by their keys
      *
-     * @param array<string> $keys
+     * @param  array<string>  $keys
      * @return array<int, object>
      */
     public function getIssuesByKeys(array $keys): array
@@ -326,6 +361,7 @@ class JiraService
             return $this->searchByJql($jql, count($keys));
         } catch (JiraException $e) {
             Log::error('Failed to get issues by keys: ' . $e->getMessage());
+
             return [];
         }
     }
@@ -342,9 +378,11 @@ class JiraService
 
         try {
             $issues = $this->getIssuesByKeys([$key]);
+
             return $issues[0] ?? null;
         } catch (\Throwable $e) {
             Log::error('Failed to fetch Jira issue by key: ' . $e->getMessage());
+
             return null;
         }
     }
@@ -352,7 +390,7 @@ class JiraService
     /**
      * Parse user input to extract JQL, filter ID, or issue keys
      *
-     * @param string $input URL, filter ID, or comma-separated issue keys
+     * @param  string  $input  URL, filter ID, or comma-separated issue keys
      * @return array{type: string, value: string|array<string>}
      */
     public function parseJiraInput(string $input): array
@@ -384,9 +422,6 @@ class JiraService
 
     /**
      * Get JQL from a filter ID
-     *
-     * @param string $filterId
-     * @return string|null
      */
     public function getFilterJql(string $filterId): ?string
     {
@@ -400,7 +435,6 @@ class JiraService
     /**
      * Make a generic API request to Jira
      *
-     * @param string $url
      * @return array<mixed>|null
      */
     private function makeApiRequest(string $url): ?array
@@ -424,9 +458,11 @@ class JiraService
             }
 
             Log::warning("Jira API request failed: HTTP {$httpCode} for {$url}");
+
             return null;
         } catch (\Exception $e) {
             Log::error('Jira API request error: ' . $e->getMessage());
+
             return null;
         }
     }
@@ -438,7 +474,7 @@ class JiraService
      */
     public function testConnection(): array
     {
-        if (!$this->issueService) {
+        if (! $this->issueService) {
             return ['success' => false];
         }
 
@@ -462,6 +498,7 @@ class JiraService
 
             if ($httpCode === 200) {
                 $userData = json_decode($response, true);
+
                 return [
                     'success' => true,
                     'username' => $userData['displayName'] ?? $userData['name'] ?? '',
@@ -471,6 +508,7 @@ class JiraService
             return ['success' => false];
         } catch (\Exception $e) {
             Log::error('Jira connection test failed: ' . $e->getMessage());
+
             return ['success' => false];
         }
     }

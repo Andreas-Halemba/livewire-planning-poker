@@ -10,7 +10,9 @@
     <div class="bg-base-300 rounded-xl shadow-md border border-base-300 p-5 sm:p-6 mb-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div class="min-w-0">
-                <div class="text-xs uppercase tracking-wide text-base-content/60 mb-1 badge badge-warning text-warning-content">Archivierte Session</div>
+                <div
+                    class="text-xs uppercase tracking-wide text-base-content/60 mb-1 badge badge-warning text-warning-content">
+                    Archivierte Session</div>
                 <h1 class="text-xl sm:text-2xl font-semibold text-base-content">
                     Session: <span class="font-bold">{{ $session->name }}</span>
                 </h1>
@@ -25,7 +27,7 @@
                     <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline">
                         Zur Übersicht
                     </a>
-                    @if($isOwner)
+                    @if ($isOwner)
                         <button wire:click="unarchiveSession" class="btn btn-sm btn-success">
                             Reaktivieren
                         </button>
@@ -49,7 +51,7 @@
                         wire:key="archived-issue-{{ $issue->id }}">
                         <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                             <div class="min-w-0">
-                                @if($issue->jira_url || $issue->jira_key)
+                                @if ($issue->jira_url || $issue->jira_key)
                                     <a href="{{ $issue->getJiraBrowserUrl() }}" target="_blank" rel="nofollow"
                                         class="inline-flex items-center gap-1 text-xs text-info hover:underline mb-0.5">
                                         <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
@@ -60,6 +62,7 @@
                                     </a>
                                 @endif
                                 <div class="flex items-center gap-2">
+                                    <x-parent-issue-link :key="$issue->parent_key" :title="$issue->parent_title" :url="$issue->parent_url" />
                                     <x-issue-type-badge :type="$issue->issue_type" />
                                 </div>
                                 <div class="text-sm sm:text-base font-semibold text-base-content break-words">
@@ -68,7 +71,8 @@
                             </div>
                             <div class="flex items-center gap-2 sm:justify-end sm:shrink-0">
                                 <span class="badge badge-success badge-outline whitespace-nowrap">
-                                    {{ $issue->storypoints ?? '—' }} {{ ($issue->estimate_unit ?? 'sp') === 'hours' ? 'h' : 'SP' }}
+                                    {{ $issue->storypoints ?? '—' }}
+                                    {{ ($issue->estimate_unit ?? 'sp') === 'hours' ? 'h' : 'SP' }}
                                 </span>
                             </div>
                         </div>
@@ -82,4 +86,3 @@
         </div>
     </div>
 </div>
-

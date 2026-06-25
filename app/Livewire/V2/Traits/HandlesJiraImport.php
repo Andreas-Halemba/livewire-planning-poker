@@ -11,6 +11,8 @@ use App\Services\JiraService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
+use function app;
+
 /**
  * Trait für Jira-Import-Funktionalität.
  *
@@ -20,13 +22,18 @@ trait HandlesJiraImport
 {
     /** @var array<int, array{id: string, name: string, jql: string}> */
     public array $jiraFilters = [];
+
     public bool $jiraFiltersLoaded = false;
+
     public bool $jiraLoading = false;
+
     public string $jiraInput = '';
+
     public string $jiraError = '';
+
     public string $jiraSuccess = '';
 
-    /** @var array<int, array{key: string, title: string, description: ?string, url: string, estimate_unit: string, issue_type?: ?string, alreadyImported: bool}> */
+    /** @var array<int, array{key: string, title: string, description: ?string, url: string, estimate_unit: string, issue_type?: ?string, parent_key?: ?string, parent_title?: ?string, parent_url?: ?string, alreadyImported: bool}> */
     public array $jiraTickets = [];
 
     /** @var array<string> */
@@ -53,7 +60,7 @@ trait HandlesJiraImport
      */
     protected function onJiraTabOpened(): void
     {
-        if (!$this->jiraFiltersLoaded && $this->hasJiraCredentials()) {
+        if (! $this->jiraFiltersLoaded && $this->hasJiraCredentials()) {
             $this->loadJiraFilters();
         }
     }
@@ -69,15 +76,23 @@ trait HandlesJiraImport
     }
 
     /**
+     * Resolve the JiraService for the current user.
+     */
+    protected function jiraService(): JiraService
+    {
+        return app(JiraService::class, ['user' => Auth::user()]);
+    }
+
+    /**
      * Lädt die Favoriten-Filter des Users aus Jira.
      */
     public function loadJiraFilters(bool $forceRefresh = false): void
     {
-        if (!$this->hasJiraCredentials()) {
+        if (! $this->hasJiraCredentials()) {
             return;
         }
 
-        if ($this->jiraFiltersLoaded && !$forceRefresh) {
+        if ($this->jiraFiltersLoaded && ! $forceRefresh) {
             return;
         }
 
@@ -85,7 +100,7 @@ trait HandlesJiraImport
         $this->jiraError = '';
 
         try {
-            $jiraService = new JiraService(Auth::user());
+            $jiraService = $this->jiraService();
             $this->jiraFilters = $jiraService->getFavoriteFilters();
             $this->jiraFiltersLoaded = true;
 
@@ -113,7 +128,7 @@ trait HandlesJiraImport
      */
     public function loadFromFilter(string $filterId): void
     {
-        if (!$this->hasJiraCredentials()) {
+        if (! $this->hasJiraCredentials()) {
             return;
         }
 
@@ -123,10 +138,10 @@ trait HandlesJiraImport
         $this->selectedJiraTickets = [];
 
         try {
-            $jiraService = new JiraService(Auth::user());
+            $jiraService = $this->jiraService();
             $jql = $jiraService->getFilterJql($filterId);
 
-            if (!$jql) {
+            if (! $jql) {
                 $this->jiraError = 'Filter-JQL konnte nicht geladen werden.';
                 $this->jiraLoading = false;
 
@@ -147,7 +162,7 @@ trait HandlesJiraImport
      */
     public function loadFromInput(): void
     {
-        if (!$this->hasJiraCredentials() || empty(trim($this->jiraInput))) {
+        if (! $this->hasJiraCredentials() || empty(trim($this->jiraInput))) {
             return;
         }
 
@@ -157,7 +172,7 @@ trait HandlesJiraImport
         $this->selectedJiraTickets = [];
 
         try {
-            $jiraService = new JiraService(Auth::user());
+            $jiraService = $this->jiraService();
             $parsed = $jiraService->parseJiraInput($this->jiraInput);
 
             switch ($parsed['type']) {
@@ -202,7 +217,7 @@ trait HandlesJiraImport
     /**
      * Mapped Jira-Issues zu Ticket-Array.
      *
-     * @param array<object> $issues
+     * @param  array<object>  $issues
      */
     private function mapIssuesToTickets(array $issues, JiraService $jiraService): void
     {
@@ -223,6 +238,9 @@ trait HandlesJiraImport
                 'url' => $mapped['jira_url'],
                 'estimate_unit' => $mapped['estimate_unit'] ?? 'sp',
                 'issue_type' => $mapped['issue_type'] ?? null,
+                'parent_key' => $mapped['parent_key'] ?? null,
+                'parent_title' => $mapped['parent_title'] ?? null,
+                'parent_url' => $mapped['parent_url'] ?? null,
                 'alreadyImported' => $alreadyImported,
             ];
         }
@@ -238,7 +256,7 @@ trait HandlesJiraImport
     public function selectAllJiraTickets(): void
     {
         $this->selectedJiraTickets = collect($this->jiraTickets)
-            ->filter(fn($t) => !$t['alreadyImported'])
+            ->filter(fn($t) => ! $t['alreadyImported'])
             ->pluck('key')
             ->all();
     }
@@ -270,7 +288,7 @@ trait HandlesJiraImport
             ->max('position') ?? -1;
 
         foreach ($this->jiraTickets as &$ticket) {
-            if (!in_array($ticket['key'], $this->selectedJiraTickets)) {
+            if (! in_array($ticket['key'], $this->selectedJiraTickets)) {
                 continue;
             }
 
@@ -290,6 +308,9 @@ trait HandlesJiraImport
                 'jira_url' => $ticket['url'],
                 'estimate_unit' => $ticket['estimate_unit'] ?? 'sp',
                 'issue_type' => $ticket['issue_type'] ?? null,
+                'parent_key' => $ticket['parent_key'] ?? null,
+                'parent_title' => $ticket['parent_title'] ?? null,
+                'parent_url' => $ticket['parent_url'] ?? null,
             ]);
 
             $ticket['alreadyImported'] = true;
@@ -321,7 +342,7 @@ trait HandlesJiraImport
      */
     public function refreshIssueFromJira(int $issueId): void
     {
-        if (Auth::id() !== $this->session->owner_id || !$this->hasJiraCredentials()) {
+        if (Auth::id() !== $this->session->owner_id || ! $this->hasJiraCredentials()) {
             return;
         }
 
@@ -330,7 +351,7 @@ trait HandlesJiraImport
             ->whereKey($issueId)
             ->first();
 
-        if (!$issue || empty($issue->jira_key)) {
+        if (! $issue || empty($issue->jira_key)) {
             return;
         }
 
@@ -339,12 +360,13 @@ trait HandlesJiraImport
         $this->jiraSuccess = '';
 
         try {
-            $jiraService = new JiraService(Auth::user());
+            $jiraService = $this->jiraService();
             $jiraIssue = $jiraService->getIssueByKey($issue->jira_key);
 
-            if (!$jiraIssue) {
+            if (! $jiraIssue) {
                 $this->jiraError = 'Ticket konnte nicht aus Jira geladen werden.';
                 $this->jiraRefreshing = false;
+
                 return;
             }
 
@@ -355,6 +377,9 @@ trait HandlesJiraImport
             $issue->jira_url = $mapped['jira_url'] ?? $issue->jira_url;
             $issue->estimate_unit = $mapped['estimate_unit'] ?? ($issue->estimate_unit ?? 'sp');
             $issue->issue_type = $mapped['issue_type'] ?? $issue->issue_type;
+            $issue->parent_key = $mapped['parent_key'] ?? $issue->parent_key;
+            $issue->parent_title = $mapped['parent_title'] ?? $issue->parent_title;
+            $issue->parent_url = $mapped['parent_url'] ?? $issue->parent_url;
             $issue->save();
 
             // Keep state fresh
@@ -374,7 +399,7 @@ trait HandlesJiraImport
      */
     public function refreshAllJiraIssues(): void
     {
-        if (Auth::id() !== $this->session->owner_id || !$this->hasJiraCredentials()) {
+        if (Auth::id() !== $this->session->owner_id || ! $this->hasJiraCredentials()) {
             return;
         }
 
@@ -395,7 +420,7 @@ trait HandlesJiraImport
         $updated = 0;
 
         try {
-            $jiraService = new JiraService(Auth::user());
+            $jiraService = $this->jiraService();
             $keys = array_values(array_map('strval', $keysById));
             $jiraIssues = $jiraService->getIssuesByKeys($keys);
 
@@ -416,7 +441,7 @@ trait HandlesJiraImport
                     ->whereKey((int) $issueId)
                     ->first();
 
-                if (!$issue) {
+                if (! $issue) {
                     continue;
                 }
 
@@ -425,6 +450,9 @@ trait HandlesJiraImport
                 $issue->jira_url = $mapped['jira_url'] ?? $issue->jira_url;
                 $issue->estimate_unit = $mapped['estimate_unit'] ?? ($issue->estimate_unit ?? 'sp');
                 $issue->issue_type = $mapped['issue_type'] ?? $issue->issue_type;
+                $issue->parent_key = $mapped['parent_key'] ?? $issue->parent_key;
+                $issue->parent_title = $mapped['parent_title'] ?? $issue->parent_title;
+                $issue->parent_url = $mapped['parent_url'] ?? $issue->parent_url;
                 $issue->save();
 
                 $updated++;

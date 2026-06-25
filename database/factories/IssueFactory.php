@@ -2,11 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Models\Issue;
 use App\Models\Session;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Issue>
+ * @extends Factory<Issue>
  */
 class IssueFactory extends Factory
 {
@@ -26,5 +27,14 @@ class IssueFactory extends Factory
             'estimate_unit' => 'sp',
             'issue_type' => fake()->randomElement(['Story', 'Task', 'Spike', 'Bug']),
         ];
+    }
+
+    public function withParent(): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'parent_key' => 'PROJ-' . fake()->numberBetween(1, 999),
+            'parent_title' => fake()->sentence(),
+            'parent_url' => fake()->url(),
+        ]);
     }
 }

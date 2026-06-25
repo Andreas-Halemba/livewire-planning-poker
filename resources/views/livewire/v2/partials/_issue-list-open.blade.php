@@ -11,14 +11,14 @@
         </h2>
     </div>
     <div class="p-0">
-        @if($openIssues->isEmpty())
+        @if ($openIssues->isEmpty())
             <div class="p-8 text-center text-base-content/50">
                 <svg class="w-12 h-12 mx-auto mb-2 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <p class="text-sm mb-3">Keine offenen Issues</p>
-                @if($isOwner)
+                @if ($isOwner)
                     <button wire:click="$set('drawerOpen', true)" class="btn btn-primary btn-sm gap-1">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -28,7 +28,8 @@
                 @endif
             </div>
         @else
-            <ul class="divide-y divide-base-300" @if($isOwner) x-data x-init="
+            <ul class="divide-y divide-base-300"
+                @if ($isOwner) x-data x-init="
                 Sortable.create($el, {
                     animation: 150,
                     handle: '.drag-handle',
@@ -39,22 +40,23 @@
                     }
                 });
             " @endif>
-                @foreach($openIssues as $issue)
+                @foreach ($openIssues as $issue)
                     <li wire:key="open-issue-{{ $issue->id }}" class="p-4 hover:bg-base-300/50 transition-colors"
                         data-issue-id="{{ $issue->id }}">
                         <div class="flex items-center gap-3">
                             {{-- Drag Handle (nur für Owner) --}}
-                            @if($isOwner)
+                            @if ($isOwner)
                                 <div
                                     class="drag-handle cursor-grab active:cursor-grabbing text-base-content/40 hover:text-base-content">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 8h16M4 16h16" />
                                     </svg>
                                 </div>
                             @endif
                             <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 mb-0.5">
-                                    @if($issue->jira_url || $issue->jira_key)
+                                <div class="flex items-start gap-2 mb-0.5 flex-wrap">
+                                    @if ($issue->jira_url || $issue->jira_key)
                                         <a href="{{ $issue->jira_url ?? '#' }}" target="_blank" rel="nofollow"
                                             class="inline-flex items-center gap-1 text-xs text-info hover:underline">
                                             <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
@@ -64,16 +66,22 @@
                                             {{ $issue->jira_key }}
                                         </a>
                                     @endif
-                                    <x-issue-type-badge :type="$issue->issue_type" />
+                                    @if ($issue->parent_key)
+                                        <x-parent-issue-link :key="$issue->parent_key" :title="$issue->parent_title" :url="$issue->parent_url" />
+                                    @endif
                                 </div>
                                 <p class="font-medium text-base-content truncate">
+                                    @if ($issue->issue_type)
+                                        <x-issue-type-badge :type="$issue->issue_type" /> ·
+                                    @endif
                                     {{ $issue->title }}
                                 </p>
                             </div>
                             {{-- Buttons nur für Owner --}}
-                            @if($isOwner)
+                            @if ($isOwner)
                                 <div class="flex items-center gap-1">
-                                    <button wire:click="startVoting({{ $issue->id }})" class="btn btn-primary btn-sm gap-1">
+                                    <button wire:click="startVoting({{ $issue->id }})"
+                                        class="btn btn-primary btn-sm gap-1">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -82,18 +90,18 @@
                                         </svg>
                                         Start
                                     </button>
-                                    @if($issue->jira_key)
-                                        <button
-                                            wire:click="refreshIssueFromJira({{ $issue->id }})"
+                                    @if ($issue->jira_key)
+                                        <button wire:click="refreshIssueFromJira({{ $issue->id }})"
                                             class="btn btn-ghost btn-sm btn-square tooltip tooltip-left"
-                                            data-tip="Jira-Daten aktualisieren"
-                                            wire:loading.attr="disabled"
+                                            data-tip="Jira-Daten aktualisieren" wire:loading.attr="disabled"
                                             wire:target="refreshIssueFromJira">
-                                            <svg wire:loading.remove wire:target="refreshIssueFromJira" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg wire:loading.remove wire:target="refreshIssueFromJira" class="w-4 h-4"
+                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 00-14.66-3.34M4 16a8 8 0 0014.66 3.34" />
                                             </svg>
-                                            <span wire:loading wire:target="refreshIssueFromJira" class="loading loading-spinner loading-xs"></span>
+                                            <span wire:loading wire:target="refreshIssueFromJira"
+                                                class="loading loading-spinner loading-xs"></span>
                                         </button>
                                     @endif
                                     <button wire:click="deleteIssue({{ $issue->id }})"
