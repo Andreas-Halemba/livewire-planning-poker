@@ -11,23 +11,19 @@ class JiraAttachmentController extends Controller
 {
     /**
      * Proxy Jira attachment images with authentication
-     *
-     * @param Request $request
-     * @param int $attachmentId
-     * @return Response
      */
     public function proxy(Request $request, int $attachmentId): Response
     {
         // Get issue ID from query parameter
         $issueId = $request->query('issue_id');
 
-        if (!$issueId) {
+        if (! $issueId) {
             return response('Issue ID is required', 400);
         }
 
         $issue = Issue::find($issueId);
 
-        if (!$issue) {
+        if (! $issue) {
             return response('Issue not found', 404);
         }
 
@@ -35,14 +31,14 @@ class JiraAttachmentController extends Controller
         $session = $issue->session;
         $owner = $session->owner;
 
-        if (!$owner->jira_url || !$owner->jira_user || !$owner->jira_api_key) {
+        if (! $owner->jira_url || ! $owner->jira_user || ! $owner->jira_api_key) {
             return response('Jira credentials not configured', 403);
         }
 
         // Build the Jira API URL for the attachment
         $baseUrl = $this->getJiraBaseUrl($issue->jira_url);
 
-        if (!$baseUrl) {
+        if (! $baseUrl) {
             return response('Jira URL not configured for this issue', 400);
         }
 
@@ -65,6 +61,7 @@ class JiraAttachmentController extends Controller
 
             if ($httpCode !== 200) {
                 Log::warning("Failed to fetch Jira attachment: HTTP {$httpCode} for {$attachmentUrl}");
+
                 return response('Failed to fetch attachment', $httpCode ?: 500);
             }
 
@@ -84,6 +81,7 @@ class JiraAttachmentController extends Controller
                 ->header('Cache-Control', 'public, max-age=3600');
         } catch (\Exception $e) {
             Log::error('Error proxying Jira attachment: ' . $e->getMessage());
+
             return response('Error fetching attachment', 500);
         }
     }

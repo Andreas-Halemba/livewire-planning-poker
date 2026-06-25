@@ -21,7 +21,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 
 Broadcast::channel('session.{invite_code}', function (User $user, string $invite_code) {
     $session = Session::whereInviteCode($invite_code)->first();
-    if (!$session) {
+    if (! $session) {
         return false;
     }
 

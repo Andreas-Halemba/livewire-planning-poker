@@ -25,7 +25,7 @@ class SyncStoryPointsToJira
             return;
         }
 
-        if (!$this->ownerHasJiraCredentials($owner)) {
+        if (! $this->ownerHasJiraCredentials($owner)) {
             return;
         }
 
@@ -38,7 +38,7 @@ class SyncStoryPointsToJira
             $jiraService = new JiraService($owner);
             $success = $jiraService->updateStoryPoints($issueKey, $storypoints);
 
-            if (!$success) {
+            if (! $success) {
                 Log::warning("Jira story points update returned false for {$issueKey}");
             }
         } catch (\Throwable $e) {
@@ -54,7 +54,7 @@ class SyncStoryPointsToJira
 
     private function resolveIssueKey(Issue $issue): ?string
     {
-        if (!empty($issue->jira_key)) {
+        if (! empty($issue->jira_key)) {
             return strtoupper(trim($issue->jira_key));
         }
 

@@ -15,8 +15,7 @@
 
         <div class="flex flex-col gap-2">
             <x-input-label for="current_password" :value="__('Current Password')" />
-            <x-text-input id="current_password" name="current_password" type="password"
-                autocomplete="current-password" />
+            <x-text-input id="current_password" name="current_password" type="password" autocomplete="current-password" />
             <x-input-error :messages="$errors->updatePassword->get('current_password')" />
         </div>
 

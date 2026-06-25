@@ -3,7 +3,7 @@
         <h2 class="text-xl font-semibold text-base-content mb-2">Your upcoming Sessions</h2>
         <p class="text-base-content/70 mb-4">Here you can see all upcoming sessions you have created.</p>
 
-        @if($sessions->isEmpty())
+        @if ($sessions->isEmpty())
             <div class="text-center py-8 text-base-content/60">
                 No upcoming sessions available.
             </div>

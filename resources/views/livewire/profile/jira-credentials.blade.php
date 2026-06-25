@@ -53,7 +53,8 @@
         @if ($connectionTested)
             <div
                 class="p-4 rounded-lg {{ $connectionSuccessful ? 'bg-base-200 border border-success' : 'bg-base-200 border border-error' }}">
-                <p class="text-sm {{ $connectionSuccessful ? 'text-success font-semibold' : 'text-error font-semibold' }}">
+                <p
+                    class="text-sm {{ $connectionSuccessful ? 'text-success font-semibold' : 'text-error font-semibold' }}">
                     {{ $connectionMessage }}
                 </p>
             </div>

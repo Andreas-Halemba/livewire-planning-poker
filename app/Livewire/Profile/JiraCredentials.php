@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Profile;
 
+use App\Models\User;
 use App\Services\JiraService;
 use Inspector\Laravel\InspectorLivewire;
 use Livewire\Component;
@@ -11,10 +12,15 @@ class JiraCredentials extends Component
     use InspectorLivewire;
 
     public string $jira_url = '';
+
     public string $jira_user = '';
+
     public string $jira_api_key = '';
+
     public bool $connectionTested = false;
+
     public bool $connectionSuccessful = false;
+
     public string $connectionMessage = '';
 
     /** @var array<string, array<int, string>|string> */
@@ -59,7 +65,7 @@ class JiraCredentials extends Component
         $user->jira_user = $this->jira_user;
 
         // Only update API key if a new one was provided and it's different from the placeholder
-        if (!empty($this->jira_api_key)) {
+        if (! empty($this->jira_api_key)) {
             // Check if the user entered the placeholder stars
             $currentApiKey = $user->jira_api_key ?? '';
             $length = strlen($currentApiKey);
@@ -99,7 +105,7 @@ class JiraCredentials extends Component
                 : $this->jira_api_key;
 
             // Create a temporary user with the entered credentials for testing
-            $tempUser = new \App\Models\User();
+            $tempUser = new User();
             $tempUser->jira_url = rtrim($this->jira_url, '/');
             $tempUser->jira_user = $this->jira_user;
             $tempUser->jira_api_key = $apiKeyToUse;

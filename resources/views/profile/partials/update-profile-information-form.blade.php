@@ -19,18 +19,16 @@
 
         <div class="flex flex-col gap-2">
             <x-input-label for="name" :value="__('Name')" class="text-base-content" />
-            <x-text-input :value="old('name', $user->name)" id="name" name="name" autocomplete="none" required
-                autofocus />
+            <x-text-input :value="old('name', $user->name)" id="name" name="name" autocomplete="none" required autofocus />
             <x-input-error :messages="$errors->get('name')" />
         </div>
 
         <div class="flex flex-col gap-2">
             <x-input-label for="email" :value="__('Email')" />
-            <x-text-input :value="old('name', $user->email)" id="email" name="email" autocomplete="none" required
-                autofocus />
+            <x-text-input :value="old('name', $user->email)" id="email" name="email" autocomplete="none" required autofocus />
             <x-input-error :messages="$errors->get('email')" />
 
-            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
+            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !$user->hasVerifiedEmail())
                 <div>
                     <p class="mt-2 text-sm text-gray-800">
                         {{ __('Your email address is unverified.') }}

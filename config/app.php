@@ -1,5 +1,7 @@
 <?php
 
+use Composer\InstalledVersions;
+
 return [
 
     /*
@@ -25,7 +27,7 @@ return [
     |
     */
 
-    'version' => \Composer\InstalledVersions::getRootPackage()['pretty_version'] ?? 'dev',
+    'version' => InstalledVersions::getRootPackage()['pretty_version'] ?? 'dev',
 
     /*
     |--------------------------------------------------------------------------

@@ -21,10 +21,15 @@ trait HandlesIssues
 {
     // ===== Drawer State =====
     public bool $drawerOpen = false;
+
     public string $drawerTab = 'manual';
+
     public string $newIssueTitle = '';
+
     public string $newIssueDescription = '';
+
     public string $newIssueJiraKey = '';
+
     public string $newIssueJiraUrl = '';
 
     /**
@@ -131,7 +136,7 @@ trait HandlesIssues
         }
 
         $issue = Issue::find($issueId);
-        if (!$issue || $issue->session_id !== $this->session->id) {
+        if (! $issue || $issue->session_id !== $this->session->id) {
             return;
         }
 
@@ -148,7 +153,7 @@ trait HandlesIssues
     /**
      * Aktualisiert die Reihenfolge der Issues (nur Owner).
      *
-     * @param array<int> $orderedIds Array von Issue-IDs in neuer Reihenfolge
+     * @param  array<int>  $orderedIds  Array von Issue-IDs in neuer Reihenfolge
      */
     public function updateIssueOrder(array $orderedIds): void
     {

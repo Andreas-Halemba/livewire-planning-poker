@@ -15,7 +15,6 @@ resources/assets/fonts
 **/*.example
 **/*.testing
 **/*.prettierignore
-**/*.php
 **/*.xml
 **/*.ico
 **/*.png

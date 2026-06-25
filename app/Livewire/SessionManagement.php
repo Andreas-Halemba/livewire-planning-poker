@@ -34,6 +34,7 @@ class SessionManagement extends Component
         ]);
         $session = Session::whereInviteCode($this->inviteCode)->firstOrFail();
         app(SessionService::class)->joinSession($session);
+
         return redirect()->intended(route('session.voting', $session->invite_code));
     }
 }

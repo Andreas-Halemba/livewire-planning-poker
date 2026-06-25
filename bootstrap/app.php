@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Middleware\SanitizeBroadcastSocketIdHeader;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
-use App\Http\Middleware\SanitizeBroadcastSocketIdHeader;
 use Illuminate\Foundation\Configuration\Middleware;
 use Inspector\Laravel\Middleware\WebRequestMonitoring;
 

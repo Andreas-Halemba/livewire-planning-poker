@@ -42,7 +42,7 @@ trait HandlesPresence
     /**
      * Handler: Alle aktuell online User.
      *
-     * @param array<int, array{id: int}> $users
+     * @param  array<int, array{id: int}>  $users
      */
     public function handleUsersHere(array $users): void
     {
@@ -56,11 +56,11 @@ trait HandlesPresence
     /**
      * Handler: Ein User ist beigetreten.
      *
-     * @param array{id: int} $user
+     * @param  array{id: int}  $user
      */
     public function handleUserJoining(array $user): void
     {
-        if (isset($user['id']) && !in_array($user['id'], $this->onlineUserIds)) {
+        if (isset($user['id']) && ! in_array($user['id'], $this->onlineUserIds)) {
             $this->onlineUserIds[] = $user['id'];
         }
     }
@@ -68,7 +68,7 @@ trait HandlesPresence
     /**
      * Handler: Ein User hat verlassen.
      *
-     * @param array{id: int} $user
+     * @param  array{id: int}  $user
      */
     public function handleUserLeaving(array $user): void
     {

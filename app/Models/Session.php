@@ -6,11 +6,13 @@ use App\Enums\IssueStatus;
 use App\Enums\SessionParticipantRole;
 use Database\Factories\SessionFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * App\Models\Session
@@ -19,13 +21,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property string $invite_code
  * @property int $owner_id
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- *
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Issue> $issues
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Collection<int, Issue> $issues
  * @property-read int|null $issues_count
- * @property-read \App\Models\User $owner
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $users
+ * @property-read User $owner
+ * @property-read Collection<int, User> $users
  * @property-read int|null $users_count
  *
  * @method static \Illuminate\Database\Eloquent\Builder|Session newModelQuery()
@@ -117,7 +118,7 @@ class Session extends Model
     }
 
     /**
-     * @param Builder<Session> $query
+     * @param  Builder<Session>  $query
      */
     public function scopeActive(Builder $query): Builder
     {
@@ -125,7 +126,7 @@ class Session extends Model
     }
 
     /**
-     * @param Builder<Session> $query
+     * @param  Builder<Session>  $query
      */
     public function scopeArchived(Builder $query): Builder
     {

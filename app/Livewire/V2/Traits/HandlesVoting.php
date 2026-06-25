@@ -116,7 +116,7 @@ trait HandlesVoting
 
         // Neues Voting starten
         $issue = Issue::find($issueId);
-        if (!$issue || $issue->session_id !== $this->session->id) {
+        if (! $issue || $issue->session_id !== $this->session->id) {
             return;
         }
 
@@ -140,7 +140,7 @@ trait HandlesVoting
      */
     public function revealVotes(): void
     {
-        if (Auth::id() !== $this->session->owner_id || !$this->currentIssue) {
+        if (Auth::id() !== $this->session->owner_id || ! $this->currentIssue) {
             return;
         }
 
@@ -156,7 +156,7 @@ trait HandlesVoting
      */
     public function hideVotes(): void
     {
-        if (Auth::id() !== $this->session->owner_id || !$this->currentIssue) {
+        if (Auth::id() !== $this->session->owner_id || ! $this->currentIssue) {
             return;
         }
 
@@ -170,7 +170,7 @@ trait HandlesVoting
      */
     public function cancelVoting(): void
     {
-        if (!$this->currentIssue) {
+        if (! $this->currentIssue) {
             return;
         }
 
@@ -190,7 +190,7 @@ trait HandlesVoting
      */
     public function restartVoting(): void
     {
-        if (Auth::id() !== $this->session->owner_id || !$this->currentIssue) {
+        if (Auth::id() !== $this->session->owner_id || ! $this->currentIssue) {
             return;
         }
 
@@ -211,7 +211,7 @@ trait HandlesVoting
      */
     public function confirmEstimate(int $storypoints): void
     {
-        if (Auth::id() !== $this->session->owner_id || !$this->currentIssue) {
+        if (Auth::id() !== $this->session->owner_id || ! $this->currentIssue) {
             return;
         }
 
@@ -312,6 +312,7 @@ trait HandlesVoting
     {
         if ($issue && ($issue->estimate_unit ?? 'sp') === 'hours') {
             $this->cards = $this->hourCards;
+
             return;
         }
 
@@ -323,7 +324,7 @@ trait HandlesVoting
      */
     protected function loadVotedUsers(): void
     {
-        if (!$this->currentIssue) {
+        if (! $this->currentIssue) {
             $this->votedUserIds = [];
             $this->votesByUser = [];
             $this->myVote = null;

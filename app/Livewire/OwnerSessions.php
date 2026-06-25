@@ -15,7 +15,7 @@ class OwnerSessions extends Component
     use InspectorLivewire;
     use ManagesSessions;
 
-    /** @var Collection<int, \App\Models\Session> */
+    /** @var Collection<int, Session> */
     public Collection $sessions;
 
     public function render(): View
