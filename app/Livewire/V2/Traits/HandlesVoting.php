@@ -262,6 +262,7 @@ trait HandlesVoting
 
         $this->myVote = $card;
         $this->loadVotedUsers();
+        $this->dispatch('live-vote-submitted', issueId: $this->currentIssue->id);
 
         broadcast(new AddVote($this->session->invite_code, Auth::user()))->toOthers();
     }

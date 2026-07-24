@@ -584,7 +584,24 @@ test('voter can submit vote', function () {
     expect($vote->value)->toBe(5);
     expect($component->get('myVote'))->toBe(5);
 
+    $component->assertDispatched('live-vote-submitted', issueId: $issue->id);
     Event::assertDispatched(AddVote::class);
+});
+
+test('ticket description listens for successful live votes', function () {
+    $session = createTestSession();
+    $voter = User::factory()->create();
+    $session->users()->attach($voter->id, ['role' => SessionParticipantRole::Voter->value]);
+    Issue::factory()->create([
+        'session_id' => $session->id,
+        'status' => IssueStatus::VOTING,
+        'description' => '<p>Ticket description</p>',
+    ]);
+
+    createSessionPageComponent($session, $voter)
+        ->assertSeeHtml(
+            'x-on:live-vote-submitted.window="if ($event.detail.issueId === issueId) { expanded = false }"',
+        );
 });
 
 test('voter can remove their vote', function () {
@@ -613,6 +630,7 @@ test('voter can remove their vote', function () {
     expect(Vote::where('user_id', $voter->id)->where('issue_id', $issue->id)->exists())->toBeFalse();
     expect($component->get('myVote'))->toBeNull();
 
+    $component->assertNotDispatched('live-vote-submitted');
     Event::assertDispatched(AddVote::class);
 });
 
@@ -627,6 +645,7 @@ test('voter cannot vote if no current issue', function () {
     $component->call('submitVote', 5);
 
     expect(Vote::where('user_id', $voter->id)->count())->toBe(0);
+    $component->assertNotDispatched('live-vote-submitted');
 });
 
 test('viewer cannot submit vote', function () {
@@ -645,6 +664,7 @@ test('viewer cannot submit vote', function () {
     $component->call('submitVote', 5);
 
     expect(Vote::where('user_id', $viewer->id)->where('issue_id', $issue->id)->exists())->toBeFalse();
+    $component->assertNotDispatched('live-vote-submitted');
 });
 
 test('viewer cannot remove vote', function () {

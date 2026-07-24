@@ -104,7 +104,9 @@ setTimeout(() => {
 
         {{-- Description mit Collapse --}}
         @if ($currentIssue->description)
-            <div x-data="{ expanded: false }" class="mt-2">
+            <div x-data="{ expanded: false }"
+                x-on:live-vote-submitted.window="if ($event.detail.issueId === issueId) { expanded = false }"
+                class="mt-2">
                 <div class="relative">
                     <div class="text-base-content text-sm prose prose-sm max-w-none jira-description"
                         :class="expanded ? '' : 'max-h-16 overflow-hidden'" x-ref="content">
