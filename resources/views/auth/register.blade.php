@@ -27,14 +27,21 @@
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
-        <div class="flex flex-col items-center justify-center gap-2 mt-2">
+        <div class="flex flex-col gap-2">
+            <div class="cf-turnstile self-center" data-sitekey="{{ config('services.turnstile.site_key') }}" data-action="{{ config('services.turnstile.action') }}"></div>
+            <x-input-error :messages="$errors->get('cf-turnstile-response')" />
+        </div>
+
+        <div class="flex flex-col align-center justify-center gap-2 mt-2">
             <button class="btn btn-primary cursor-pointer">
                 {{ __('Register') }}
             </button>
-            <a class="text-sm text-gray-600 underline rounded-md hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            <a class="self-center text-sm text-gray-600 underline rounded-md hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 href="{{ route('login') }}">
                 {{ __('Already registered?') }}
             </a>
         </div>
     </form>
+
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </x-guest-layout>
