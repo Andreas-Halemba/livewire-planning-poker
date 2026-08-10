@@ -38,3 +38,4 @@ opencode.json
 .mcp.json
 .env.reverb
 build-docker-images.sh
+.phpactor.json
