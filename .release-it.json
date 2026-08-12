@@ -14,7 +14,7 @@
         "tokenRef": "GITHUB_TOKEN"
     },
     "hooks": {
-        "before:git:release": "./node_modules/.bin/prettier --write CHANGELOG.md"
+        "before:git:release": "./node_modules/.bin/prettier --write CHANGELOG.md && git add CHANGELOG.md"
     },
     "plugins": {
         "@release-it/bumper": {

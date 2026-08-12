@@ -4,7 +4,7 @@
 
 ### Features
 
-* **auth:** add Cloudflare Turnstile registration protection ([11b4b63](https://github.com/Andreas-Halemba/livewire-planning-poker/commit/11b4b63267bd2f41f96b9e2855e9c913aa9e386b))
+- **auth:** add Cloudflare Turnstile registration protection ([11b4b63](https://github.com/Andreas-Halemba/livewire-planning-poker/commit/11b4b63267bd2f41f96b9e2855e9c913aa9e386b))
 
 All notable changes to this project will be documented in this file.
 
