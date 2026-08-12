@@ -1,0 +1,32 @@
+{
+    "$schema": "https://unpkg.com/release-it@21/schema/release-it.json",
+    "npm": false,
+    "git": {
+        "requireBranch": "main",
+        "requireCleanWorkingDir": true,
+        "commitMessage": "chore(release): v${version}",
+        "tagName": "v${version}",
+        "push": true
+    },
+    "github": {
+        "release": true,
+        "releaseName": "v${version}",
+        "tokenRef": "GITHUB_TOKEN"
+    },
+    "hooks": {
+        "before:git:release": "./node_modules/.bin/prettier --write CHANGELOG.md"
+    },
+    "plugins": {
+        "@release-it/bumper": {
+            "in": "composer.json",
+            "out": "composer.json"
+        },
+        "@release-it/conventional-changelog": {
+            "infile": "CHANGELOG.md",
+            "header": "# Changelog",
+            "preset": {
+                "name": "conventionalcommits"
+            }
+        }
+    }
+}

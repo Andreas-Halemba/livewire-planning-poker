@@ -28,7 +28,8 @@
         </div>
 
         <div class="flex flex-col gap-2">
-            <div class="cf-turnstile self-center" data-sitekey="{{ config('services.turnstile.site_key') }}" data-action="{{ config('services.turnstile.action') }}"></div>
+            <div class="cf-turnstile self-center" data-sitekey="{{ config('services.turnstile.site_key') }}"
+                data-action="{{ config('services.turnstile.action') }}"></div>
             <x-input-error :messages="$errors->get('cf-turnstile-response')" />
         </div>
 
