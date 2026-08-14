@@ -21,18 +21,23 @@
                 "conditions": []
             },
             {
-                "action": "php vendor/bin/pint --test",
+                "action": "php vendor/bin/pint --test --dirty",
                 "options": [],
                 "conditions": []
             },
             {
-                "action": "php artisan test",
+                "action": "php artisan test --parallel",
                 "options": [],
                 "conditions": []
             },
             {
-                "action": "./node_modules/.bin/prettier --check .",
-                "options": []
+                "action": "npm exec -- prettier --write --ignore-unknown",
+                "options": {
+                    "files": {
+                        "staged": true,
+                        "of-type": ["js", "vue", "blade.php"]
+                    }
+                }
             }
         ]
     },
