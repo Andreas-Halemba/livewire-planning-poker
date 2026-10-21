@@ -66,7 +66,7 @@
     # ---------------------------------------------------------------------------
     # Stage 4: PHP-FPM (application server)
     # ---------------------------------------------------------------------------
-    FROM php:8.4-fpm AS app
+    FROM php:8.4.27-fpm AS app
 
     # Install system dependencies
     RUN apt-get update && apt-get install -y --no-install-recommends \
