@@ -27,10 +27,19 @@ ecosystem.config.js
 test-reports/
 # Added by ggshield
 .cache_ggshield
-.cursor/
+.cursor/*
+!.cursor/skills/
+.cursor/skills/*
+!.cursor/skills/dev-services
 .junie/
-.agents/
-.claude/
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/dev-services/
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/dev-services
 .opencode/
 AGENTS.md
 CLAUDE.md
