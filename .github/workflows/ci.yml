@@ -43,6 +43,9 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-composer-
 
+            - name: Ensure .env file exists for phpdotenv
+              run: touch .env
+
             - name: Install Composer dependencies
               run: composer install --prefer-dist --no-interaction --no-progress
 
