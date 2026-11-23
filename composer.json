@@ -9,7 +9,7 @@
         "laravel"
     ],
     "require": {
-        "php": "^8.4",
+        "php": "^8.5",
         "blade-ui-kit/blade-icons": "^1.10.0",
         "codeat3/blade-clarity-icons": "^1.11",
         "guzzlehttp/guzzle": "^7.11.1",

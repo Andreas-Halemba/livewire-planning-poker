@@ -39,7 +39,7 @@ Container images are built from the root [`Dockerfile`](Dockerfile) and publishe
 
 ## Local development (Laravel Herd)
 
-Use **[Laravel Herd](https://herd.laravel.com/)** for local development (macOS / Windows). This repo includes a root **`herd.yml`** so the team can align on PHP **8.4**, **HTTPS** (`secured: true`), and **Herd Pro** services: **MySQL**, **Redis**, and **Laravel Reverb**.
+Use **[Laravel Herd](https://herd.laravel.com/)** for local development (macOS / Windows). This repo includes a root **`herd.yml`** so the team can align on PHP **8.5**, **HTTPS** (`secured: true`), and **Herd Pro** services: **MySQL**, **Redis**, and **Laravel Reverb**.
 
 1. Install Herd and (for databases / Reverb / Redis from the manifest) **Herd Pro**.
 2. Clone the project and from the project root run **`herd init`** — it applies `herd.yml` (PHP version, secure site, service versions/ports). If `.env` is missing, copy `.env.example` when prompted.
