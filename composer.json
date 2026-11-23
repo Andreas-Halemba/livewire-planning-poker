@@ -9,11 +9,11 @@
         "laravel"
     ],
     "require": {
-        "php": "^8.4",
+        "php": "^8.5",
         "blade-ui-kit/blade-icons": "^1.10.0",
         "codeat3/blade-clarity-icons": "^1.11",
-        "guzzlehttp/guzzle": "^7.11.1",
-        "inspector-apm/inspector-laravel": "^4.19.3",
+        "guzzlehttp/guzzle": "^8.0",
+        "inspector-apm/inspector-laravel": "^5.0",
         "inspector-apm/inspector-php": "^3.17.1",
         "laravel/framework": "^13.15",
         "laravel/pulse": "^1.7.4",
@@ -38,8 +38,8 @@
         "laravel/sail": "^1.62.0",
         "mockery/mockery": "^1.6.12",
         "nunomaduro/collision": "^8.9.4",
-        "pestphp/pest": "^4.7.3",
-        "pestphp/pest-plugin-laravel": "^4.1",
+        "pestphp/pest": "^5.0",
+        "pestphp/pest-plugin-laravel": "^5.0",
         "spatie/laravel-ignition": "^2.12.0",
         "spatie/laravel-ray": "^1.43.9"
     },
@@ -59,10 +59,10 @@
     },
     "config": {
         "allow-plugins": {
-            "pestphp/pest-plugin": true,
-            "php-http/discovery": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
             "ergebnis/composer-normalize": true,
-            "dealerdirect/phpcodesniffer-composer-installer": true
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
         },
         "optimize-autoloader": true,
         "preferred-install": "dist",

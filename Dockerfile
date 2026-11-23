@@ -66,7 +66,7 @@
     # ---------------------------------------------------------------------------
     # Stage 4: PHP-FPM (application server)
     # ---------------------------------------------------------------------------
-    FROM php:8.4.27-fpm AS app
+    FROM php:8.5.13-fpm AS app
 
     # Install system dependencies
     RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -95,8 +95,7 @@
             pcntl \
             sockets \
             exif \
-            bcmath \
-            opcache
+            bcmath
 
     # Redis extension
     RUN pecl install redis && docker-php-ext-enable redis

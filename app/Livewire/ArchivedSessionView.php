@@ -7,14 +7,11 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
-use Inspector\Laravel\InspectorLivewire;
 use Livewire\Component;
 use Livewire\Features\SupportRedirects\Redirector as LivewireRedirector;
 
 class ArchivedSessionView extends Component
 {
-    use InspectorLivewire;
-
     public Session $session;
 
     public bool $isOwner = false;

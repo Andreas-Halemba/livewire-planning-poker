@@ -6,13 +6,11 @@ use App\Models\Session;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Str;
-use Inspector\Laravel\InspectorLivewire;
 use Livewire\Component;
 
 class CreateSession extends Component
 {
     use AuthorizesRequests;
-    use InspectorLivewire;
 
     public string $sessionName = '';
 

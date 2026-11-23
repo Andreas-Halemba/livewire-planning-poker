@@ -27,7 +27,7 @@ jobs:
             - name: Setup PHP
               uses: shivammathur/setup-php@v2
               with:
-                  php-version: '8.4'
+                  php-version: '8.5'
                   extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
                   coverage: none
 
@@ -43,13 +43,16 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-composer-
 
+            - name: Ensure .env file exists for phpdotenv
+              run: touch .env
+
             - name: Install Composer dependencies
               run: composer install --prefer-dist --no-interaction --no-progress
 
             - name: Setup Node
               uses: actions/setup-node@v6
               with:
-                  node-version: '22'
+                  node-version: '24'
                   cache: npm
 
             - name: Install npm dependencies and build assets

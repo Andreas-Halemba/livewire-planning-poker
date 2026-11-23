@@ -7,7 +7,7 @@ This app uses a **multi-stage** [`Dockerfile`](Dockerfile):
 | `node-builder`     | `npm ci` + `vite build` (needs `VITE_*` build args for production) |
 | `composer-builder` | `composer install --no-dev`                                        |
 | `nginx`            | Serves `public/` + built assets; proxies PHP to the `app` service  |
-| `app`              | PHP 8.4-FPM (default final image if you do not pass `--target`)    |
+| `app`              | PHP 8.5-FPM (default final image if you do not pass `--target`)    |
 
 `VITE_REVERB_*` values are **compiled into the JavaScript bundle** at image build time. They must match the public Reverb URL users will use in the browser (same values you would put in production `.env` for `VITE_REVERB_*`). Runtime `.env` on the server does **not** change already-built assets inside the image.
 
